@@ -1,0 +1,11 @@
+const express = require("express");
+const router = express.Router({ mergeParams: true });
+const controller = require("../../controllers/client/group-exam.controller");
+const auth = require("../../middlewares/auth.middleware");
+router.use(auth.requireAuth, controller.requireOwner);
+router.get("/manage", controller.index);
+router.get("/questions", controller.questions);
+router.post("/create", controller.create);
+router.patch("/:examId", controller.update);
+router.delete("/:examId", controller.remove);
+module.exports = router;

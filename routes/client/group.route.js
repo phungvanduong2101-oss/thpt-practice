@@ -56,6 +56,8 @@ router.post(
 
 router.use("/:id/questions", require("./group-question.route"));
 
+router.use("/:id/exams", require("./group-exam.route"));
+
 router.get("/:id", groupController.detail);
 
 module.exports = router;
