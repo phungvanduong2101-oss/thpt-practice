@@ -357,13 +357,27 @@ module.exports.result = async (req, res, next) => {
     const attempt = await Attempt.findOne({
       _id: attemptId,
       accountId: req.account._id,
+      status: "submitted",
     }).lean();
 
     if (!attempt) {
       return res.status(404).send("Không tìm thấy bài làm!");
     }
 
+    let groupId = attempt.groupId;
+    if (!groupId) {
+      const sourceExam = await Exam.findById(attempt.examId).select("groupId").lean();
+      if (sourceExam) groupId = sourceExam.groupId;
+    }
+    let listUrl = "/exams";
+    let retryUrl = "/exams/" + attempt.examId;
+    if (groupId) {
+      listUrl = "/groups/" + groupId + "/exams";
+      retryUrl = listUrl + "/" + attempt.examId + "/take";
+    }
     return res.render("client/exam-result", {
+      listUrl,
+      retryUrl,
       title: "Kết quả bài làm",
       activePage: "exams",
       attempt,
@@ -436,6 +450,7 @@ module.exports.start = async (req, res, next) => {
     const attempt = await Attempt.create({
       accountId: req.account._id,
       examId: exam._id,
+      subjectId: exam.subjectId._id,
       examTitle: exam.title,
       duration: exam.duration,
       status: "in_progress",

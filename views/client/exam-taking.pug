@@ -19,6 +19,8 @@ block content
   .exam-taking-main(
     data-exam-id=exam._id
     data-duration=exam.duration
+    data-start-url=typeof startUrl !== "undefined" ? startUrl : "/exams/" + exam._id + "/start"
+    data-exam-version=typeof examVersion !== "undefined" ? examVersion : ""
   )
     section.et-hero(aria-labelledby="etExamTitle")
       .container.et-hero__inner
@@ -254,7 +256,7 @@ block content
           span.et-result-stat__label Câu đã trả lời
 
       .et-result-actions
-        a.et-result-btn.et-result-btn--secondary(href="/exams")
+        a.et-result-btn.et-result-btn--secondary(href=typeof listUrl !== "undefined" ? listUrl : "/exams")
           | Danh sách đề
         a#etBtnViewAnswers.et-result-btn.et-result-btn--secondary(
             href=""

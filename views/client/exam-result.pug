@@ -74,10 +74,10 @@ block content
               | Xem lại câu trả lời, đáp án đúng và lời giải.
 
           .er-heading-actions
-            a.er-button.er-button--secondary(href="/exams")
+            a.er-button.er-button--secondary(href=listUrl)
               | Danh sách đề
             a.er-button.er-button--primary(
-              href="/exams/" + attempt.examId
+              href=retryUrl
             ) Làm lại
 
         section.er-stats(aria-label="Thống kê kết quả")
@@ -251,11 +251,11 @@ block content
             | Câu Đúng/Sai được tính đúng cả câu khi trả lời đúng tất cả mệnh đề.
 
           a.er-button.er-button--primary.er-button--full(
-            href="/exams/" + attempt.examId
+            href=retryUrl
           ) Làm lại đề này
 
           a.er-button.er-button--secondary.er-button--full(
-            href="/exams"
+            href=listUrl
           ) Quay lại danh sách đề
 
 block scripts

@@ -208,11 +208,13 @@
     startButton.textContent = 'Đang tạo bài làm...';
     setError();
 
-    fetch(`/exams/${encodeURIComponent(examId)}/start`, {
+    fetch(root.dataset.startUrl || `/exams/${encodeURIComponent(examId)}/start`, {
       method: 'POST',
       headers: {
         Accept: 'application/json',
+        'Content-Type': 'application/json',
       },
+      body: JSON.stringify({ examVersion: root.dataset.examVersion || '' }),
     })
       .then(response => {
         if (response.redirected || response.status === 401) {

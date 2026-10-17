@@ -139,6 +139,20 @@ const attemptSchema = new Schema(
       index: true,
     },
 
+    // Giữ môn và nhóm để tra lịch sử độc lập với đề gốc.
+    subjectId: {
+      type: Schema.Types.ObjectId,
+      ref: "Subject",
+      index: true,
+    },
+
+    groupId: {
+      type: Schema.Types.ObjectId,
+      ref: "Group",
+      default: null,
+      index: true,
+    },
+
     // Giữ tên đề tại thời điểm bắt đầu.
     examTitle: {
       type: String,
