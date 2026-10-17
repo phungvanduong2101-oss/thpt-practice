@@ -132,9 +132,24 @@ header.site-header
           )
             i(data-lucide="bell" aria-hidden="true")
 
-          #notificationPanel.utility-popover(hidden)
-            strong Thông báo
-            p.helper-text Chức năng thông báo đang được hoàn thiện.
+            span#notificationCount.notification-count(hidden)
+              | 0
+
+          #notificationPanel.utility-popover.notification-panel(hidden)
+            .notification-panel-heading
+              strong Thông báo
+
+              span#notificationConnection.notification-connection(
+                role="status"
+              ) Đang kết nối...
+
+            p#notificationError.notification-error(
+              role="alert"
+              hidden
+            )
+
+            #notificationList.notification-list
+              p.notification-empty Đang tải thông báo...
 
         //- Tài khoản
         .action-wrap.account-wrap

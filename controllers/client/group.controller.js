@@ -396,7 +396,6 @@ module.exports.approveMember = async (req, res, next) => {
   try {
     const { id, accountId } = req.params;
 
-    // Kiểm tra quyền và trạng thái yêu cầu ngay trong thao tác cập nhật.
     const group = await Group.findOneAndUpdate(
       {
         _id: id,
@@ -413,12 +412,24 @@ module.exports.approveMember = async (req, res, next) => {
         },
       },
       { new: true }
-    ).select("_id");
+    ).select("_id name");
 
     if (!group) {
       return res.status(409).send(
         "Không thể duyệt. Kiểm tra quyền quản lý, trạng thái nhóm hoặc yêu cầu đã bị hủy."
       );
+    }
+
+    try {
+      await notificationService.send(req.app.get("io"), {
+        recipientId: accountId,
+        senderId: req.account._id,
+        type: "group_join_approved",
+        content: `Bạn đã được duyệt tham gia nhóm "${group.name}".`,
+        link: `/groups/${group._id}`,
+      });
+    } catch (error) {
+      console.error("Không gửi được thông báo duyệt thành viên:", error);
     }
 
     return res.redirect(
@@ -427,7 +438,9 @@ module.exports.approveMember = async (req, res, next) => {
     );
   } catch (error) {
     if (error.name === "CastError") {
-      return res.status(400).send("ID nhóm hoặc tài khoản không hợp lệ.");
+      return res.status(400).send(
+        "ID nhóm hoặc tài khoản không hợp lệ."
+      );
     }
 
     return next(error);
