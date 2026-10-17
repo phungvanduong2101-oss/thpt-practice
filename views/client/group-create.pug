@@ -28,10 +28,6 @@ block content
         if error
           .gc-error(role="alert")= error
 
-        if !subjects.length
-          .gc-notice
-            | Chưa có môn học đang hoạt động. Vui lòng quay lại sau.
-
         form.gc-form(action="/groups/create" method="POST")
           .gc-field
             label(for="groupName")
@@ -49,28 +45,7 @@ block content
 
             small Đặt tên rõ ràng để mọi người dễ tìm thấy nhóm.
 
-          .gc-field
-            label(for="groupSubject")
-              | Môn học
-              span.gc-required  *
-
-            select#groupSubject(
-              name="subjectId"
-              required
-              disabled=!subjects.length
-            )
-              option(
-                value=""
-                disabled
-                selected=!formData.subjectId
-              ) Chọn môn học
-
-              each subject in subjects
-                option(
-                  value=subject._id
-                  selected=formData.subjectId === String(subject._id)
-                )= subject.name
-
+          
           .gc-field
             label(for="groupDescription") Mô tả nhóm
 
@@ -102,7 +77,7 @@ block content
 
             button.gc-button.gc-button--primary(
               type="submit"
-              disabled=!subjects.length
+           
             )
               i(data-lucide="plus" aria-hidden="true")
               span Tạo nhóm

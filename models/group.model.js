@@ -18,13 +18,6 @@ const groupSchema = new Schema(
       maxlength: 1000,
     },
 
-    subjectId: {
-      type: Schema.Types.ObjectId,
-      ref: "Subject",
-      required: true,
-      index: true,
-    },
-
     ownerId: {
       type: Schema.Types.ObjectId,
       ref: "Account",

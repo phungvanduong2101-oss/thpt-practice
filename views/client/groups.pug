@@ -9,7 +9,6 @@ block content
     const makePageUrl = page => {
       const params = new URLSearchParams({
         keyword,
-        subjectId,
         status,
         acceptingMembers,
         page: String(page),
@@ -66,17 +65,7 @@ block content
           label.sr-only(for="filterGroupSubject")
             | Lọc theo môn học
 
-          select#filterGroupSubject.group-select(name="subjectId")
-            option(
-              value=""
-              selected=subjectId === ""
-            ) Tất cả môn học
-
-            each subject in subjects
-              option(
-                value=subject._id
-                selected=subjectId === String(subject._id)
-              )= subject.name
+          
 
           i.group-select-chevron(
             data-lucide="chevron-down"
@@ -169,9 +158,6 @@ block content
                   th.group-th.group-th--name(scope="col")
                     | Tên nhóm
 
-                  th.group-th.group-th--subject(scope="col")
-                    | Môn học
-
                   th.group-th(scope="col")
                     | Trưởng nhóm
 
@@ -198,16 +184,6 @@ block content
                       )
                         strong= group.name
 
-                    td
-                      .group-cell-scroll(
-                        tabindex="0"
-                        role="region"
-                        aria-label="Môn học"
-                      )
-                        if group.subjectId
-                          = group.subjectId.name
-                        else
-                          | Môn học không còn tồn tại
 
                     td
                       .group-cell-scroll(

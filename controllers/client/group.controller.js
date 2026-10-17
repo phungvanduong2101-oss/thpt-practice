@@ -1,10 +1,8 @@
 const Group = require("../../models/group.model");
-const Subject = require("../../models/subject.model");
 
 module.exports.index = async (req, res, next) => {
   try {
     let keyword = "";
-    let subjectId = "";
     let status = "";
     let acceptingMembers = "";
 
@@ -28,21 +26,7 @@ module.exports.index = async (req, res, next) => {
       acceptingMembers = "false";
     }
 
-    const subjects = await Subject.find({})
-      .select("name")
-      .sort({ name: 1 })
-      .lean();
 
-    // Chỉ nhận ID môn có trong hệ thống.
-    if (typeof req.query.subjectId === "string") {
-      const selectedSubject = subjects.find(subject => {
-        return String(subject._id) === req.query.subjectId;
-      });
-
-      if (selectedSubject) {
-        subjectId = String(selectedSubject._id);
-      }
-    }
 
     const filter = {};
 
@@ -58,9 +42,6 @@ module.exports.index = async (req, res, next) => {
       };
     }
 
-    if (subjectId) {
-      filter.subjectId = subjectId;
-    }
 
     if (status) {
       filter.status = status;
@@ -97,9 +78,8 @@ module.exports.index = async (req, res, next) => {
 
     const groups = await Group.find(filter)
       .select(
-        "name description subjectId ownerId memberIds status acceptingMembers"
+        "name description  ownerId memberIds status acceptingMembers"
       )
-      .populate("subjectId", "name")
       .populate("ownerId", "fullName")
       .sort({ createdAt: -1, _id: -1 })
       .skip(skip)
@@ -119,10 +99,8 @@ module.exports.index = async (req, res, next) => {
       activePage: "groups",
 
       groups,
-      subjects,
 
       keyword,
-      subjectId,
       status,
       acceptingMembers,
 
@@ -139,20 +117,15 @@ module.exports.index = async (req, res, next) => {
 
 module.exports.create = async (req, res, next) => {
   try {
-    const subjects = await Subject.find({ active: true })
-      .select("name")
-      .sort({ name: 1 })
-      .lean();
+
 
     return res.render("client/group-create", {
       title: "Tạo nhóm học tập",
       activePage: "groups",
-      subjects,
       error: "",
       formData: {
         name: "",
         description: "",
-        subjectId: "",
         acceptingMembers: true,
       },
     });
@@ -166,7 +139,6 @@ module.exports.createPost = async (req, res, next) => {
     const formData = {
       name: "",
       description: "",
-      subjectId: "",
       acceptingMembers: false,
     };
 
@@ -176,20 +148,13 @@ module.exports.createPost = async (req, res, next) => {
 
     if (typeof req.body.description === "string") {
       formData.description = req.body.description.trim();
-    }
-
-    if (typeof req.body.subjectId === "string") {
-      formData.subjectId = req.body.subjectId;
-    }
+    }  
 
     if (req.body.acceptingMembers === "true") {
       formData.acceptingMembers = true;
     }
 
-    const subjects = await Subject.find({ active: true })
-      .select("name")
-      .sort({ name: 1 })
-      .lean();
+
 
     let error = "";
 
@@ -197,21 +162,12 @@ module.exports.createPost = async (req, res, next) => {
       error = "Tên nhóm phải có từ 1 đến 100 ký tự.";
     } else if (formData.description.length > 1000) {
       error = "Mô tả không được vượt quá 1.000 ký tự.";
-    } else {
-      const subject = subjects.find(item => {
-        return String(item._id) === formData.subjectId;
-      });
-
-      if (!subject) {
-        error = "Vui lòng chọn môn học đang hoạt động.";
-      }
     }
 
     if (error) {
       return res.status(400).render("client/group-create", {
         title: "Tạo nhóm học tập",
         activePage: "groups",
-        subjects,
         error,
         formData,
       });
@@ -220,7 +176,6 @@ module.exports.createPost = async (req, res, next) => {
     await Group.create({
       name: formData.name,
       description: formData.description,
-      subjectId: formData.subjectId,
       acceptingMembers: formData.acceptingMembers,
 
       ownerId: req.account._id,
@@ -238,7 +193,6 @@ module.exports.createPost = async (req, res, next) => {
 module.exports.detail = async (req, res, next) => {
   try {
     const group = await Group.findById(req.params.id)
-      .populate("subjectId", "name")
       .populate("ownerId", "fullName")
       .lean();
 
@@ -379,7 +333,6 @@ module.exports.cancelJoin = async (req, res, next) => {
 module.exports.manage = async (req, res, next) => {
   try {
     const group = await Group.findById(req.params.id)
-      .populate("subjectId", "name")
       .populate("memberIds", "fullName")
       .populate("pendingMemberIds", "fullName")
       .lean();

@@ -263,4 +263,8 @@
     grid-template-columns: 110px minmax(0, 1fr);
     gap: 12px;
   }
+} 
+
+.gd-join-card > .gd-button {
+  margin-top: 12px;
 }

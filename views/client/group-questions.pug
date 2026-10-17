@@ -1,0 +1,462 @@
+extends layouts/default.pug
+
+block styles
+  link(
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css"
+  )
+  link(
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css"
+  )
+
+  link(rel="stylesheet" href="/client/css/group-questions.css")
+
+block content
+  include ../admin/partials/icons.pug
+
+  .group-question-page.container
+    a.group-questions-back(href="/groups/" + group._id) ← Chi tiết nhóm
+    - const typeLabels = { mcq: "Trắc nghiệm ABCD", truefalse: "Đúng / Sai", fill: "Điền đáp số" };
+    - const bloomLabels = ["", "Nhớ", "Hiểu", "Vận dụng", "Phân tích", "Đánh giá", "Sáng tạo"];
+
+    #questionPageData(
+      hidden
+      data-base-url="/groups/" + group._id + "/questions"
+      data-subject-id=String(group.subjectId)
+      data-bootstrap=JSON.stringify({ subjects, topics, questions })
+    )
+
+    .question-main
+      .page-heading.question-heading
+        div
+          .eyebrow
+            svg.icon
+              use(href="#i-help")
+            |  NGÂN HÀNG NỘI DUNG
+          h1= "Câu hỏi · " + group.name
+          p Soạn câu hỏi riêng của nhóm theo chuyên đề và thang Bloom.
+
+        button#newQuestionButton.button.button--primary(type="button")
+          svg.icon
+            use(href="#i-plus")
+          |  Tạo câu hỏi mới
+
+      section.stats-grid.question-stats(aria-label="Thống kê câu hỏi")
+        .stat-card
+          span.stat-card__icon.stat-card__icon--blue
+            svg.icon
+              use(href="#i-help")
+          div
+            span.stat-card__label Tổng câu hỏi
+            strong#statTotal= totalQuestions
+            span.stat-card__note Trong ngân hàng
+
+        .stat-card
+          span.stat-card__icon.stat-card__icon--green
+            svg.icon
+              use(href="#i-check")
+          div
+            span.stat-card__label Đã xuất bản
+            strong#statPublished= publishedQuestions
+            span.stat-card__note Sẵn sàng đưa vào đề
+
+        .stat-card
+          span.stat-card__icon.stat-card__icon--violet
+            svg.icon
+              use(href="#i-layers")
+          div
+            span.stat-card__label Chuyên đề có câu hỏi
+            strong#statTopics= topicsWithQuestions
+            span.stat-card__note Phân loại theo môn học
+
+      .questions-layout
+        section.panel.question-list-panel(aria-labelledby="bankTitle")
+          .panel-header
+            div
+              h2#bankTitle
+                | Ngân hàng câu hỏi 
+                span#questionCount.count-chip= totalItems
+              p Tìm, lọc và chỉnh sửa các câu hỏi hiện có.
+
+          form#questionFilterForm.question-toolbar(
+            action="/groups/" + group._id + "/questions"
+            method="GET"
+          )
+            label.question-search
+              svg.icon
+                use(href="#i-search")
+              span.sr-only Tìm câu hỏi
+              input#searchInput(
+                name="keyword"
+                type="search"
+                value=keyword
+                placeholder="Tìm nội dung câu hỏi..."
+                autocomplete="off"
+              )
+
+            .question-filters
+              label
+                span.sr-only Lọc môn học
+                select#subjectFilter(name="subjectId")
+                  option(
+                    value="all"
+                    selected=subjectId === "all"
+                  ) Tất cả môn học
+
+                  each subject in subjects
+                    option(
+                      value=subject._id
+                      selected=String(subject._id) === subjectId
+                    )= subject.name
+
+              label
+                span.sr-only Lọc chuyên đề
+                select#topicFilter(name="topicId")
+                  option(
+                    value="all"
+                    selected=topicId === "all"
+                  ) Tất cả chuyên đề
+
+                  each topic in filteredTopics
+                    option(
+                      value=topic._id
+                      selected=String(topic._id) === topicId
+                    )= topic.name
+
+              label
+                span.sr-only Lọc dạng câu
+                select#typeFilter(name="type")
+                  option(
+                    value="all"
+                    selected=type === "all"
+                  ) Tất cả dạng
+
+                  each typeLabel, typeValue in typeLabels
+                    option(
+                      value=typeValue
+                      selected=type === typeValue
+                    )= typeLabel
+
+              label
+                span.sr-only Lọc Bloom
+                select#bloomFilter(name="bloomLevel")
+                  option(
+                    value="all"
+                    selected=bloomLevel === "all"
+                  ) Mọi mức Bloom
+
+                  each bloomLabel, level in bloomLabels
+                    if level > 0
+                      option(
+                        value=level
+                        selected=String(level) === bloomLevel
+                      )= level + " · " + bloomLabel
+
+            .form-actions
+              button.button.button--primary(type="submit") Tìm kiếm
+              a.button.button--secondary(href="/groups/" + group._id + "/questions") Đặt lại
+
+          #questionList.question-list(aria-live="polite")
+            each question, index in questions
+              article.question-entry(data-id=question._id)
+                span.question-number= startItem + index
+
+                .question-entry__body
+                  .question-entry__title
+                    = question.contentText || "Câu hỏi có nội dung định dạng"
+
+                  .question-entry__meta
+                    span.question-pill.question-pill--subject
+                      = question.subjectId ? question.subjectId.name : "Môn không còn tồn tại"
+
+                    span.question-pill.question-pill--type
+                      = typeLabels[question.type]
+
+                    span.question-pill.question-pill--bloom
+                      | Bloom #{question.bloomLevel} · #{bloomLabels[question.bloomLevel]}
+
+                    span.question-pill(
+                      class=question.published ? "question-pill--published" : "question-pill--draft"
+                    )= question.published ? "Đã xuất bản" : "Bản nháp"
+
+                  .question-entry__topic
+                    = question.topicId ? question.topicId.name : "Chuyên đề không còn tồn tại"
+
+                .question-entry__actions
+                  button.question-mini-action(
+                    type="button"
+                    data-action="preview"
+                    title="Xem trước"
+                    aria-label="Xem trước câu hỏi"
+                  )
+                    svg.icon
+                      use(href="#i-search")
+
+                  button.question-mini-action(
+                    type="button"
+                    data-action="edit"
+                    title="Sửa câu hỏi"
+                    aria-label="Sửa câu hỏi"
+                  )
+                    svg.icon
+                      use(href="#i-edit")
+
+                  button.question-mini-action.danger(
+                    type="button"
+                    data-action="delete"
+                    title="Xóa câu hỏi"
+                    aria-label="Xóa câu hỏi"
+                  )
+                    svg.icon
+                      use(href="#i-trash")
+
+          #emptyState.question-empty(hidden=totalItems > 0)
+            svg.icon
+              use(href="#i-search")
+            strong Không tìm thấy câu hỏi
+            p Đổi bộ lọc hoặc tạo câu hỏi mới ở khung bên phải.
+
+          .table-footer
+            span#paginationSummary
+              | Hiển thị #{startItem}–#{endItem} / #{totalItems} câu hỏi
+              |  · Trang #{currentPage}/#{totalPages}
+
+            nav#pagination.pagination(aria-label="Phân trang câu hỏi")
+              if currentPage > 1
+                a.page-button(
+                  href=pageUrl(currentPage - 1)
+                  aria-label="Trang trước"
+                )
+                  svg.icon
+                    use(href="#i-left")
+
+              each pageNumber in Array.from({ length: totalPages }, (_, index) => index + 1)
+                if pageNumber === 1 || pageNumber === totalPages || Math.abs(pageNumber - currentPage) <= 2
+                  a.page-button(
+                    href=pageUrl(pageNumber)
+                    class=pageNumber === currentPage ? "is-active" : ""
+                    aria-current=pageNumber === currentPage ? "page" : false
+                    aria-label="Trang " + pageNumber
+                  )= pageNumber
+                else if pageNumber === currentPage - 3 || pageNumber === currentPage + 3
+                  span(aria-hidden="true") …
+
+              if currentPage < totalPages
+                a.page-button(
+                  href=pageUrl(currentPage + 1)
+                  aria-label="Trang tiếp"
+                )
+                  svg.icon
+                    use(href="#i-chevron")
+
+        section#editorPanel.panel.question-editor-panel(
+          aria-labelledby="formTitle"
+        )
+          .panel-header.question-editor-header
+            div
+              .form-panel__eyebrow BIÊN TẬP NỘI DUNG
+              h2#formTitle Tạo câu hỏi mới
+              p
+                | Hỗ trợ công thức LaTeX tại nút 
+                b ƒx
+                |  trên thanh công cụ.
+
+            span.form-header-icon
+              svg.icon
+                use(href="#i-edit")
+
+          #editorOfflineNote.editor-offline-note(hidden)
+            | Không tải được Quill/KaTeX. Trình soạn thảo đang dùng chế độ văn bản dự phòng.
+
+          form#questionForm(novalidate)
+            .editor-section-title
+              span 01
+              |  Phân loại câu hỏi
+
+            .question-field-grid
+              .field
+                label(for="questionSubject")
+                  | Môn học 
+                  em *
+
+                select#questionSubject(name="subjectId" required)
+                  option(value="") Chọn môn học
+                  each subject in subjects
+                    option(value=subject._id)
+                      = subject.name + (subject.active ? "" : " (Đã ẩn)")
+
+              .field
+                label(for="questionTopic")
+                  | Chuyên đề 
+                  em *
+
+                select#questionTopic(
+                  name="topicId"
+                  required
+                  disabled
+                )
+                  option(value="") Chọn chuyên đề
+
+              .field
+                label(for="questionType")
+                  | Loại câu hỏi 
+                  em *
+
+                select#questionType(name="type")
+                  option(value="mcq") Trắc nghiệm ABCD
+                  option(value="truefalse") Đúng / Sai (4 mệnh đề)
+                  option(value="fill") Điền đáp số
+
+              .field
+                label(for="questionBloom")
+                  | Mức độ Bloom 
+                  em *
+
+                select#questionBloom(name="bloomLevel")
+                  each bloomLabel, level in bloomLabels
+                    if level > 0
+                      option(
+                        value=level
+                        selected=level === 3
+                      )= level + " · " + bloomLabel
+
+            .field
+              label(for="questionStatus") Trạng thái
+              select#questionStatus(name="status")
+                option(value="published") Đã xuất bản
+                option(value="draft") Bản nháp
+
+            .editor-section-title
+              span 02
+              |  Nội dung câu hỏi 
+              em *
+
+            #questionContent.rich-editor.rich-editor--main(
+              aria-label="Soạn nội dung câu hỏi"
+            )
+
+            small.question-hint
+              | Chọn 
+              b ƒx
+              |  để nhập công thức LaTeX, ví dụ: 
+              code x^2+2x+1
+              | , 
+              code \frac{a}{b}
+              | , 
+              code \sqrt{x}
+              | .
+
+            .editor-section-title
+              span 03
+              |  Phương án trả lời và đáp án
+
+            #mcqAnswers.answer-section
+              .answer-section__intro
+                | Soạn 4 lựa chọn, sau đó đánh dấu 
+                b một đáp án đúng
+                | .
+              #mcqOptions.option-editors
+
+            #tfAnswers.answer-section(hidden)
+              .answer-section__intro
+                | Nhập bốn mệnh đề a, b, c, d. Chọn 
+                b Đúng hoặc Sai riêng cho từng ý
+                | .
+              #tfOptions.option-editors
+
+            #fillAnswers.answer-section(hidden)
+              .field
+                label(for="fillCorrectAnswer")
+                  | Đáp án đúng 
+                  em *
+
+                input#fillCorrectAnswer(
+                  type="text"
+                  placeholder="Ví dụ: 2.5"
+                  autocomplete="off"
+                )
+
+                small.field-hint
+                  | Nhiều đáp án hợp lệ ngăn cách bằng dấu |. Ví dụ: 0.5 | 1/2
+
+            .editor-section-title
+              span 04
+              |  Lời giải / giải thích 
+              small (không bắt buộc)
+
+            #questionExplanation.rich-editor.rich-editor--explanation(
+              aria-label="Soạn lời giải"
+            )
+
+            #formError.question-form-error(role="alert" hidden)
+
+            .question-form-actions
+              button#resetButton.button.button--secondary(type="button")
+                | Làm mới
+
+              button#previewButton.button.button--secondary(type="button")
+                svg.icon
+                  use(href="#i-search")
+                |  Xem trước
+
+              button#saveButton.button.button--primary(type="submit")
+                svg.icon
+                  use(href="#i-save")
+                span#saveButtonText Lưu câu hỏi
+
+    #previewModal.modal-overlay.question-modal(hidden)
+      section.dialog.question-dialog(
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="previewTitle"
+      )
+        .question-modal-heading
+          div
+            span XEM TRƯỚC CÂU HỎI VÀ ĐÁP ÁN
+            h2#previewTitle Nội dung câu hỏi
+
+          button#closePreview.question-icon-button(
+            type="button"
+            aria-label="Đóng xem trước"
+          )
+            svg.icon
+              use(href="#i-x")
+
+        #previewBody.preview-body
+
+        .dialog__actions
+          button#donePreview.button.button--primary(type="button")
+            | Đóng xem trước
+
+    #deleteModal.modal-overlay(hidden)
+      section.dialog(
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="deleteTitle"
+        aria-describedby="deleteDescription"
+      )
+        .dialog__symbol
+          svg.icon
+            use(href="#i-trash")
+
+        h2#deleteTitle Xóa câu hỏi?
+        p#deleteDescription Bạn có chắc muốn xóa câu hỏi này?
+
+        .dialog__actions
+          button#cancelDelete.button.button--secondary(type="button") Hủy
+          button#confirmDelete.button.button--danger(type="button")
+            | Xóa câu hỏi
+
+
+
+block scripts
+  script(
+    defer
+    src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"
+  )
+  script(
+    defer
+    src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"
+  )
+  script(src="/client/js/group-questions.js" defer)

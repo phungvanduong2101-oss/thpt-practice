@@ -1,0 +1,101 @@
+.group-table-wrap {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.group-table {
+  display: table;
+  width: 100%;
+  min-width: 1000px;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.group-table tr {
+  display: table-row;
+}
+
+.group-table th,
+.group-table td {
+  display: table-cell;
+  box-sizing: border-box;
+  padding: 16px 14px;
+  vertical-align: top;
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* Tên nhóm */
+.group-table th:nth-child(1),
+.group-table td:nth-child(1) {
+  width: 20%;
+}
+
+/* Trưởng nhóm */
+.group-table th:nth-child(2),
+.group-table td:nth-child(2) {
+  width: 16%;
+}
+
+/* Mô tả */
+.group-table th:nth-child(3),
+.group-table td:nth-child(3) {
+  width: 28%;
+}
+
+/* Thành viên */
+.group-table th:nth-child(4),
+.group-table td:nth-child(4) {
+  width: 10%;
+  text-align: center;
+}
+
+/* Trạng thái */
+.group-table th:nth-child(5),
+.group-table td:nth-child(5) {
+  width: 15%;
+}
+
+/* Hành động */
+.group-table th:nth-child(6),
+.group-table td:nth-child(6) {
+  width: 11%;
+  text-align: center;
+}
+
+.group-cell-scroll {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  max-height: 96px;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.6;
+  scrollbar-width: thin;
+}
+
+.group-cell-scroll--description {
+  max-height: 110px;
+}
+
+.group-cell-scroll small {
+  display: block;
+  margin-top: 4px;
+  color: #64748b;
+}
+
+.group-cell-scroll:focus-visible {
+  outline: 2px solid #0866ff;
+  outline-offset: -2px;
+}
+
+.group-detail-link {
+  box-sizing: border-box;
+  max-width: 100%;
+  padding: 9px 12px;
+  font-size: 13px;
+  white-space: nowrap;
+}

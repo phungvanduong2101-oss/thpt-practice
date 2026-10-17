@@ -54,6 +54,8 @@ router.post(
   groupController.cancelJoin
 );
 
+router.use("/:id/questions", require("./group-question.route"));
+
 router.get("/:id", groupController.detail);
 
 module.exports = router;
