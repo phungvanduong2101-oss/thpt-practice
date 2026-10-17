@@ -1,0 +1,133 @@
+.notification-wrap {
+  position: relative;
+}
+
+.notification-button {
+  position: relative;
+}
+
+#notificationCount {
+  position: absolute;
+  top: -4px;
+  right: -5px;
+  display: grid;
+  place-items: center;
+  min-width: 19px;
+  height: 19px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+#notificationCount[hidden],
+#notificationPanel[hidden],
+#notificationError[hidden] {
+  display: none;
+}
+
+#notificationPanel.notification-panel {
+  box-sizing: border-box;
+  width: 360px;
+  max-width: calc(100vw - 24px);
+  padding: 0;
+  overflow: hidden;
+}
+
+.notification-panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.notification-panel-heading strong {
+  margin: 0;
+  font-size: 15px;
+}
+
+.notification-connection {
+  color: #64748b;
+  font-size: 11px;
+}
+
+.notification-list {
+  max-height: 380px;
+  overflow-y: auto;
+}
+
+#notificationList .notification-item {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 14px 16px;
+  border-bottom: 1px solid #edf0f5;
+  border-radius: 0;
+  color: #334155;
+  text-decoration: none;
+}
+
+#notificationList .notification-item:last-child {
+  border-bottom: 0;
+}
+
+#notificationList .notification-item:hover {
+  background: #f8fafc;
+}
+
+#notificationList .notification-item.is-unread {
+  background: #edf4ff;
+}
+
+#notificationList .notification-item.is-unread:hover {
+  background: #e0edff;
+}
+
+.notification-item-content {
+  font-size: 13px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.notification-item.is-unread .notification-item-content {
+  font-weight: 600;
+}
+
+.notification-item-time {
+  color: #64748b;
+  font-size: 11px;
+}
+
+.notification-empty {
+  margin: 0;
+  padding: 28px 16px;
+  color: #64748b;
+  font-size: 13px;
+  text-align: center;
+}
+
+.notification-error {
+  margin: 12px;
+  padding: 10px;
+  border-radius: 8px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+@media (max-width: 540px) {
+  #notificationPanel.notification-panel {
+    position: fixed;
+    top: 76px;
+    right: 12px;
+    left: 12px;
+    width: auto;
+    max-width: none;
+  }
+}

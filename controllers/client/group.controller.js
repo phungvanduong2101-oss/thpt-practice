@@ -1,5 +1,5 @@
 const Group = require("../../models/group.model");
-
+const notificationService = require("../../services/notification.service");
 module.exports.index = async (req, res, next) => {
   try {
     let keyword = "";
@@ -256,7 +256,6 @@ module.exports.join = async (req, res, next) => {
     const accountId = req.account._id;
     const groupId = req.params.id;
 
-    // Kiểm tra và thêm yêu cầu trong cùng một thao tác.
     const group = await Group.findOneAndUpdate(
       {
         _id: groupId,
@@ -272,7 +271,7 @@ module.exports.join = async (req, res, next) => {
         },
       },
       { new: true }
-    ).select("_id");
+    ).select("_id ownerId name");
 
     if (!group) {
       const existingGroup = await Group.findById(groupId)
@@ -286,6 +285,25 @@ module.exports.join = async (req, res, next) => {
       return res.status(409).send(
         "Không thể gửi yêu cầu. Nhóm đã đóng, bạn đã tham gia hoặc đang chờ duyệt."
       );
+    }
+
+    // Yêu cầu đã lưu thành công; lỗi thông báo không làm hỏng luồng này.
+    try {
+      let senderName = req.account.fullName;
+
+      if (!senderName) {
+        senderName = "Một người dùng";
+      }
+
+      await notificationService.send(req.app.get("io"), {
+        recipientId: group.ownerId,
+        senderId: accountId,
+        type: "group_join_request",
+        content: `${senderName} muốn tham gia nhóm "${group.name}".`,
+        link: `/groups/${group._id}/manage`,
+      });
+    } catch (error) {
+      console.error("Không gửi được thông báo xin vào nhóm:", error);
     }
 
     return res.redirect(

@@ -1,5 +1,6 @@
 require("dotenv").config();
-
+const http = require("http");
+const initSocket = require("./sockets");
 const express = require("express");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
@@ -13,7 +14,10 @@ const authMiddleware = require("./middlewares/auth.middleware");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const server = http.createServer(app);
+const io = initSocket(server);
 
+app.set("io", io);
 // Cấu hình Pug
 app.set("view engine", "pug");
 app.set("views", path.join(__dirname, "views"));
@@ -55,9 +59,8 @@ async function startServer() {
     await mongoose.connect(process.env.MONGO_URI);
     console.log("Đã kết nối MongoDB");
 
-    app.listen(PORT, () => {
-      console.log(`Client: http://localhost:${PORT}`);
-      console.log(`Admin: http://localhost:${PORT}/admin`);
+    server.listen(3000, () => {
+      console.log("Server đang chạy tại http://localhost:3000");
     });
   } catch (error) {
     console.error("Không thể khởi động:", error.message);

@@ -8,7 +8,9 @@ const authMiddleware = require("../../middlewares/auth.middleware");
 
 const authRoutes = require("./auth.route");
 const examRoute = require("./exam.route");
-const groupRoutes = require("./group.route");
+const groupRoutes = require("./group.route"); 
+const notificationRoutes = require("./notification.route"); 
+
 router.get("/", homeController.index);
 
 router.get(
@@ -19,5 +21,6 @@ router.get(
 
 router.use("/auth", authRoutes);
 router.use("/exams", examRoute);
-router.use("/groups", groupRoutes);
+router.use("/groups", groupRoutes);  
+router.use("/notifications", notificationRoutes);
 module.exports = router;
