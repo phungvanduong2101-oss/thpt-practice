@@ -1,0 +1,384 @@
+doctype html
+html(lang="vi")
+  head
+    meta(charset="UTF-8")
+    meta(
+      content="width=device-width, initial-scale=1.0" 
+      name="viewport"
+      )
+    meta(
+      content="#ffffff" 
+      name="theme-color"
+      )
+    link(
+      href="https://fonts.googleapis.com" 
+      rel="preconnect"
+      )
+    link(
+      crossorigin="" 
+      href="https://fonts.gstatic.com" 
+      rel="preconnect"
+      )
+    link(
+      rel="stylesheet" 
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      )
+    link(
+      href="/admin/css/auth.css" 
+      rel="stylesheet"
+      )
+    script(
+      src="/client/js/auth.js" 
+      defer=""
+      )
+    title Đăng ký | THPT Practice
+    meta(
+      content="Tạo tài khoản THPT Practice – Nền tảng luyện thi THPT." 
+      name="description"
+      )
+  body(data-auth-page="register")
+    header.auth-header
+      div(class="auth-header__inner")
+        a.auth-brand(
+          aria-label="THPT Practice – Trang chủ" 
+          href="/"
+          )
+          svg(
+            aria-hidden="true" 
+            fill="none" 
+            viewBox="0 0 64 52" 
+            class="auth-brand__cap"
+            )
+            path(
+              fill="currentColor" 
+              d="M3.4 15.9 31.5 3.2a2.6 2.6 0 0 1 2.1 0L61.2 16c1.9.9 1.9 3.6 0 4.5L33.6 33a2.6 2.6 0 0 1-2.2 0L3.4 20.4c-1.9-.9-1.9-3.6 0-4.5Z"
+              )
+            path(
+              fill="currentColor" 
+              d="M13 27.1v10c0 2.8 8.7 8.9 19.1 8.9 10.7 0 19.3-6.1 19.3-8.9v-10L34.9 35a6.7 6.7 0 0 1-5.5 0L13 27.1Z"
+              )
+            path(
+              stroke-linecap="round" 
+              stroke-width="3.3" 
+              stroke="currentColor" 
+              d="M56.8 21.9v17.2"
+              )
+            circle(
+              fill="currentColor" 
+              r="3.8" 
+              cy="42.5" 
+              cx="56.8"
+              )
+          span
+            strong THPT
+            | Practice
+        a.auth-home-link(href="/")
+          svg(
+            aria-hidden="true" 
+            stroke-linejoin="round" 
+            stroke-linecap="round" 
+            stroke-width="1.9" 
+            stroke="currentColor" 
+            fill="none" 
+            viewBox="0 0 24 24"
+            )
+            path(d="m12 19-7-7 7-7M5 12h14")
+          span Về trang chủ
+    main.auth-main
+      .auth-layout
+        section.auth-form-panel(aria-labelledby="authTitle")
+          .auth-form-inner
+            .auth-eyebrow
+              svg(
+                aria-hidden="true" 
+                stroke-linejoin="round" 
+                stroke-linecap="round" 
+                stroke-width="1.9" 
+                stroke="currentColor" 
+                fill="none" 
+                viewBox="0 0 24 24"
+                )
+                path(d="m12 2 8 4v6c0 5-3.4 8.3-8 10-4.6-1.7-8-5-8-10V6l8-4Z")
+                path(d="m9 12 2 2 4-4")
+              span HỌC CHỦ ĐỘNG – TIẾN BỘ MỖI NGÀY
+            h1#authTitle Bắt đầu hành trình học tập
+            p.auth-subtitle Tạo tài khoản miễn phí để luyện đề, theo dõi tiến độ và tham gia nhóm học tập.
+            #authNotice.auth-notice(
+              hidden="" 
+              aria-live="polite" 
+              role="status"
+              )
+            form#authForm.auth-form(novalidate="")
+              .auth-field(data-field="fullName")
+                label(for="fullName") Họ và tên
+                .auth-input-wrap
+                  svg.auth-input-icon(
+                    aria-hidden="true" 
+                    stroke-linejoin="round" 
+                    stroke-linecap="round" 
+                    stroke-width="1.9" 
+                    stroke="currentColor" 
+                    fill="none" 
+                    viewBox="0 0 24 24"
+                    )
+                    circle(
+                      r="4" 
+                      cy="8" 
+                      cx="12"
+                      )
+                    path(d="M4 21v-2a8 8 0 0 1 16 0v2")
+                  input#fullName(
+                    aria-describedby="fullNameError" 
+                    maxlength="80" 
+                    minlength="2" 
+                    required="" 
+                    autocomplete="name" 
+                    placeholder="Ví dụ: Nguyễn Văn A" 
+                    type="text" 
+                    name="fullName"
+                    )
+                p#fullNameError.auth-error(aria-live="polite")
+              .auth-field(data-field="email")
+                label(for="email") Email
+                .auth-input-wrap
+                  svg.auth-input-icon(
+                    aria-hidden="true" 
+                    stroke-linejoin="round" 
+                    stroke-linecap="round" 
+                    stroke-width="1.9" 
+                    stroke="currentColor" 
+                    fill="none" 
+                    viewBox="0 0 24 24"
+                    )
+                    rect(
+                      rx="3" 
+                      height="14" 
+                      width="18" 
+                      y="5" 
+                      x="3"
+                      )
+                    path(d="m3 7 9 6 9-6")
+                  input#email(
+                    aria-describedby="emailError" 
+                    maxlength="254" 
+                    required="" 
+                    autocomplete="email" 
+                    placeholder="nhapemail@example.com" 
+                    type="email" 
+                    name="email"
+                    )
+                p#emailError.auth-error(aria-live="polite")
+              .auth-field(data-field="password")
+                label(for="password") Mật khẩu
+                .auth-input-wrap
+                  svg.auth-input-icon(
+                    aria-hidden="true" 
+                    stroke-linejoin="round" 
+                    stroke-linecap="round" 
+                    stroke-width="1.9" 
+                    stroke="currentColor" 
+                    fill="none" 
+                    viewBox="0 0 24 24"
+                    )
+                    rect(
+                      rx="2" 
+                      height="11" 
+                      width="14" 
+                      y="10" 
+                      x="5"
+                      )
+                    path(d="M8 10V7a4 4 0 0 1 8 0v3")
+                  input#password(
+                    aria-describedby="passwordError" 
+                    minlength="8" 
+                    required="" 
+                    autocomplete="new-password" 
+                    placeholder="Tối thiểu 8 ký tự" 
+                    type="password" 
+                    name="password"
+                    )
+                  button.auth-toggle-password(
+                    aria-pressed="false" 
+                    aria-label="Hiện mật khẩu" 
+                    data-toggle="password" 
+                    type="button"
+                    )
+                    svg(
+                      aria-hidden="true" 
+                      stroke-linejoin="round" 
+                      stroke-linecap="round" 
+                      stroke-width="1.9" 
+                      stroke="currentColor" 
+                      fill="none" 
+                      viewBox="0 0 24 24"
+                      )
+                      path(d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6S2 12 2 12Z")
+                      circle(
+                        r="3" 
+                        cy="12" 
+                        cx="12"
+                        )
+                p#passwordError.auth-error(aria-live="polite")
+                .auth-password-meter(aria-hidden="true")
+                  span
+                  span
+                  span
+                  span
+                p#passwordStrength.auth-hint Tối thiểu 8 ký tự, gồm chữ và số.
+              .auth-field(data-field="confirmPassword")
+                label(for="confirmPassword") Xác nhận mật khẩu
+                .auth-input-wrap
+                  svg.auth-input-icon(
+                    aria-hidden="true" 
+                    stroke-linejoin="round" 
+                    stroke-linecap="round" 
+                    stroke-width="1.9" 
+                    stroke="currentColor" 
+                    fill="none" 
+                    viewBox="0 0 24 24"
+                    )
+                    rect(
+                      rx="2" 
+                      height="11" 
+                      width="14" 
+                      y="10" 
+                      x="5"
+                      )
+                    path(d="M8 10V7a4 4 0 0 1 8 0v3")
+                  input#confirmPassword(
+                    aria-describedby="confirmPasswordError" 
+                    required="" 
+                    autocomplete="new-password" 
+                    placeholder="Nhập lại mật khẩu" 
+                    type="password" 
+                    name="confirmPassword"
+                    )
+                  button.auth-toggle-password(
+                    aria-pressed="false" 
+                    aria-label="Hiện mật khẩu" 
+                    data-toggle="confirmPassword" 
+                    type="button"
+                    )
+                    svg(
+                      aria-hidden="true" 
+                      stroke-linejoin="round" 
+                      stroke-linecap="round" 
+                      stroke-width="1.9" 
+                      stroke="currentColor" 
+                      fill="none" 
+                      viewBox="0 0 24 24"
+                      )
+                      path(d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6S2 12 2 12Z")
+                      circle(
+                        r="3" 
+                        cy="12" 
+                        cx="12"
+                        )
+                p#confirmPasswordError.auth-error(aria-live="polite")
+              label.auth-consent
+                input#terms(
+                  name="terms" 
+                  type="checkbox"
+                  )
+                span
+                  | Tôi đồng ý với
+                  a#termsLink(href="#") Điều khoản sử dụng
+                  | của THPT Practice.
+              p#termsError.auth-error.auth-error--consent(aria-live="polite")
+              button#authSubmit.auth-submit(type="submit")
+                span Tạo tài khoản
+                svg(
+                  aria-hidden="true" 
+                  stroke-linejoin="round" 
+                  stroke-linecap="round" 
+                  stroke-width="1.9" 
+                  stroke="currentColor" 
+                  fill="none" 
+                  viewBox="0 0 24 24"
+                  )
+                  path(d="M5 12h14m-6-7 7 7-7 7")
+            p.auth-switch
+              span Đã có tài khoản?
+              a(href="/auth/login") Đăng nhập
+            .auth-separator
+              span THPT PRACTICE
+        aside.auth-art(aria-label="Giới thiệu THPT Practice")
+          div(class="auth-art__glow auth-art__glow--one")
+          div(class="auth-art__glow auth-art__glow--two")
+          div(class="auth-art__content")
+            span(class="auth-art__pill")
+              svg(
+                aria-hidden="true" 
+                stroke-linejoin="round" 
+                stroke-linecap="round" 
+                stroke-width="1.9" 
+                stroke="currentColor" 
+                fill="none" 
+                viewBox="0 0 24 24"
+                )
+                path(
+                  d="M12 7v14M3 18V5a2 2 0 0 1 2-2h3a4 4 0 0 1 4 4 4 4 0 0 1 4-4h3a2 2 0 0 1 2 2v13h-5a4 4 0 0 0-4 3 4 4 0 0 0-4-3z"
+                  )
+              | NỀN TẢNG ÔN THI THPT
+            h2 Bắt đầu một hành trình mới.
+            p Một không gian học tập hiện đại để bạn ôn luyện hiệu quả và tiến bộ mỗi ngày.
+            .auth-perks
+              span
+                svg(
+                  aria-hidden="true" 
+                  stroke-linejoin="round" 
+                  stroke-linecap="round" 
+                  stroke-width="1.9" 
+                  stroke="currentColor" 
+                  fill="none" 
+                  viewBox="0 0 24 24"
+                  )
+                  circle(
+                    r="9" 
+                    cy="12" 
+                    cx="12"
+                    )
+                  path(d="m8 12 3 3 5-6")
+                | Ngân hàng đề thi
+              span
+                svg(
+                  aria-hidden="true" 
+                  stroke-linejoin="round" 
+                  stroke-linecap="round" 
+                  stroke-width="1.9" 
+                  stroke="currentColor" 
+                  fill="none" 
+                  viewBox="0 0 24 24"
+                  )
+                  circle(
+                    r="9" 
+                    cy="12" 
+                    cx="12"
+                    )
+                  path(d="m8 12 3 3 5-6")
+                | Luyện tập theo chuyên đề
+              span
+                svg(
+                  aria-hidden="true" 
+                  stroke-linejoin="round" 
+                  stroke-linecap="round" 
+                  stroke-width="1.9" 
+                  stroke="currentColor" 
+                  fill="none" 
+                  viewBox="0 0 24 24"
+                  )
+                  circle(
+                    r="9" 
+                    cy="12" 
+                    cx="12"
+                    )
+                  path(d="m8 12 3 3 5-6")
+                | Nhóm học tập
+          img(
+            class="auth-art__image" 
+            alt="Hai học sinh học tập với laptop và sách" 
+            src="/admin/assets/images/auth-illustration.webp"
+            )
+    footer.auth-footer
+      span © 2026 THPT Practice. All rights reserved.
+      span Học mỗi ngày, tiến bộ mỗi ngày.

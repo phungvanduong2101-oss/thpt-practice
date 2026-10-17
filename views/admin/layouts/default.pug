@@ -1,0 +1,32 @@
+doctype html
+html(lang="vi")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1")
+    title= title
+    link(
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    )
+    link(rel="stylesheet" href="/admin/css/admin.css") 
+    script(
+     src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"
+     defer
+     )
+    script(src="/client/js/main.js" defer)
+    block styles
+
+  body
+    include ../partials/icons.pug
+
+    .admin-shell
+      #sidebarBackdrop.sidebar-backdrop(hidden)
+      include ../partials/sidebar.pug
+
+      .main-shell
+        include ../partials/header.pug
+
+        main.admin-main
+          block content
+
+    block scripts

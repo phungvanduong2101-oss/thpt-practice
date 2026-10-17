@@ -1,0 +1,23 @@
+.account-wrap {
+  position: relative;
+}
+
+#accountPanel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 1000;
+  min-width: 230px;
+}
+
+#accountPanel:not([hidden]) {
+  display: block;
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+  transform: none;
+}
+
+#accountPanel[hidden] {
+  display: none !important;
+}

@@ -1,0 +1,272 @@
+extends layouts/default.pug
+
+block styles
+  link(rel="stylesheet" href="/client/css/exam-taking.css")
+  link(rel="stylesheet" href="/client/css/exam-taking-extra.css")
+  link(
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css"
+  )
+  link(
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css"
+  )
+
+block content
+  - const count = questions.length;
+  - const typeNames = { mcq: "Trắc nghiệm ABCD", truefalse: "Đúng / Sai", fill: "Điền đáp số" };
+
+  .exam-taking-main(
+    data-exam-id=exam._id
+    data-duration=exam.duration
+  )
+    section.et-hero(aria-labelledby="etExamTitle")
+      .container.et-hero__inner
+        .et-hero__info
+          span.et-hero__badge LÀM BÀI THI
+          h1#etExamTitle.et-hero__title= exam.title
+
+          if exam.description
+            p.et-hero__desc= exam.description
+
+          .et-meta-bar
+            .et-meta-item
+              i.et-meta-icon(data-lucide="book-open" aria-hidden="true")
+              div
+                span.et-meta-label Môn thi
+                strong.et-meta-value
+                  = exam.subjectId ? exam.subjectId.name : "Không có môn học"
+
+            .et-meta-item
+              i.et-meta-icon(data-lucide="file-text" aria-hidden="true")
+              div
+                span.et-meta-label Số câu hỏi
+                strong.et-meta-value #{count} câu
+
+            .et-meta-item
+              div
+                span.et-meta-label Thời gian
+                strong.et-meta-value #{exam.duration} phút
+
+            .et-timer-block
+              #etTimerDisplay.et-timer-display
+                span#etTimerDigits.et-timer-digits
+                  = String(exam.duration).padStart(2, "0") + ":00"
+
+              p#etTimerHint.et-timer-hint
+                | Nhấn Bắt đầu để tính thời gian.
+
+            button#etBtnStart.et-btn-start(
+              type="button"
+              disabled=count === 0
+            ) Bắt đầu làm bài
+
+    .container
+      p#etError.et-error(role="alert" hidden)
+
+    #etBody.et-body.container
+      section#etQuestionList.et-questions(aria-label="Danh sách câu hỏi")
+        if !count
+          p Đề thi chưa có câu hỏi.
+
+        each question, index in questions
+          - const qid = String(question._id);
+
+          article.et-question-card(
+            id="question-" + qid
+            data-qid=qid
+            data-type=question.type
+          )
+            .et-q-header
+              .et-q-header-left
+                span.et-q-num-badge Câu #{index + 1}
+                span.et-type-badge= typeNames[question.type]
+
+              button.et-q-flag-btn(
+                type="button"
+                aria-label="Đánh dấu câu " + (index + 1)
+                aria-pressed="false"
+                disabled
+              )
+                | ⚑ Đánh dấu
+
+            .et-q-content
+              .et-rich.ql-editor
+                if question.content && question.content.html
+                  != question.content.html
+                else
+                  p= question.contentText || ""
+
+            if question.type === "mcq"
+              .et-options-grid(
+                role="group"
+                aria-label="Đáp án câu " + (index + 1)
+              )
+                each option in question.options
+                  label.et-option-label.et-option-label--disabled
+                    input.et-radio(
+                      type="radio"
+                      name="answer-" + qid
+                      value=option.key
+                      disabled
+                    )
+                    span.et-radio-circle(aria-hidden="true")
+                    .et-answer-copy
+                      strong.et-option-key #{option.key}.
+                      .et-rich.ql-editor
+                        != option.content ? option.content.html : ""
+
+            else if question.type === "truefalse"
+              .et-tf-list
+                each option in question.options
+                  fieldset.et-tf-row(data-option-key=option.key)
+                    legend.et-tf-legend Mệnh đề #{option.key}
+
+                    .et-tf-content
+                      strong.et-option-key #{option.key}.
+                      .et-rich.ql-editor
+                        != option.content ? option.content.html : ""
+
+                    .et-options-grid.et-options-tf
+                      each labelText, answerValue in { true: "Đúng", false: "Sai" }
+                        label.et-option-label.et-option-label--disabled
+                          input.et-radio(
+                            type="radio"
+                            name="answer-" + qid + "-" + option.key
+                            value=answerValue
+                            disabled
+                          )
+                          span.et-radio-circle(aria-hidden="true")
+                          span= labelText
+
+            else if question.type === "fill"
+              label.et-fill-label(for="fill-" + qid) Đáp án của bạn
+
+              input.et-fill-input(
+                id="fill-" + qid
+                type="text"
+                maxlength="200"
+                autocomplete="off"
+                placeholder="Nhập đáp án..."
+                disabled
+              )
+
+      aside.et-sidebar(aria-label="Điều hướng và nộp bài")
+        .et-sidebar-card
+          h2.et-sidebar-title Danh sách câu hỏi
+
+          .et-legend
+            span.et-legend-item
+              span.et-legend-dot.et-legend-dot--unanswered
+              |  Chưa trả lời
+            span.et-legend-item
+              span.et-legend-dot.et-legend-dot--answered
+              |  Đã trả lời
+            span.et-legend-item ⚑ Đã đánh dấu
+
+          #etNavGrid.et-nav-grid(
+            role="list"
+            aria-label="Điều hướng câu hỏi"
+          )
+            each question, index in questions
+              div(role="listitem")
+                button.et-nav-btn(
+                  type="button"
+                  data-qid=String(question._id)
+                  aria-label="Câu " + (index + 1)
+                )= index + 1
+
+        .et-sidebar-card
+          .et-progress-header
+            span.et-progress-label Tiến độ
+            span#etProgressCount.et-progress-count
+              | Đã trả lời: 0/#{count}
+
+          #etProgressBar.et-progress-bar-wrap(
+            role="progressbar"
+            aria-label="Tiến độ làm bài"
+            aria-valuenow="0"
+            aria-valuemin="0"
+            aria-valuemax="100"
+          )
+            #etProgressFill.et-progress-fill(style="width: 0%")
+
+          p#etProgressPct.et-progress-pct 0%
+          p#etSaveStatus.et-save-status(role="status" aria-live="polite")
+            | Chưa bắt đầu làm bài
+          button#etBtnSubmit.et-btn-submit(type="button" disabled)
+            | Nộp bài
+
+        .et-sidebar-card.et-tips-card
+          .et-tips-header
+            strong Lưu ý
+
+          ul.et-tips-list
+            li Thời gian tính từ lúc bắt đầu làm bài.
+            li Câu Đúng/Sai cần trả lời đủ các mệnh đề.
+            li Có thể sửa đáp án trước khi nộp.
+            li Khi hết giờ, hệ thống sẽ gửi yêu cầu nộp bài.
+
+  #etModalOverlay.et-modal-overlay(
+    hidden
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="etModalTitle"
+    aria-describedby="etModalBody"
+  )
+    .et-modal
+      h2#etModalTitle.et-modal__title Xác nhận nộp bài
+
+      p#etModalBody.et-modal__body
+        | Bạn đã trả lời 
+        strong#etModalAnswered 0
+        | /#{count} câu hỏi.
+
+      p#etModalWarning.et-modal__warning
+
+      .et-modal__actions
+        button#etModalCancel.et-modal__btn.et-modal__btn--cancel(
+          type="button"
+        ) Tiếp tục làm bài
+
+        button#etModalConfirm.et-modal__btn.et-modal__btn--confirm(
+          type="button"
+        ) Xác nhận nộp
+
+  #etResultOverlay.et-result-overlay(
+    hidden
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="etResultTitle"
+  )
+    .et-result-card
+      .et-result-icon(aria-hidden="true") ✓
+      h2#etResultTitle.et-result-title Bài thi đã được nộp!
+      p#etResultSubtitle.et-result-subtitle
+
+      #etResultStats.et-result-stats
+        .et-result-stat
+          span#etResultScore.et-result-stat__value —
+          span.et-result-stat__label Điểm đạt
+
+        .et-result-stat
+          span#etResultAnswered.et-result-stat__value —
+          span.et-result-stat__label Câu đã trả lời
+
+      .et-result-actions
+        a.et-result-btn.et-result-btn--secondary(href="/exams")
+          | Danh sách đề
+        a#etBtnViewAnswers.et-result-btn.et-result-btn--secondary(
+            href=""
+            hidden
+          ) Xem đáp án
+        button#etBtnRetry.et-result-btn.et-result-btn--primary(
+          type="button"
+        ) Làm lại
+
+block scripts
+  script(
+    src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"
+    defer
+  )
+  script(src="/client/js/exam-taking.js" defer)

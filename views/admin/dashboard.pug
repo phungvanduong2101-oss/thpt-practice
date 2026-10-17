@@ -1,0 +1,410 @@
+extends layouts/default.pug
+
+block styles
+  style.
+    .dashboard-stats {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .dashboard-columns {
+      display: grid;
+      grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+      gap: 24px;
+      margin-top: 24px;
+      align-items: start;
+    }
+
+    .dashboard-panel {
+      min-width: 0;
+    }
+
+    .dashboard-panel + .dashboard-panel {
+      margin-top: 24px;
+    }
+
+    .dashboard-panel .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .dashboard-link {
+      color: #2563eb;
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .dashboard-link:hover {
+      text-decoration: underline;
+    }
+
+    .dashboard-actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      padding: 20px;
+    }
+
+    .dashboard-action {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      color: #334155;
+      text-decoration: none;
+      transition: border-color .2s, background .2s;
+    }
+
+    .dashboard-action:hover {
+      border-color: #93c5fd;
+      background: #eff6ff;
+    }
+
+    .dashboard-action .stat-card__icon {
+      flex-shrink: 0;
+    }
+
+    .dashboard-action strong,
+    .dashboard-action small {
+      display: block;
+    }
+
+    .dashboard-action strong {
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+
+    .dashboard-action small {
+      color: #64748b;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .dashboard-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    .dashboard-table th {
+      padding: 13px 20px;
+      background: #f8fafc;
+      color: #64748b;
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .dashboard-table td {
+      padding: 16px 20px;
+      border-top: 1px solid #f1f5f9;
+      color: #475569;
+      font-size: 13px;
+      vertical-align: middle;
+    }
+
+    .dashboard-table__title {
+      display: block;
+      max-width: 300px;
+      color: #1e293b;
+      font-weight: 600;
+      text-decoration: none;
+      overflow-wrap: anywhere;
+    }
+
+    .dashboard-table__title:hover {
+      color: #2563eb;
+    }
+
+    .dashboard-table__sub {
+      display: block;
+      margin-top: 5px;
+      color: #94a3b8;
+      font-size: 12px;
+    }
+
+    .dashboard-badge {
+      display: inline-flex;
+      padding: 5px 9px;
+      border-radius: 6px;
+      background: #f1f5f9;
+      color: #64748b;
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .dashboard-badge--success {
+      background: #ecfdf5;
+      color: #047857;
+    }
+
+    .dashboard-empty {
+      padding: 36px 20px;
+      color: #64748b;
+      font-size: 14px;
+      text-align: center;
+    }
+
+    .dashboard-guide {
+      display: grid;
+      gap: 20px;
+      padding: 20px;
+      margin: 0;
+      list-style: none;
+      counter-reset: setup;
+    }
+
+    .dashboard-guide li {
+      display: flex;
+      gap: 12px;
+      counter-increment: setup;
+    }
+
+    .dashboard-guide li::before {
+      content: counter(setup);
+      display: grid;
+      place-items: center;
+      flex: 0 0 30px;
+      height: 30px;
+      border-radius: 9px;
+      background: #eff6ff;
+      color: #2563eb;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .dashboard-guide strong {
+      display: block;
+      color: #334155;
+      font-size: 13px;
+    }
+
+    .dashboard-guide p {
+      margin: 5px 0 0;
+      color: #64748b;
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    @media (max-width: 1200px) {
+      .dashboard-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .dashboard-columns {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    @media (max-width: 560px) {
+      .dashboard-stats,
+      .dashboard-actions {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .dashboard-panel .panel-header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+    }
+
+block content
+  //- Dữ liệu mặc định khi chưa kết nối đầy đủ backend
+  - const counts = typeof stats !== "undefined" ? stats : {};
+  - const questions = typeof recentQuestions !== "undefined" ? recentQuestions : [];
+  - const exams = typeof recentExams !== "undefined" ? recentExams : [];
+
+  mixin dashboardIcon(name)
+    svg.icon(aria-hidden="true")
+      use(href="#" + name)
+
+  mixin statCard(label, value, note, icon, color)
+    .stat-card
+      span.stat-card__icon(class="stat-card__icon--" + color)
+        +dashboardIcon(icon)
+      div
+        span.stat-card__label= label
+        strong= Number(value || 0).toLocaleString("vi-VN")
+        span.stat-card__note= note
+
+  mixin quickAction(href, title, description, icon, color)
+    a.dashboard-action(href=href)
+      span.stat-card__icon(class="stat-card__icon--" + color)
+        +dashboardIcon(icon)
+      div
+        strong= title
+        small= description
+
+  .page-heading
+    div
+      .eyebrow
+        +dashboardIcon("i-grid")
+        |  QUẢN TRỊ HỆ THỐNG
+      h1 Tổng quan
+      p Theo dõi dữ liệu và quản lý nội dung ôn luyện THPT.
+
+    a.button.button--primary.page-heading__action(href="/admin/questions")
+      +dashboardIcon("i-plus")
+      |  Quản lý câu hỏi
+
+  section.stats-grid.dashboard-stats(aria-label="Thống kê hệ thống")
+    +statCard(
+      "Người dùng",
+      counts.accounts,
+      "Tài khoản trong hệ thống",
+      "i-users",
+      "blue"
+    )
+    +statCard(
+      "Môn học",
+      counts.subjects,
+      "Danh mục môn học",
+      "i-book",
+      "green"
+    )
+    +statCard(
+      "Câu hỏi",
+      counts.questions,
+      "Ngân hàng câu hỏi",
+      "i-help",
+      "violet"
+    )
+    +statCard(
+      "Đề thi",
+      counts.exams,
+      "Đề thi trong hệ thống",
+      "i-clipboard",
+      "blue"
+    )
+
+  .dashboard-columns
+    div
+      section.panel.dashboard-panel
+        .panel-header
+          div
+            h2 Thao tác nhanh
+            p Truy cập các chức năng quản lý nội dung.
+
+        .dashboard-actions
+          +quickAction(
+            "/admin/subjects",
+            "Môn học",
+            "Quản lý danh mục môn học",
+            "i-book",
+            "blue"
+          )
+          +quickAction(
+            "/admin/topics",
+            "Chuyên đề",
+            "Phân chia nội dung theo môn",
+            "i-layers",
+            "violet"
+          )
+          +quickAction(
+            "/admin/questions",
+            "Ngân hàng câu hỏi",
+            "Soạn thảo và cập nhật câu hỏi",
+            "i-help",
+            "green"
+          )
+          +quickAction(
+            "/admin/exams",
+            "Quản lý đề thi",
+            "Tạo đề và lựa chọn câu hỏi",
+            "i-clipboard",
+            "blue"
+          )
+
+      section.panel.dashboard-panel
+        .panel-header
+          div
+            h2 Câu hỏi mới nhất
+            p Các câu hỏi được thêm gần đây.
+          a.dashboard-link(href="/admin/questions") Xem tất cả
+
+        if questions.length
+          .table-scroll
+            table.dashboard-table
+              thead
+                tr
+                  th CÂU HỎI
+                  th MÔN HỌC
+                  th TRẠNG THÁI
+              tbody
+                each question in questions
+                  tr
+                    td
+                      a.dashboard-table__title(href="/admin/questions")
+                        = question.title || "Câu hỏi chưa có tiêu đề"
+                      span.dashboard-table__sub
+                        if question.type === "mcq"
+                          | Trắc nghiệm
+                        else if question.type === "truefalse"
+                          | Đúng / Sai
+                        else if question.type === "fill"
+                          | Điền đáp số
+                        else
+                          | Chưa phân loại
+                    td= question.subjectName || "—"
+                    td
+                      span.dashboard-badge(
+                        class=question.published ? "dashboard-badge--success" : ""
+                      )= question.published ? "Đã xuất bản" : "Bản nháp"
+        else
+          .dashboard-empty Chưa có câu hỏi nào trong danh sách.
+
+    div
+      section.panel.dashboard-panel
+        .panel-header
+          div
+            h2 Đề thi mới nhất
+            p Các đề thi được tạo gần đây.
+          a.dashboard-link(href="/admin/exams") Xem tất cả
+
+        if exams.length
+          .table-scroll
+            table.dashboard-table
+              thead
+                tr
+                  th ĐỀ THI
+                  th SỐ CÂU
+              tbody
+                each exam in exams
+                  tr
+                    td
+                      a.dashboard-table__title(href="/admin/exams")
+                        = exam.title || "Đề thi chưa có tiêu đề"
+                      span.dashboard-table__sub= exam.subjectName || "Chưa có môn học"
+                    td= exam.questionCount || 0
+        else
+          .dashboard-empty Chưa có đề thi nào trong danh sách.
+
+      section.panel.dashboard-panel
+        .panel-header
+          div
+            h2 Xây dựng nội dung
+            p Các bước chuẩn bị ngân hàng đề.
+
+        ol.dashboard-guide
+          li
+            div
+              strong Tạo môn học
+              p Khởi tạo các môn học được hỗ trợ trong hệ thống.
+          li
+            div
+              strong Thêm chuyên đề
+              p Phân chia kiến thức theo từng môn học.
+          li
+            div
+              strong Soạn câu hỏi
+              p Thêm câu hỏi trắc nghiệm, đúng sai và điền đáp số.
+          li
+            div
+              strong Tạo đề thi
+              p Lựa chọn câu hỏi cùng môn để xây dựng đề thi.

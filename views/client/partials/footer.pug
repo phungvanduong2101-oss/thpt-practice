@@ -1,0 +1,38 @@
+footer.site-footer
+  .container.footer-main
+    .footer-about
+      a.footer-brand(href="/" aria-label="THPT Practice - Trang chủ")
+        +siteLogo()
+        span
+          strong THPT
+          |  Practice
+
+      p Nền tảng ôn luyện thi tốt nghiệp THPT giúp bạn học chủ động, nắm vững kiến thức và tự tin chinh phục mục tiêu.
+      span.footer-slogan Học mỗi ngày, tiến bộ mỗi ngày.
+
+    nav.footer-column(aria-label="Liên kết luyện tập")
+      h2 Luyện tập
+      a(href="/practice") Theo môn học
+      a(href="/practice/topics") Theo chuyên đề
+      a(href="/favorites") Câu hỏi yêu thích
+      a(href="/exams") Đề thi thử
+
+    nav.footer-column(aria-label="Liên kết nhóm học tập")
+      h2 Nhóm học tập
+      a(href="/groups") Khám phá nhóm
+      a(href="/groups/my") Nhóm của tôi
+      a(href="/groups/create") Tạo nhóm mới
+
+    nav.footer-column(aria-label="Thông tin và hỗ trợ")
+      h2 Thông tin & hỗ trợ
+      a(href="/about") Về chúng tôi
+      a(href="/guide") Hướng dẫn sử dụng
+      a(href="/contact") Liên hệ hỗ trợ
+      a(href="/faq") Câu hỏi thường gặp
+
+  .container.footer-bottom
+    p © #{new Date().getFullYear()} THPT Practice. All rights reserved.
+
+    .footer-legal
+      a(href="/terms") Điều khoản sử dụng
+      a(href="/privacy") Chính sách bảo mật

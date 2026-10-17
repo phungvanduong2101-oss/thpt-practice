@@ -1,0 +1,266 @@
+extends layouts/default.pug
+
+block styles
+  link(rel="stylesheet" href="/client/css/exam-taking.css")
+  link(rel="stylesheet" href="/client/css/exam-taking-extra.css")
+  link(rel="stylesheet" href="/client/css/exam-result.css")
+  link(
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css"
+  )
+  link(
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css"
+  )
+
+block content
+  - const questions = attempt.questions || [];
+  - const answers = attempt.answers || [];
+  - const count = questions.length;
+  - const answerMap = new Map(answers.map(item => [String(item.questionId), item.answer]));
+  - const typeNames = { mcq: "Trắc nghiệm ABCD", truefalse: "Đúng / Sai", fill: "Điền đáp số" };
+  -
+    const rows = questions.map(question => {
+      const qid = String(question.questionId || question._id);
+      const answer = answerMap.get(qid);
+      const options = question.options || [];
+
+      let answered = false;
+      let correct = false;
+
+      if (question.type === "mcq") {
+        answered = typeof answer === "string" && answer !== "";
+        correct = answered && answer === question.correctAnswer;
+      } else if (question.type === "truefalse") {
+        answered = options.some(option =>
+          typeof answer?.[option.key] === "boolean"
+        );
+
+        correct = options.length > 0 && options.every(option =>
+          typeof answer?.[option.key] === "boolean" &&
+          answer[option.key] === option.isCorrect
+        );
+      } else if (question.type === "fill") {
+        answered = typeof answer === "string" && answer.trim() !== "";
+
+        correct = answered && (question.acceptedAnswers || []).some(
+          value => String(value).trim() === answer.trim()
+        );
+      }
+
+      return {
+        question,
+        qid,
+        answer,
+        answered,
+        correct,
+        state: correct ? "correct" : answered ? "incorrect" : "unanswered",
+      };
+    });
+
+  - const answeredCount = rows.filter(row => row.answered).length;
+  - const correctCount = rows.filter(row => row.correct).length;
+  - const incorrectCount = rows.filter(row => row.answered && !row.correct).length;
+  - const unansweredCount = count - answeredCount;
+
+  .exam-result-main
+    section.et-hero(aria-labelledby="resultTitle")
+      .container
+        .er-heading
+          div
+            span.et-hero__badge KẾT QUẢ BÀI LÀM
+            h1#resultTitle.et-hero__title= attempt.examTitle
+            p.et-hero__desc
+              | Xem lại câu trả lời, đáp án đúng và lời giải.
+
+          .er-heading-actions
+            a.er-button.er-button--secondary(href="/exams")
+              | Danh sách đề
+            a.er-button.er-button--primary(
+              href="/exams/" + attempt.examId
+            ) Làm lại
+
+        section.er-stats(aria-label="Thống kê kết quả")
+          .er-stat.er-stat--score
+            span Điểm đạt
+            strong
+              = attempt.score == null ? "—" : attempt.score
+              small /#{attempt.maxScore == null ? 10 : attempt.maxScore}
+
+          .er-stat
+            span Tổng câu hỏi
+            strong= count
+
+          .er-stat.er-stat--correct
+            span Câu đúng
+            strong= correctCount
+
+          .er-stat.er-stat--incorrect
+            span Câu sai
+            strong= incorrectCount
+
+          .er-stat
+            span Chưa trả lời
+            strong= unansweredCount
+
+        if attempt.submittedAt
+          p.er-submitted
+            | Nộp lúc: 
+            = new Date(attempt.submittedAt).toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" })
+
+    .et-body.container
+      section#resultQuestionList.et-questions(
+        aria-label="Chi tiết đáp án"
+      )
+        if !count
+          .er-empty Không có dữ liệu câu hỏi của bài làm.
+
+        each row, index in rows
+          - const question = row.question;
+          - const answer = row.answer;
+          - const options = question.options || [];
+
+          article.et-question-card.er-question(
+            id="result-question-" + row.qid
+            data-qid=row.qid
+            class="er-question--" + row.state
+          )
+            .et-q-header
+              .et-q-header-left
+                span.et-q-num-badge Câu #{index + 1}
+                span.et-type-badge= typeNames[question.type] || question.type
+
+              span.er-status(class="er-status--" + row.state)
+                if row.correct
+                  | Đúng
+                else if row.answered
+                  | Sai
+                else
+                  | Chưa trả lời
+
+            .et-q-content
+              .et-rich.ql-editor
+                if question.content && question.content.html
+                  != question.content.html
+                else
+                  p= question.contentText || ""
+
+            if question.type === "mcq"
+              .er-options
+                each option in options
+                  - const selected = answer === option.key;
+                  - const right = question.correctAnswer === option.key;
+
+                  .er-option(
+                    class=[right ? "er-option--correct" : "", selected && !right ? "er-option--incorrect" : ""]
+                  )
+                    span.er-option-key= option.key
+
+                    .er-option-content
+                      .et-rich.ql-editor
+                        != option.content ? option.content.html : ""
+
+                      .er-option-tags
+                        if selected
+                          span.er-tag Bạn chọn
+                        if right
+                          span.er-tag.er-tag--correct Đáp án đúng
+
+              .er-answer-summary
+                p
+                  strong Bạn chọn: 
+                  = row.answered ? answer : "Chưa trả lời"
+                p
+                  strong Đáp án đúng: 
+                  = question.correctAnswer || "Chưa có"
+
+            else if question.type === "truefalse"
+              .er-statements
+                each option in options
+                  - const selected = answer && typeof answer === "object" ? answer[option.key] : undefined;
+                  - const hasAnswer = typeof selected === "boolean";
+                  - const right = hasAnswer && selected === option.isCorrect;
+
+                  .er-statement(
+                    class=right ? "er-statement--correct" : hasAnswer ? "er-statement--incorrect" : ""
+                  )
+                    .er-statement-heading
+                      strong Mệnh đề #{option.key}
+                      span.er-status(
+                        class=right ? "er-status--correct" : hasAnswer ? "er-status--incorrect" : "er-status--unanswered"
+                      )= right ? "Đúng" : hasAnswer ? "Sai" : "Chưa trả lời"
+
+                    .et-rich.ql-editor
+                      != option.content ? option.content.html : ""
+
+                    .er-statement-answers
+                      span
+                        strong Bạn chọn: 
+                        = hasAnswer ? (selected ? "Đúng" : "Sai") : "Chưa trả lời"
+
+                      span
+                        strong Đáp án: 
+                        = typeof option.isCorrect === "boolean" ? (option.isCorrect ? "Đúng" : "Sai") : "Chưa có"
+
+            else if question.type === "fill"
+              .er-fill-answers
+                .er-fill-answer(
+                  class=row.correct ? "er-fill-answer--correct" : row.answered ? "er-fill-answer--incorrect" : ""
+                )
+                  span Đáp án của bạn
+                  strong= row.answered ? answer : "Chưa trả lời"
+
+                .er-fill-answer.er-fill-answer--correct
+                  span Đáp án được chấp nhận
+                  strong= (question.acceptedAnswers || []).join(" hoặc ") || "Chưa có"
+
+            if question.explanation && question.explanation.html
+              details.er-explanation(open)
+                summary Lời giải
+                .et-rich.ql-editor
+                  != question.explanation.html
+
+      aside.et-sidebar(aria-label="Điều hướng kết quả")
+        .et-sidebar-card
+          h2.et-sidebar-title Danh sách câu hỏi
+
+          .er-legend
+            span
+              i.er-dot.er-dot--correct
+              | Đúng
+            span
+              i.er-dot.er-dot--incorrect
+              | Sai
+            span
+              i.er-dot.er-dot--unanswered
+              | Chưa trả lời
+
+          #resultNavGrid.et-nav-grid
+            each row, index in rows
+              a.et-nav-btn.er-nav-button(
+                href="#result-question-" + row.qid
+                data-qid=row.qid
+                class="er-nav-button--" + row.state
+                aria-label="Câu " + (index + 1)
+              )= index + 1
+
+        .et-sidebar-card
+          h2.et-sidebar-title Bài làm của bạn
+          p.er-sidebar-summary Đã trả lời #{answeredCount}/#{count} câu.
+          p.er-sidebar-note
+            | Câu Đúng/Sai được tính đúng cả câu khi trả lời đúng tất cả mệnh đề.
+
+          a.er-button.er-button--primary.er-button--full(
+            href="/exams/" + attempt.examId
+          ) Làm lại đề này
+
+          a.er-button.er-button--secondary.er-button--full(
+            href="/exams"
+          ) Quay lại danh sách đề
+
+block scripts
+  script(
+    src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"
+    defer
+  )
+  script(src="/client/js/exam-result.js" defer)

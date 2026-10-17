@@ -1,0 +1,176 @@
+#etModalOverlay[hidden],
+#etResultOverlay[hidden],
+#etError[hidden] {
+  display: none !important;
+}
+
+.et-question-card {
+  scroll-margin-top: 100px;
+}
+
+.et-q-header-left {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.et-type-badge {
+  padding: 5px 10px;
+  border-radius: 8px;
+  background: #f1f5f9;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.et-rich.ql-editor {
+  min-height: 0;
+  padding: 0;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.et-rich img {
+  max-width: 100%;
+  height: auto;
+}
+
+.et-rich .ql-formula {
+  display: inline-block;
+  max-width: 100%;
+  overflow-x: auto;
+  vertical-align: middle;
+}
+
+.et-option-label {
+  position: relative;
+  align-items: flex-start;
+}
+
+.et-option-label input.et-radio {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  opacity: 0;
+}
+
+.et-option-label:focus-within {
+  outline: 2px solid #0866ff;
+  outline-offset: 3px;
+}
+
+.et-radio-circle {
+  flex-shrink: 0;
+  margin-top: 5px;
+}
+
+.et-answer-copy {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+}
+
+.et-answer-copy .et-rich {
+  flex: 1;
+  min-width: 0;
+}
+
+.et-option-key {
+  flex-shrink: 0;
+  line-height: 1.8;
+}
+
+.et-tf-list {
+  display: grid;
+  gap: 14px;
+}
+
+.et-tf-row {
+  min-width: 0;
+  margin: 0;
+  padding: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+.et-tf-legend {
+  padding: 0 6px;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.et-tf-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.et-tf-content .et-rich {
+  flex: 1;
+  min-width: 0;
+}
+
+.et-tf-row .et-options-tf {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  max-width: 300px;
+}
+
+.et-fill-label {
+  display: block;
+  margin: 12px 0 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.et-fill-input {
+  max-width: 100%;
+}
+
+.et-nav-grid > div {
+  min-width: 0;
+}
+
+.et-nav-grid .et-nav-btn {
+  width: 100%;
+}
+
+.et-option-label--disabled,
+.et-option-label.is-disabled {
+  cursor: not-allowed;
+}
+
+.et-error {
+  margin: 20px 0;
+  padding: 12px 16px;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  background: #fef2f2;
+  color: #b91c1c;
+  line-height: 1.6;
+} 
+.et-save-status {
+  margin: 12px 0;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.et-save-status[data-state="saved"] {
+  color: #15803d;
+}
+
+.et-save-status[data-state="pending"],
+.et-save-status[data-state="error"] {
+  color: #b45309;
+}

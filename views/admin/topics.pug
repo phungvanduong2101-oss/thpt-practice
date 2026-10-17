@@ -1,0 +1,348 @@
+extends layouts/default.pug
+
+block styles
+  link(rel="stylesheet" href="/admin/css/topics.css")
+
+block content
+  .page-heading
+    div
+      .eyebrow
+        svg.icon
+          use(href="#i-layers")
+        |  DANH MỤC HỆ THỐNG
+      h1 Quản lý chuyên đề
+      p Phân chia kiến thức theo từng môn học, tạo nền tảng cho ngân hàng câu hỏi và đề thi.
+
+    button#newTopicButton.button.button--primary.page-heading__action(
+      type="button"
+    )
+      svg.icon
+        use(href="#i-plus")
+      |  Tạo chuyên đề
+
+  section.stats-grid(aria-label="Thống kê chuyên đề")
+    .stat-card
+      span.stat-card__icon.stat-card__icon--blue
+        svg.icon
+          use(href="#i-layers")
+      div
+        span.stat-card__label Tổng chuyên đề
+        strong#statTotal= totalTopics
+        span.stat-card__note Trong ngân hàng kiến thức
+
+    .stat-card
+      span.stat-card__icon.stat-card__icon--green
+        svg.icon
+          use(href="#i-check")
+      div
+        span.stat-card__label Đang hoạt động
+        strong#statActive= activeTopics
+        span.stat-card__note Sẵn sàng sử dụng
+
+    .stat-card
+      span.stat-card__icon.stat-card__icon--violet
+        svg.icon
+          use(href="#i-book")
+      div
+        span.stat-card__label Môn học có chuyên đề
+        strong#statSubjects= subjectsWithTopics
+        span.stat-card__note Phân theo môn học
+
+  .content-grid.topic-content-grid
+    section.panel.subjects-panel(aria-labelledby="topicListTitle")
+      .panel-header
+        div
+          h2#topicListTitle
+            | Danh sách chuyên đề 
+            span#topicCount.count-chip= totalItems
+          p Tra cứu, lọc và cập nhật chuyên đề theo môn học.
+
+      form.list-toolbar.topic-toolbar(action="/admin/topics" method="GET")
+        label.search-input
+          svg.icon
+            use(href="#i-search")
+          span.sr-only Tìm kiếm chuyên đề
+          input#searchInput(
+            name="keyword"
+            type="search"
+            placeholder="Tìm tên, mã chuyên đề..."
+            value=keyword
+            autocomplete="off"
+          )
+
+        label.filter-input
+          svg.icon
+            use(href="#i-book")
+          span.sr-only Lọc theo môn học
+          select#subjectFilter(name="subjectId")
+            option(value="all" selected=subjectId === "all") Tất cả môn học
+            each subject in subjects
+              option(
+                value=subject._id
+                selected=String(subject._id) === subjectId
+              )= subject.name
+
+        label.filter-input
+          svg.icon
+            use(href="#i-filter")
+          span.sr-only Lọc trạng thái
+          select#statusFilter(name="status")
+            option(value="all" selected=status === "all") Tất cả trạng thái
+            option(value="active" selected=status === "active") Hoạt động
+            option(value="inactive" selected=status === "inactive") Đã ẩn
+
+        button.button.button--primary(type="submit") Tìm kiếm
+        a.button.button--secondary(href="/admin/topics") Đặt lại
+
+      .table-scroll
+        table.subject-table.topic-table
+          thead
+            tr
+              th CHUYÊN ĐỀ
+              th MÔN HỌC
+              th CÂU HỎI
+              th TRẠNG THÁI
+              th.subject-table__actions-heading THAO TÁC
+
+          tbody#topicRows
+            each topic in topics
+              tr
+                td
+                  .subject-identity
+                    span.subject-bubble(data-color="blue")
+                      svg.icon
+                        use(href="#i-layers")
+                    span
+                      strong= topic.name
+                      small= topic.code
+
+                td= topic.subjectId ? topic.subjectId.name : "Môn học không còn tồn tại"
+
+                td
+                  if typeof topic.questionCount === "number"
+                    span.topic-count #{topic.questionCount} câu hỏi
+                  else
+                    span —
+
+                td
+                  span.status-tag(
+                    class=topic.active ? "status-tag--active" : "status-tag--inactive"
+                  )= topic.active ? "Hoạt động" : "Đã ẩn"
+
+                td
+                  .subject-actions
+                    button.table-action.table-action--edit(
+                      type="button"
+                      data-action="edit"
+                      data-id=topic._id
+                      data-name=topic.name
+                      data-code=topic.code
+                      data-subject-id=topic.subjectId ? String(topic.subjectId._id) : ""
+                      data-description=topic.description
+                      data-active=String(topic.active)
+                      aria-label="Sửa chuyên đề " + topic.name
+                      title="Chỉnh sửa"
+                    )
+                      svg.icon
+                        use(href="#i-edit")
+
+                    button.table-action.table-action--delete(
+                      type="button"
+                      data-action="delete"
+                      data-id=topic._id
+                      data-name=topic.name
+                      aria-label="Xóa chuyên đề " + topic.name
+                      title="Xóa chuyên đề"
+                    )
+                      svg.icon
+                        use(href="#i-trash")
+
+      #emptyState.empty-state(hidden=totalItems > 0)
+        svg.icon
+          use(href="#i-search")
+        strong Không tìm thấy chuyên đề
+        p Hãy thử thay đổi bộ lọc hoặc tạo chuyên đề mới.
+
+      .table-footer
+        span#paginationSummary
+          | Hiển thị #{startItem}–#{endItem} / #{totalItems} chuyên đề
+
+        if totalPages > 1
+          nav#pagination.pagination(aria-label="Phân trang chuyên đề")
+            if currentPage > 1
+              a.page-button(
+                href=pageUrl(currentPage - 1)
+                aria-label="Trang trước"
+              )
+                svg.icon
+                  use(href="#i-left")
+            else
+              button.page-button(
+                type="button"
+                disabled
+                aria-label="Trang trước"
+              )
+                svg.icon
+                  use(href="#i-left")
+
+            - const firstPage = Math.max(1, currentPage - 2);
+            - const lastPage = Math.min(totalPages, currentPage + 2);
+
+            if firstPage > 1
+              a.page-button(href=pageUrl(1)) 1
+              if firstPage > 2
+                span(aria-hidden="true") …
+
+            - for (let page = firstPage; page <= lastPage; page++)
+              a.page-button(
+                href=pageUrl(page)
+                class=page === currentPage ? "is-active" : ""
+                aria-current=page === currentPage ? "page" : false
+                aria-label="Trang " + page
+              )= page
+
+            if lastPage < totalPages
+              if lastPage < totalPages - 1
+                span(aria-hidden="true") …
+              a.page-button(href=pageUrl(totalPages))= totalPages
+
+            if currentPage < totalPages
+              a.page-button(
+                href=pageUrl(currentPage + 1)
+                aria-label="Trang tiếp"
+              )
+                svg.icon
+                  use(href="#i-chevron")
+            else
+              button.page-button(
+                type="button"
+                disabled
+                aria-label="Trang tiếp"
+              )
+                svg.icon
+                  use(href="#i-chevron")
+
+    section#formPanel.panel.form-panel(aria-labelledby="formTitle")
+      .panel-header.panel-header--form
+        div
+          .form-panel__eyebrow THÔNG TIN CHUYÊN ĐỀ
+          h2#formTitle Tạo chuyên đề mới
+          p#formSubtitle Nhập thông tin cho chuyên đề thuộc một môn học.
+        span.form-header-icon
+          svg.icon
+            use(href="#i-plus")
+
+      form#topicForm(novalidate)
+        .field
+          label(for="topicSubject")
+            | Thuộc môn học 
+            em *
+          select#topicSubject(
+            name="subjectId"
+            required
+            aria-describedby="subjectError"
+          )
+            option(value="") Chọn môn học
+            each subject in subjects
+              option(
+                value=subject._id
+                disabled=!subject.active
+              )= subject.name + (subject.active ? "" : " (Đã ẩn)")
+          small#subjectError.field-error(aria-live="polite")
+          small.field-hint Chỉ có thể tạo chuyên đề trong môn đang hoạt động.
+
+        .field
+          label(for="topicName")
+            | Tên chuyên đề 
+            em *
+          input#topicName(
+            name="name"
+            type="text"
+            maxlength="100"
+            placeholder="Ví dụ: Thì hiện tại đơn"
+            required
+            autocomplete="off"
+            aria-describedby="nameError"
+          )
+          small#nameError.field-error(aria-live="polite")
+
+        .field
+          label(for="topicCode")
+            | Mã chuyên đề 
+            em *
+          input#topicCode(
+            name="code"
+            type="text"
+            maxlength="30"
+            placeholder="Ví dụ: HIEN_TAI_DON"
+            required
+            autocomplete="off"
+            aria-describedby="codeHint codeError"
+          )
+          small#codeHint.field-hint
+            | Tối đa 30 ký tự: chữ in hoa, số và dấu gạch dưới.
+          small#codeError.field-error(aria-live="polite")
+
+        .field
+          label(for="topicDescription") Mô tả chuyên đề
+          textarea#topicDescription(
+            name="description"
+            rows="3"
+            maxlength="500"
+            placeholder="Mô tả ngắn về nội dung chuyên đề..."
+          )
+          .char-count
+            span#descriptionCount 0
+            | /500 ký tự
+
+        .field.status-field
+          div
+            label(for="topicActive") Trạng thái hoạt động
+            small Chuyên đề có thể được dùng để gắn câu hỏi.
+          label.switch
+            input#topicActive(
+              name="active"
+              type="checkbox"
+              checked
+            )
+            span.switch-track
+
+        .form-preview
+          span.form-preview__title XEM TRƯỚC CHUYÊN ĐỀ
+          .subject-identity
+            span#previewBubble.subject-bubble(data-color="blue")
+              svg.icon
+                use(href="#i-layers")
+            div
+              strong#previewName Tên chuyên đề
+              small#previewCode MACHUYENDE · Chọn môn học
+
+        .form-actions
+          button#resetButton.button.button--secondary(type="button")
+            | Làm mới
+          button#saveButton.button.button--primary(type="submit")
+            svg.icon
+              use(href="#i-plus")
+            span#saveButtonText Thêm chuyên đề
+
+  #deleteModal.modal-overlay(hidden)
+    section.dialog(
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="deleteTitle"
+      aria-describedby="deleteDescription"
+    )
+      .dialog__symbol
+        svg.icon
+          use(href="#i-trash")
+      h2#deleteTitle Xóa chuyên đề?
+      p#deleteDescription
+      .dialog__actions
+        button#cancelDelete.button.button--secondary(type="button") Hủy
+        button#confirmDelete.button.button--danger(type="button")
+          | Xóa chuyên đề
+
+  #toast.toast(role="status" aria-live="polite")
+
+block scripts
+  script(src="/admin/js/topics.js" defer)

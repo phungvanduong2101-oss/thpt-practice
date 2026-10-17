@@ -1,0 +1,182 @@
+- const account = typeof currentAccount !== "undefined" ? currentAccount : null;
+- const page = typeof activePage !== "undefined" ? activePage : "";
+- const accountName = account ? (account.fullName || account.email || "Tài khoản") : "";
+
+header.site-header
+  .navbar.container
+    a.brand(
+      href="/"
+      aria-label="THPT Practice - Trang chủ"
+    )
+      +siteLogo()
+      span.brand-name
+        span THPT
+        |  Practice
+
+    nav#primaryNav.primary-nav(aria-label="Điều hướng chính")
+      a.nav-link(
+        href="/"
+        class=page === "home" ? "is-active" : ""
+        aria-current=page === "home" ? "page" : false
+      )
+        i(data-lucide="house" aria-hidden="true")
+        span Trang chủ
+
+      .nav-menu(data-menu="practice")
+        button.nav-link.nav-trigger(
+          type="button"
+          aria-controls="practiceDropdown"
+          aria-haspopup="true"
+          aria-expanded="false"
+        )
+          i(data-lucide="book-open" aria-hidden="true")
+          span Luyện tập
+          i.chevron(
+            data-lucide="chevron-down"
+            aria-hidden="true"
+          )
+
+        #practiceDropdown.dropdown(
+          aria-label="Danh mục luyện tập"
+          role="group"
+        )
+          a.dropdown-link(href="/practice")
+            i.dropdown-icon(
+              data-lucide="book-open"
+              aria-hidden="true"
+            )
+            span.dropdown-copy
+              strong Theo môn học
+              small Chọn môn và luyện tập câu hỏi
+
+          a.dropdown-link(href="/practice/topics")
+            i.dropdown-icon(
+              data-lucide="list"
+              aria-hidden="true"
+            )
+            span.dropdown-copy
+              strong Theo chuyên đề
+              small Luyện tập theo từng chuyên đề
+
+          a.dropdown-link(href="/favorites")
+            i.dropdown-icon(
+              data-lucide="target"
+              aria-hidden="true"
+            )
+            span.dropdown-copy
+              strong Câu hỏi yêu thích
+              small Xem lại các câu hỏi đã lưu
+
+      a.nav-link(
+        href="/exams"
+        class=page === "exams" ? "is-active" : ""
+        aria-current=page === "exams" ? "page" : false
+      )
+        i(data-lucide="file-text" aria-hidden="true")
+        span Đề thi
+
+      .nav-menu(data-menu="groups")
+        button.nav-link.nav-trigger(
+          type="button"
+          aria-controls="groupsDropdown"
+          aria-haspopup="true"
+          aria-expanded="false"
+        )
+          i(data-lucide="users" aria-hidden="true")
+          span Nhóm học tập
+          i.chevron(
+            data-lucide="chevron-down"
+            aria-hidden="true"
+          )
+
+        #groupsDropdown.dropdown(
+          aria-label="Danh mục nhóm học tập"
+          role="group"
+        )
+          a.dropdown-link(href="/groups")
+            i.dropdown-icon(
+              data-lucide="users"
+              aria-hidden="true"
+            )
+            span.dropdown-copy
+              strong Khám phá nhóm
+              small Tìm và tham gia các nhóm
+
+          a.dropdown-link(href="/groups/my")
+            i.dropdown-icon(
+              data-lucide="user-round-check"
+              aria-hidden="true"
+            )
+            span.dropdown-copy
+              strong Nhóm của tôi
+              small Xem các nhóm đã tham gia
+
+          a.dropdown-link(href="/groups/create")
+            i.dropdown-icon(
+              data-lucide="circle-plus"
+              aria-hidden="true"
+            )
+            span.dropdown-copy
+              strong Tạo nhóm
+              small Tạo nhóm học tập mới
+
+    .header-actions
+      if account
+        //- Chuông thông báo
+        .action-wrap.notification-wrap
+          button#notificationButton.icon-button.notification-button(
+            type="button"
+            aria-expanded="false"
+            aria-controls="notificationPanel"
+            aria-label="Thông báo"
+          )
+            i(data-lucide="bell" aria-hidden="true")
+
+          #notificationPanel.utility-popover(hidden)
+            strong Thông báo
+            p.helper-text Chức năng thông báo đang được hoàn thiện.
+
+        //- Tài khoản
+        .action-wrap.account-wrap
+          button#accountButton.account-button(
+            type="button"
+            aria-controls="accountPanel"
+            aria-expanded="false"
+          )
+            span.avatar.account-avatar-letter(aria-hidden="true")
+              = accountName.charAt(0).toUpperCase()
+
+            span.account-name= accountName
+
+            i.account-chevron(
+              data-lucide="chevron-down"
+              aria-hidden="true"
+            )
+
+          #accountPanel.utility-popover.account-popover(hidden)
+            strong= accountName
+            small.account-email= account.email
+
+            a(href="/account") Hồ sơ cá nhân
+            a(href="/attempts") Lịch sử làm bài
+
+          
+
+            form.account-logout-form(
+              action="/auth/logout"
+              method="POST"
+            )
+              button.account-logout-button(type="submit")
+                | Đăng xuất
+      else
+        a.header-login-button(href="/auth/login")
+          | Đăng nhập
+
+      //- Menu mobile
+      button#mobileMenuButton.hamburger(
+        type="button"
+        aria-controls="primaryNav"
+        aria-expanded="false"
+        aria-label="Mở menu điều hướng"
+      )
+        i(data-lucide="menu" aria-hidden="true")

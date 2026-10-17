@@ -1,0 +1,46 @@
+include ../partials/logo.pug
+
+doctype html
+html(lang="vi")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1.0")
+    meta(name="theme-color" content="#ffffff")
+    meta(
+      name="description"
+      content="THPT Practice - Ôn luyện thi tốt nghiệp THPT và kết nối nhóm học tập."
+    )
+
+    title= (typeof title !== "undefined" ? title : "Trang chủ") + " | THPT Practice"
+
+    link(rel="preconnect" href="https://fonts.googleapis.com")
+    link(rel="preconnect" href="https://fonts.gstatic.com" crossorigin)
+    link(
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+    )
+    link(rel="stylesheet" href="/client/css/style.css")
+
+    block styles
+
+    script(
+      src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"
+      defer
+    )
+    script(src="/client/js/main.js" defer)
+
+  body
+    include ../partials/header.pug
+
+    main
+      block content
+
+    include ../partials/footer.pug
+
+    #toast.toast(
+      aria-atomic="true"
+      aria-live="polite"
+      role="status"
+    )
+
+    block scripts

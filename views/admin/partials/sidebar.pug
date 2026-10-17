@@ -1,0 +1,69 @@
+- const currentPage = typeof activePage !== "undefined" ? activePage : "";
+
+mixin adminNavItem(url, label, icon, key)
+  a.sidebar-link(
+    href=url
+    class=currentPage === key ? "is-active" : ""
+    aria-current=currentPage === key ? "page" : false
+  )
+    svg.icon(aria-hidden="true")
+      use(href="#" + icon)
+    |  #{label}
+    if currentPage === key
+      span.sidebar-link__pill Đang mở
+
+mixin adminComingSoon(label, icon)
+  button.sidebar-link.is-disabled(
+    type="button"
+    data-coming-soon=label
+    title="Sắp triển khai"
+    disabled
+  )
+    svg.icon(aria-hidden="true")
+      use(href="#" + icon)
+    |  #{label}
+
+aside#sidebar.sidebar(aria-label="Điều hướng quản trị")
+  a.sidebar-brand(
+    href="/"
+    aria-label="THPT Practice trang chủ"
+  )
+    span.sidebar-brand__mark
+      svg.icon(aria-hidden="true")
+        use(href="#i-cap")
+    span
+      b
+        span THPT
+        |  Practice
+      small ADMIN PANEL
+
+  .sidebar-section-label TỔNG QUAN
+
+  nav.sidebar-nav(aria-label="Các trang quản trị")
+    +adminNavItem("/admin/dashboard", "Tổng quan", "i-grid", "dashboard")
+
+    .sidebar-section-label.sidebar-section-label--nested QUẢN LÝ NỘI DUNG
+
+    +adminNavItem("/admin/subjects", "Môn học", "i-book", "subjects")
+    +adminNavItem("/admin/topics", "Chuyên đề", "i-layers", "topics")
+    +adminNavItem("/admin/questions", "Ngân hàng câu hỏi", "i-help", "questions")
+    +adminNavItem("/admin/exams", "Quản lý đề thi", "i-clipboard", "exams")
+
+    .sidebar-section-label.sidebar-section-label--nested HỆ THỐNG
+
+    +adminComingSoon("Người dùng", "i-users")
+    +adminComingSoon("Thống kê", "i-chart")
+    +adminComingSoon("Cài đặt", "i-settings")
+
+  .sidebar-bottom
+    .sidebar-tip
+      span.sidebar-tip__icon
+        svg.icon(aria-hidden="true")
+          use(href="#i-spark")
+      strong Xây dựng ngân hàng đề
+      p Tạo môn học là bước đầu tiên để thêm chuyên đề, câu hỏi và đề thi.
+
+    a.sidebar-website(href="/")
+      svg.icon(aria-hidden="true")
+        use(href="#i-external")
+      |  Xem trang học sinh

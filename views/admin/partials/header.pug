@@ -1,0 +1,27 @@
+header.admin-header
+  .admin-header__left
+    button#menuButton.icon-btn.mobile-menu-button(
+      type="button"
+      aria-label="Mở menu quản trị"
+      aria-controls="sidebar"
+      aria-expanded="false"
+    )
+      svg.icon(aria-hidden="true")
+        use(href="#i-menu")
+
+    .breadcrumb
+      span Quản trị
+      svg.icon(aria-hidden="true")
+        use(href="#i-chevron")
+      b= typeof title !== "undefined" ? title : "Tổng quan"
+
+  .admin-header__actions
+    .admin-profile
+      span.admin-avatar= currentAccount.fullName.charAt(0).toUpperCase()
+
+      span.admin-profile__copy
+        strong= currentAccount.fullName
+        small= currentAccount.email
+
+    form(action="/admin/auth/logout" method="POST")
+      button.button.button--secondary(type="submit") Đăng xuất
