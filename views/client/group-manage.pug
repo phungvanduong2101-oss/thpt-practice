@@ -1,0 +1,129 @@
+extends layouts/default.pug
+
+block styles
+  link(rel="stylesheet" href="/client/css/group-manage.css")
+
+block content
+  .gm-page
+    section.gm-hero
+      .container
+        a.gm-back(href="/groups/" + group._id)
+          i(data-lucide="arrow-left" aria-hidden="true")
+          span Chi tiết nhóm
+
+        span.gm-eyebrow QUẢN LÝ NHÓM HỌC TẬP
+        h1 Quản lý thành viên
+        p.gm-group-name= group.name
+
+    .container.gm-content
+      if message
+        .gm-message(role="status")= message
+
+      .gm-summary
+        .gm-stat
+          span Thành viên
+          strong= group.memberIds.length
+
+        .gm-stat
+          span Yêu cầu chờ duyệt
+          strong= group.pendingMemberIds.length
+
+      section.gm-card(aria-labelledby="pendingTitle")
+        .gm-card-heading
+          div
+            h2#pendingTitle Yêu cầu tham gia
+            p Xem xét và duyệt người dùng vào nhóm.
+
+          span.gm-count= group.pendingMemberIds.length
+
+        if group.status !== "active"
+          p.gm-notice Nhóm đang ngừng hoạt động nên không thể duyệt thêm thành viên.
+
+        if group.pendingMemberIds.length
+          .gm-table-wrap
+            table.gm-table
+              thead
+                tr
+                  th(scope="col") Người dùng
+                  th(scope="col") Trạng thái
+                  th(scope="col") Thao tác
+
+              tbody
+                each account in group.pendingMemberIds
+                  tr
+                    td
+                      .gm-person
+                        span.gm-avatar(aria-hidden="true")
+                          i(data-lucide="user")
+                        strong= account.fullName || "Chưa có tên"
+
+                    td
+                      span.gm-badge.gm-badge--pending Chờ duyệt
+
+                    td
+                      .gm-actions
+                        form(
+                          action="/groups/" + group._id + "/members/" + account._id + "/approve"
+                          method="POST"
+                        )
+                          button.gm-button.gm-button--primary(
+                            type="submit"
+                            disabled=group.status !== "active"
+                          ) Duyệt
+
+                        form(
+                          action="/groups/" + group._id + "/members/" + account._id + "/reject"
+                          method="POST"
+                        )
+                          button.gm-button.gm-button--secondary(type="submit")
+                            | Từ chối
+        else
+          .gm-empty
+            i(data-lucide="user-check" aria-hidden="true")
+            p Không có yêu cầu đang chờ duyệt.
+
+      section.gm-card(aria-labelledby="membersTitle")
+        .gm-card-heading
+          div
+            h2#membersTitle Thành viên hiện tại
+            p Danh sách người dùng đã tham gia nhóm.
+
+          span.gm-count= group.memberIds.length
+
+        if group.memberIds.length
+          .gm-table-wrap
+            table.gm-table
+              thead
+                tr
+                  th(scope="col") Người dùng
+                  th(scope="col") Vai trò
+                  th(scope="col") Thao tác
+
+              tbody
+                each account in group.memberIds
+                  tr
+                    td
+                      .gm-person
+                        span.gm-avatar(aria-hidden="true")
+                          i(data-lucide="user")
+                        strong= account.fullName || "Chưa có tên"
+
+                    td
+                      if String(account._id) === String(group.ownerId)
+                        span.gm-badge.gm-badge--owner Trưởng nhóm
+                      else
+                        span.gm-badge Thành viên
+
+                    td
+                      if String(account._id) === String(group.ownerId)
+                        span.gm-muted —
+                      else
+                        form(
+                          action="/groups/" + group._id + "/members/" + account._id + "/remove"
+                          method="POST"
+                        )
+                          button.gm-button.gm-button--danger(type="submit")
+                            | Xóa khỏi nhóm
+        else
+          .gm-empty
+            p Nhóm chưa có thành viên.

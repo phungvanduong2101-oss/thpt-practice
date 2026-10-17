@@ -1,0 +1,93 @@
+extends layouts/default.pug
+
+block styles
+  link(rel="stylesheet" href="/client/css/attempts.css")
+
+block content
+  .history-page
+    section.history-hero
+      .container
+        span.history-eyebrow HÀNH TRÌNH HỌC TẬP
+        h1 Lịch sử làm bài
+        p Theo dõi kết quả từng môn và xem lại những bài đã hoàn thành.
+    .container.history-content
+      .history-toolbar
+        div
+          h2 Kết quả theo môn học
+          p Chọn môn để xem điểm trung bình và danh sách bài làm.
+        form.history-filter(action="/attempts" method="GET")
+          label(for="historySubject") Môn học
+          .history-filter-controls
+            select#historySubject(name="subjectId" disabled=!subjects.length onchange="this.form.submit()")
+              if !subjects.length
+                option Chưa có môn học
+              each subject in subjects
+                option(value=subject._id selected=selectedSubject && String(selectedSubject._id) === String(subject._id))= subject.name
+            button(type="submit" disabled=!subjects.length) Xem
+      .history-stats
+        .history-stat
+          span Bài đã hoàn thành
+          strong= totalItems
+          small= selectedSubject ? selectedSubject.name : "Chưa có môn học"
+        .history-stat.history-stat--blue
+          span Điểm trung bình
+          strong
+            = averageScore === null ? "—" : averageScore.toFixed(2)
+            if averageScore !== null
+              em /10
+          small Tính trên tất cả bài đã nộp của môn
+        .history-stat
+          span Điểm cao nhất
+          strong
+            = bestScore === null ? "—" : bestScore.toFixed(2)
+            if bestScore !== null
+              em /10
+          small Kết quả tốt nhất của bạn
+      section.history-list(aria-labelledby="historyListTitle")
+        .history-list-heading
+          h2#historyListTitle Danh sách bài làm
+          span #{totalItems} bài làm
+        if attempts.length
+          .history-table-wrap
+            table.history-table
+              thead
+                tr
+                  th(scope="col") Đề thi
+                  th(scope="col") Số câu
+                  th(scope="col") Điểm
+                  th(scope="col") Ngày nộp
+                  th(scope="col") Chi tiết
+              tbody
+                each attempt in attempts
+                  tr
+                    td.history-exam-title= attempt.examTitle
+                    td= attempt.totalQuestions
+                    td
+                      span.history-score #{Number(attempt.score).toFixed(2)}/#{attempt.maxScore}
+                    td= new Date(attempt.submittedAt).toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh", hour12: false })
+                    td
+                      a.history-review(href="/exams/" + attempt._id + "/result") Xem lại
+          .history-pagination-row
+            p Hiển thị #{startItem}–#{endItem} trong #{totalItems} bài làm
+            if totalPages > 1
+              nav.history-pagination(aria-label="Phân trang lịch sử")
+                if currentPage > 1
+                  a(href=pageUrl(1) aria-label="Trang đầu") «
+                  a(href=pageUrl(currentPage - 1) aria-label="Trang trước") ‹
+                each pageNumber in pageNumbers
+                  if pageNumber === currentPage
+                    span.is-current(aria-current="page")= pageNumber
+                  else
+                    a(href=pageUrl(pageNumber))= pageNumber
+                if currentPage < totalPages
+                  a(href=pageUrl(currentPage + 1) aria-label="Trang sau") ›
+                  a(href=pageUrl(totalPages) aria-label="Trang cuối") »
+        else
+          .history-empty
+            i(data-lucide="clipboard-list" aria-hidden="true")
+            h3 Chưa có bài làm
+            if selectedSubject
+              p Bạn chưa hoàn thành bài thi nào của môn #{selectedSubject.name}.
+            else
+              p Hệ thống chưa có môn học để hiển thị.
+            a(href="/exams") Khám phá đề thi

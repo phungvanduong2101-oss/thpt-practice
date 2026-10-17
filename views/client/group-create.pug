@@ -1,0 +1,108 @@
+extends layouts/default.pug
+
+block styles
+  link(rel="stylesheet" href="/client/css/group-create.css")
+
+block content
+  .group-create-page
+    section.gc-hero
+      .container
+        a.gc-back(href="/groups")
+          i(data-lucide="arrow-left" aria-hidden="true")
+          span Khám phá nhóm
+
+        span.gc-eyebrow KẾT NỐI VÀ CÙNG TIẾN BỘ
+        h1 Tạo nhóm học tập
+        p Xây dựng không gian riêng để cùng ôn luyện và chia sẻ kiến thức.
+
+    .container.gc-content
+      section.gc-card(aria-labelledby="groupFormTitle")
+        .gc-card-heading
+          .gc-heading-icon
+            i(data-lucide="users" aria-hidden="true")
+
+          div
+            h2#groupFormTitle Thông tin nhóm
+            p Bạn sẽ là trưởng nhóm sau khi tạo thành công.
+
+        if error
+          .gc-error(role="alert")= error
+
+        if !subjects.length
+          .gc-notice
+            | Chưa có môn học đang hoạt động. Vui lòng quay lại sau.
+
+        form.gc-form(action="/groups/create" method="POST")
+          .gc-field
+            label(for="groupName")
+              | Tên nhóm
+              span.gc-required  *
+
+            input#groupName(
+              type="text"
+              name="name"
+              value=formData.name
+              placeholder="Ví dụ: Cùng chinh phục Toán THPT"
+              required
+              maxlength="100"
+            )
+
+            small Đặt tên rõ ràng để mọi người dễ tìm thấy nhóm.
+
+          .gc-field
+            label(for="groupSubject")
+              | Môn học
+              span.gc-required  *
+
+            select#groupSubject(
+              name="subjectId"
+              required
+              disabled=!subjects.length
+            )
+              option(
+                value=""
+                disabled
+                selected=!formData.subjectId
+              ) Chọn môn học
+
+              each subject in subjects
+                option(
+                  value=subject._id
+                  selected=formData.subjectId === String(subject._id)
+                )= subject.name
+
+          .gc-field
+            label(for="groupDescription") Mô tả nhóm
+
+            textarea#groupDescription(
+              name="description"
+              rows="5"
+              maxlength="1000"
+              placeholder="Giới thiệu mục tiêu, nội dung học tập hoặc đối tượng tham gia..."
+            )= formData.description
+
+            small Tối đa 1.000 ký tự.
+
+          .gc-members-setting
+            label.gc-checkbox(for="acceptingMembers")
+              input#acceptingMembers(
+                type="checkbox"
+                name="acceptingMembers"
+                value="true"
+                checked=formData.acceptingMembers
+              )
+
+              span
+                strong Nhận yêu cầu tham gia
+                small Người dùng có thể gửi yêu cầu và chờ bạn duyệt.
+
+          .gc-actions
+            a.gc-button.gc-button--secondary(href="/groups")
+              | Hủy
+
+            button.gc-button.gc-button--primary(
+              type="submit"
+              disabled=!subjects.length
+            )
+              i(data-lucide="plus" aria-hidden="true")
+              span Tạo nhóm

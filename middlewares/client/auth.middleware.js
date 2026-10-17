@@ -23,7 +23,7 @@ module.exports.requireAuth = async (req, res, next) => {
   let decoded;
 
   try {
-    decoded = jwt.verify(token, process.env.SECRET_KEY);
+    decoded = jwt.verify(token, process.env.JWT_SECRET);
   } catch {
     res.clearCookie("token", {
       httpOnly: true,

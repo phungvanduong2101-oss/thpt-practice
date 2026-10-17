@@ -1,0 +1,143 @@
+extends layouts/default.pug
+
+block styles
+  link(rel="stylesheet" href="/client/css/group-detail.css")
+
+block content
+  .gd-page
+    section.gd-hero
+      .container
+        a.gd-back(href="/groups")
+          i(data-lucide="arrow-left" aria-hidden="true")
+          span Khám phá nhóm
+
+        .gd-hero-content
+          .gd-avatar(aria-hidden="true")
+            i(data-lucide="users")
+
+          .gd-heading
+            span.gd-eyebrow NHÓM HỌC TẬP
+            h1= group.name
+
+            .gd-meta
+              if group.subjectId
+                span.gd-tag= group.subjectId.name
+
+              span #{group.memberIds.length} thành viên
+
+              if group.status === "active"
+                span.gd-status.gd-status--active Đang hoạt động
+              else
+                span.gd-status.gd-status--inactive Ngừng hoạt động
+
+    .container.gd-content
+      if message
+        .gd-message(role="status")= message
+
+      .gd-grid
+        section.gd-card(aria-labelledby="groupAboutTitle")
+          h2#groupAboutTitle Giới thiệu nhóm
+
+          if group.description
+            p.gd-description= group.description
+          else
+            p.gd-muted Nhóm chưa có mô tả.
+
+          .gd-info-list
+            .gd-info-row
+              span Trưởng nhóm
+              strong
+                if group.ownerId
+                  = group.ownerId.fullName
+                else
+                  | Tài khoản không còn tồn tại
+
+            .gd-info-row
+              span Môn học
+              strong
+                if group.subjectId
+                  = group.subjectId.name
+                else
+                  | Môn học không còn tồn tại
+
+            .gd-info-row
+              span Ngày tạo
+              strong
+                = new Date(group.createdAt).toLocaleDateString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" })
+
+            .gd-info-row
+              span Nhận thành viên
+              strong
+                if group.status !== "active"
+                  | Tạm ngừng
+                else if group.acceptingMembers
+                  | Đang mở
+                else
+                  | Đã đóng
+
+        aside.gd-card.gd-join-card(aria-labelledby="groupJoinTitle")
+          h2#groupJoinTitle Tham gia nhóm
+
+          if isOwner
+            .gd-role
+              i(data-lucide="crown" aria-hidden="true")
+              strong Bạn là trưởng nhóm
+
+            p.gd-muted Bạn có quyền duyệt thành viên và quản lý nhóm. 
+            a.gd-button.gd-button--primary(
+              href="/groups/" + group._id + "/manage"
+            ) Quản lý thành viên
+
+          else if isMember
+            .gd-role
+              i(data-lucide="user-check" aria-hidden="true")
+              strong Bạn đã là thành viên
+
+            p.gd-muted Bạn đã tham gia nhóm học tập này.
+
+          else if isPending
+            .gd-role
+              i(data-lucide="clock" aria-hidden="true")
+              strong Đang chờ duyệt
+
+            p.gd-muted Yêu cầu đã được gửi tới trưởng nhóm.
+
+            form(
+              action="/groups/" + group._id + "/cancel-join"
+              method="POST"
+            )
+              button.gd-button.gd-button--secondary(type="submit")
+                | Hủy yêu cầu
+
+          else if group.status !== "active"
+            p.gd-muted Nhóm hiện đang ngừng hoạt động.
+
+            button.gd-button.gd-button--secondary(
+              type="button"
+              disabled
+            ) Không thể tham gia
+
+          else if !group.acceptingMembers
+            p.gd-muted Nhóm hiện không nhận thêm yêu cầu tham gia.
+
+            button.gd-button.gd-button--secondary(
+              type="button"
+              disabled
+            ) Đã đóng đăng ký
+
+          else if !currentAccount
+            p.gd-muted Đăng nhập để gửi yêu cầu tham gia nhóm.
+
+            a.gd-button.gd-button--primary(href="/auth/login")
+              | Đăng nhập để tham gia
+
+          else
+            p.gd-muted
+              | Gửi yêu cầu tham gia. Trưởng nhóm sẽ xem xét và duyệt yêu cầu của bạn.
+
+            form(
+              action="/groups/" + group._id + "/join"
+              method="POST"
+            )
+              button.gd-button.gd-button--primary(type="submit")
+                | Xin tham gia

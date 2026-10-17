@@ -23,6 +23,8 @@
   const status = get('etSaveStatus');
 
   let started = false;
+  let starting = false;
+  let attemptId = null;
   let expired = false;
   let submitting = false;
   let submitted = false;
@@ -194,27 +196,79 @@
   }
 
   function startExam() {
-    if (started || !cards.length) return;
+    if (started || starting || !cards.length) return;
 
     if (!Number.isFinite(duration) || duration <= 0) {
       setError('Thời gian làm bài không hợp lệ.');
       return;
     }
 
+    starting = true;
+    startButton.disabled = true;
+    startButton.textContent = 'Đang tạo bài làm...';
     setError();
 
-    started = true;
-    deadline = performance.now() + duration * 60 * 1000;
+    fetch(`/exams/${encodeURIComponent(examId)}/start`, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+      },
+    })
+      .then(response => {
+        if (response.redirected || response.status === 401) {
+          throw new Error('Vui lòng đăng nhập để làm bài.');
+        }
 
-    startButton.disabled = true;
-    startButton.textContent = 'Đang làm bài';
-    submitButton.disabled = false;
+        const contentType = response.headers.get('content-type') || '';
 
-    get('etTimerHint').textContent = 'Thời gian còn lại';
+        if (!contentType.includes('application/json')) {
+          throw new Error(
+            `Server không trả JSON (HTTP ${response.status}).`
+          );
+        }
 
-    setStatus('Đáp án chưa được lưu. Không tải lại hoặc đóng trang.');
-    setInputsEnabled(true);
-    startTimer();
+        return response.json().then(data => {
+          if (!response.ok || data.code !== 'success') {
+            throw new Error(data.message || 'Không tạo được bài làm.');
+          }
+
+          return data;
+        });
+      })
+      .then(data => {
+        if (typeof data.attemptId !== 'string' || !data.attemptId) {
+          throw new Error('Server chưa trả về attemptId.');
+        }
+
+        attemptId = data.attemptId;
+
+        // Nhấn OK xong mới bắt đầu làm bài.
+        window.alert(data.message || 'Tạo bài làm thành công.');
+
+        started = true;
+        deadline = performance.now() + duration * 60 * 1000;
+
+        startButton.textContent = 'Đang làm bài';
+        submitButton.disabled = false;
+
+        get('etTimerHint').textContent = 'Thời gian còn lại';
+
+        setStatus('Đáp án chưa được lưu. Không tải lại hoặc đóng trang.');
+        setInputsEnabled(true);
+        startTimer();
+      })
+      .catch(error => {
+        setError(error.message || 'Không kết nối được server.');
+        setStatus('Chưa bắt đầu làm bài.');
+      })
+      .finally(() => {
+        starting = false;
+
+        if (!started) {
+          startButton.disabled = false;
+          startButton.textContent = 'Bắt đầu làm bài';
+        }
+      });
   }
 
   async function requestSubmit(payload) {
@@ -293,7 +347,7 @@
 
     if (!submissionPayload) {
       submissionPayload = {
-        examId,
+        attemptId,
         answers: collectAnswers(),
       };
     }

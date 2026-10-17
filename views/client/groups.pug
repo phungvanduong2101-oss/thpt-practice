@@ -1,0 +1,304 @@
+extends layouts/default.pug
+
+block styles
+  link(rel="stylesheet" href="/client/css/groups.css")
+  link(rel="stylesheet" href="/client/css/groups-extra.css")
+
+block content
+  -
+    const makePageUrl = page => {
+      const params = new URLSearchParams({
+        keyword,
+        subjectId,
+        status,
+        acceptingMembers,
+        page: String(page),
+      });
+
+      return "/groups?" + params.toString();
+    };
+
+    const firstPage = Math.max(1, currentPage - 2);
+    const lastPage = Math.min(totalPages, currentPage + 2);
+
+  section.group-page-hero(aria-labelledby="groupPageTitle")
+    .container.group-page-hero__inner
+      span.group-page-hero__badge NHÓM HỌC TẬP
+
+      h1#groupPageTitle.group-page-hero__title
+        | Khám phá nhóm học tập
+
+      p.group-page-hero__desc
+        | Tìm kiếm và tham gia các nhóm học tập phù hợp để cùng
+        |  ôn luyện, trao đổi tài liệu và hỗ trợ nhau tiến bộ mỗi ngày.
+
+  section.group-filter-section(
+    aria-label="Tìm kiếm và lọc nhóm học tập"
+  )
+    form.container.group-filter-bar(
+      action="/groups"
+      method="GET"
+    )
+      .group-search-wrap
+        i.group-search-icon(
+          data-lucide="search"
+          aria-hidden="true"
+        )
+
+        label.sr-only(for="groupSearchInput")
+          | Tìm kiếm theo tên nhóm
+
+        input#groupSearchInput.group-search-input(
+          type="search"
+          name="keyword"
+          value=keyword
+          placeholder="Tìm kiếm theo tên nhóm..."
+          autocomplete="off"
+        )
+
+      .group-filter-selects
+        .group-select-wrap
+          i.group-select-icon(
+            data-lucide="book-open"
+            aria-hidden="true"
+          )
+
+          label.sr-only(for="filterGroupSubject")
+            | Lọc theo môn học
+
+          select#filterGroupSubject.group-select(name="subjectId")
+            option(
+              value=""
+              selected=subjectId === ""
+            ) Tất cả môn học
+
+            each subject in subjects
+              option(
+                value=subject._id
+                selected=subjectId === String(subject._id)
+              )= subject.name
+
+          i.group-select-chevron(
+            data-lucide="chevron-down"
+            aria-hidden="true"
+          )
+
+        .group-select-wrap
+          i.group-select-icon(
+            data-lucide="activity"
+            aria-hidden="true"
+          )
+
+          label.sr-only(for="filterGroupStatus")
+            | Trạng thái hoạt động
+
+          select#filterGroupStatus.group-select(name="status")
+            option(
+              value=""
+              selected=status === ""
+            ) Tất cả trạng thái
+
+            option(
+              value="active"
+              selected=status === "active"
+            ) Đang hoạt động
+
+            option(
+              value="inactive"
+              selected=status === "inactive"
+            ) Ngừng hoạt động
+
+          i.group-select-chevron(
+            data-lucide="chevron-down"
+            aria-hidden="true"
+          )
+
+        .group-select-wrap
+          i.group-select-icon(
+            data-lucide="user-plus"
+            aria-hidden="true"
+          )
+
+          label.sr-only(for="filterAcceptingMembers")
+            | Trạng thái nhận thành viên
+
+          select#filterAcceptingMembers.group-select(
+            name="acceptingMembers"
+          )
+            option(
+              value=""
+              selected=acceptingMembers === ""
+            ) Nhận thành viên: Tất cả
+
+            option(
+              value="true"
+              selected=acceptingMembers === "true"
+            ) Đang nhận thành viên
+
+            option(
+              value="false"
+              selected=acceptingMembers === "false"
+            ) Đã đóng đăng ký
+
+          i.group-select-chevron(
+            data-lucide="chevron-down"
+            aria-hidden="true"
+          )
+
+      .group-filter-actions
+        button.group-filter-submit(type="submit")
+          | Tìm kiếm
+
+        a.group-filter-reset(href="/groups")
+          | Đặt lại
+
+  section.group-list-section(aria-label="Danh sách nhóm học tập")
+    .container.group-list-inner
+      .group-table-card
+        h2.group-table-title Danh sách nhóm
+
+        if groups.length
+          .group-table-wrap(
+            role="region"
+            aria-label="Bảng danh sách nhóm"
+            tabindex="0"
+          )
+            table.group-table
+              thead
+                tr
+                  th.group-th.group-th--name(scope="col")
+                    | Tên nhóm
+
+                  th.group-th.group-th--subject(scope="col")
+                    | Môn học
+
+                  th.group-th(scope="col")
+                    | Trưởng nhóm
+
+                  th.group-th.group-th--desc(scope="col")
+                    | Mô tả
+
+                  th.group-th.group-th--members(scope="col")
+                    | Thành viên
+
+                  th.group-th.group-th--status(scope="col")
+                    | Trạng thái
+
+                  th.group-th.group-th--action(scope="col")
+                    | Hành động
+
+              tbody
+                each group in groups
+                  tr
+                    td
+                      .group-cell-scroll(
+                        tabindex="0"
+                        role="region"
+                        aria-label="Tên nhóm"
+                      )
+                        strong= group.name
+
+                    td
+                      .group-cell-scroll(
+                        tabindex="0"
+                        role="region"
+                        aria-label="Môn học"
+                      )
+                        if group.subjectId
+                          = group.subjectId.name
+                        else
+                          | Môn học không còn tồn tại
+
+                    td
+                      .group-cell-scroll(
+                        tabindex="0"
+                        role="region"
+                        aria-label="Trưởng nhóm"
+                      )
+                        if group.ownerId
+                          = group.ownerId.fullName
+                        else
+                          | Tài khoản không còn tồn tại
+
+                    td
+                      .group-cell-scroll.group-cell-scroll--description(
+                        tabindex="0"
+                        role="region"
+                        aria-label="Mô tả nhóm"
+                      )
+                        if group.description
+                          = group.description
+                        else
+                          | Chưa có mô tả
+
+                    td
+                      .group-cell-scroll
+                        if group.memberIds
+                          = group.memberIds.length
+                        else
+                          | 0
+
+                    td
+                      .group-cell-scroll(
+                        tabindex="0"
+                        role="region"
+                        aria-label="Trạng thái nhóm"
+                      )
+                        if group.status === "active"
+                          div Đang hoạt động
+
+                          if group.acceptingMembers
+                            small Đang nhận thành viên
+                          else
+                            small Đã đóng đăng ký
+                        else
+                          div Ngừng hoạt động
+
+                    td
+                      a.group-detail-link(
+                        href="/groups/" + group._id
+                      ) Xem nhóm
+        else
+          .group-empty
+            i.group-empty__icon(
+              data-lucide="users-round"
+              aria-hidden="true"
+            )
+
+            p.group-empty__title
+              | Không tìm thấy nhóm học tập
+
+            p.group-empty__desc
+              | Thử thay đổi từ khóa hoặc bộ lọc để tìm nhóm phù hợp.
+
+      if totalItems > 0
+        p.group-list-summary
+          | Hiển thị #{startItem}–#{endItem} trong #{totalItems} nhóm
+
+      if totalPages > 1
+        nav.group-pagination(aria-label="Phân trang danh sách nhóm")
+          if currentPage > 1
+            a.group-page-link(href=makePageUrl(1))
+              | Đầu
+
+            a.group-page-link(href=makePageUrl(currentPage - 1))
+              | Trước
+
+          - let pageNumber = firstPage;
+
+          while pageNumber <= lastPage
+            if pageNumber === currentPage
+              span.group-page-link.is-active(aria-current="page")
+                = pageNumber
+            else
+              a.group-page-link(href=makePageUrl(pageNumber))
+                = pageNumber
+
+            - pageNumber++;
+
+          if currentPage < totalPages
+            a.group-page-link(href=makePageUrl(currentPage + 1))
+              | Sau
+
+            a.group-page-link(href=makePageUrl(totalPages))
+              | Cuối

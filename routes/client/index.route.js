@@ -2,14 +2,22 @@ const express = require("express");
 const router = express.Router();
 
 const homeController = require("../../controllers/client/home.controller");
-const authRoutes = require("./auth.route"); 
-const authMiddleware = require("../../middlewares/client/auth.middleware"); 
-const examRoute = require("./exam.route"); 
+const attemptController = require("../../controllers/client/attempt.controller");
 
-router.use(authMiddleware.optionalAuth);
-router.get("/", homeController.index); 
+const authMiddleware = require("../../middlewares/auth.middleware");
 
-router.use("/auth", authRoutes); 
-router.use("/exams", examRoute); 
+const authRoutes = require("./auth.route");
+const examRoute = require("./exam.route");
+const groupRoutes = require("./group.route");
+router.get("/", homeController.index);
 
+router.get(
+  "/attempts",
+  authMiddleware.requireAuth,
+  attemptController.index
+);
+
+router.use("/auth", authRoutes);
+router.use("/exams", examRoute);
+router.use("/groups", groupRoutes);
 module.exports = router;
