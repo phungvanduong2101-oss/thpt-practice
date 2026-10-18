@@ -41,12 +41,12 @@ module.exports.registerPost = async (req, res) => {
        const existedAccount = await Account.findOne({ email });  
 
        if(existedAccount) { 
-        res.json({code:'error' , message:"Email đã tồn tại!"})
+        return res.json({code:'error' , message:"Email đã tồn tại!"})
        } 
     
        const passwordHash = await bcrypt.hash(password, 10);  
        await Account.create({fullName, email, password: passwordHash,role:"user",status: "active"}); 
-       res.json({code: "success", message: "Tạo tài khoản thành công!"});
+       return res.json({code: "success", message: "Tạo tài khoản thành công!"});
 
     } catch (error) {
       res.json({code: "error", message: "Tạo tài khoản thất bại!"});   

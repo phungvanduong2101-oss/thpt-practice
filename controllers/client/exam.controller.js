@@ -25,10 +25,10 @@ module.exports.index = async (req, res, next) => {
     // thuộc môn học đang hoạt động.
     const filter = {
       status: "published",
-      groupId: null,
       subjectId: {
         $in: subjects.map(subject => subject._id),
-      },
+      }, 
+      scope: 'system',
     };
 
     if (subjectId !== "all") {

@@ -6,8 +6,7 @@
   if (!form) return;
 
   const baseUrl = get('questionPageData').dataset.baseUrl;
-  const settingsKey = `question-settings:${baseUrl}`;
-  const PAGE_SIZE = 6;
+  const settingsKey = `question-settings:${get('questionPageData').dataset.accountId}`;
   const KEYS = ['A', 'B', 'C', 'D'];
 
   const TYPES = {
@@ -31,7 +30,6 @@
 
   let editingId = null;
   let deletingId = null;
-  let currentPage = 1;
   let busy = false;
   let currentModal = null;
   let previousFocus = null;
@@ -53,25 +51,11 @@
     return element.textContent || '';
   }
 
-  function normalise(value) {
-    return String(value ?? '')
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/đ/g, 'd')
-      .replace(/Đ/g, 'D')
-      .toLowerCase()
-      .trim();
-  }
 
   function idOf(value) {
     return String(value?._id ?? value ?? '');
   }
 
-  function icon(name) {
-    return `<svg class="icon" aria-hidden="true">
-      <use href="#i-${name}"/>
-    </svg>`;
-  }
 
   function setError(message = '') {
     get('formError').textContent = message;
@@ -251,19 +235,6 @@
   }
 
   // Các lựa chọn môn học / chuyên đề
-  function fillSubjects() {
-    const options = subjects.map(subject => `
-      <option value="${escapeHtml(subject._id)}">
-        ${escapeHtml(subject.name)}${subject.active ? '' : ' (Đã ẩn)'}
-      </option>
-    `).join('');
-
-    get('questionSubject').innerHTML =
-      '<option value="">Chọn môn học</option>' + options;
-
-    get('subjectFilter').innerHTML =
-      '<option value="all">Tất cả môn học</option>' + options;
-  }
 
   function fillQuestionTopics(subjectId, selectedId = '') {
     const available = topics.filter(topic =>
@@ -282,27 +253,6 @@
     get('questionTopic').value = selectedId;
   }
 
-  function fillTopicFilter() {
-    const subjectId = get('subjectFilter').value;
-    const previous = get('topicFilter').value;
-
-    const available = topics.filter(topic =>
-      subjectId === 'all' || idOf(topic.subjectId) === subjectId
-    );
-
-    get('topicFilter').innerHTML =
-      '<option value="all">Tất cả chuyên đề</option>' +
-      available.map(topic => `
-        <option value="${escapeHtml(topic._id)}">
-          ${escapeHtml(topic.name)}
-        </option>
-      `).join('');
-
-    get('topicFilter').value =
-      available.some(topic => idOf(topic) === previous)
-        ? previous
-        : 'all';
-  }
 
   function updateTypeUI() {
     const type = get('questionType').value;
@@ -442,13 +392,13 @@
     };
   }
 
-  function clearGroupForm(focus = false) {
+  function clearPersonalForm(focus = false) {
     clearForm(focus);
     get('questionSubject').disabled = false;
   }
 
   function startEdit(question) {
-    clearGroupForm();
+    clearPersonalForm();
     editingId = idOf(question);
 
     get('questionSubject').value = idOf(question.subjectId);
@@ -502,150 +452,8 @@
   }
 
   // Search / filter / phân trang
-  function filteredQuestions() {
-    const keyword = normalise(get('searchInput').value);
 
-    return questions.filter(question => {
-      const subjectId = idOf(question.subjectId);
-      const topicId = idOf(question.topicId);
 
-      const subject = subjects.find(item => idOf(item) === subjectId);
-      const topic = topics.find(item => idOf(item) === topicId);
-
-      const text = normalise([
-        question.contentText || plainText(question.content?.html),
-        subject?.name,
-        topic?.name,
-      ].join(' '));
-
-      return (
-        (!keyword || text.includes(keyword)) &&
-        (get('subjectFilter').value === 'all' ||
-          subjectId === get('subjectFilter').value) &&
-        (get('topicFilter').value === 'all' ||
-          topicId === get('topicFilter').value) &&
-        (get('typeFilter').value === 'all' ||
-          question.type === get('typeFilter').value) &&
-        (get('bloomFilter').value === 'all' ||
-          String(question.bloomLevel) === get('bloomFilter').value)
-      );
-    });
-  }
-
-  function renderList() {
-    const filtered = filteredQuestions();
-    const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-
-    currentPage = Math.min(currentPage, totalPages);
-    const start = (currentPage - 1) * PAGE_SIZE;
-
-    get('questionList').innerHTML = filtered
-      .slice(start, start + PAGE_SIZE)
-      .map((question, index) => {
-        const subject = subjects.find(item =>
-          idOf(item) === idOf(question.subjectId)
-        );
-
-        const topic = topics.find(item =>
-          idOf(item) === idOf(question.topicId)
-        );
-
-        const title = question.contentText ||
-          plainText(question.content?.html) || 'Câu hỏi';
-
-        return `
-          <article class="question-entry" data-id="${escapeHtml(question._id)}">
-            <span class="question-number">${start + index + 1}</span>
-            <div class="question-entry__body">
-              <div class="question-entry__title">${escapeHtml(title)}</div>
-              <div class="question-entry__meta">
-                <span class="question-pill question-pill--subject">
-                  ${escapeHtml(subject?.name || 'Môn không còn tồn tại')}
-                </span>
-                <span class="question-pill question-pill--type">
-                  ${escapeHtml(TYPES[question.type])}
-                </span>
-                <span class="question-pill question-pill--bloom">
-                  Bloom ${question.bloomLevel} · ${escapeHtml(BLOOM[question.bloomLevel])}
-                </span>
-                <span class="question-pill question-pill--${question.published ? 'published' : 'draft'}">
-                  ${question.published ? 'Đã xuất bản' : 'Bản nháp'}
-                </span>
-              </div>
-              <div class="question-entry__topic">
-                ${escapeHtml(topic?.name || 'Chuyên đề không còn tồn tại')}
-              </div>
-            </div>
-            <div class="question-entry__actions">
-              <button class="question-mini-action" type="button"
-                data-action="preview" aria-label="Xem trước">
-                ${icon('search')}
-              </button>
-              <button class="question-mini-action" type="button"
-                data-action="edit" aria-label="Sửa câu hỏi">
-                ${icon('edit')}
-              </button>
-              <button class="question-mini-action danger" type="button"
-                data-action="delete" aria-label="Xóa câu hỏi">
-                ${icon('trash')}
-              </button>
-            </div>
-          </article>
-        `;
-      }).join('');
-
-    get('emptyState').hidden = filtered.length > 0;
-    get('questionCount').textContent = filtered.length;
-
-    get('statTotal').textContent = questions.length;
-    get('statPublished').textContent =
-      questions.filter(question => question.published).length;
-
-    get('statTopics').textContent =
-      new Set(questions.map(question => idOf(question.topicId))).size;
-
-    get('paginationSummary').textContent = filtered.length
-      ? `Hiển thị ${start + 1}–${Math.min(start + PAGE_SIZE, filtered.length)} / ${filtered.length} câu hỏi`
-      : 'Hiển thị 0 câu hỏi';
-
-    const pages = [...new Set([
-      1,
-      currentPage - 1,
-      currentPage,
-      currentPage + 1,
-      totalPages,
-    ])].filter(page => page >= 1 && page <= totalPages)
-      .sort((a, b) => a - b);
-
-    let lastPage = 0;
-
-    get('pagination').innerHTML = totalPages <= 1 ? '' : `
-      <button type="button" class="page-button"
-        data-page="${currentPage - 1}"
-        ${currentPage === 1 ? 'disabled' : ''}
-        aria-label="Trang trước">${icon('left')}</button>
-      ${pages.map(page => {
-      const gap = page - lastPage > 1
-        ? '<span aria-hidden="true">…</span>'
-        : '';
-
-      lastPage = page;
-
-      return `${gap}<button type="button"
-          class="page-button ${page === currentPage ? 'is-active' : ''}"
-          data-page="${page}"
-          ${page === currentPage ? 'aria-current="page"' : ''}>
-          ${page}
-        </button>`;
-    }).join('')}
-      <button type="button" class="page-button"
-        data-page="${currentPage + 1}"
-        ${currentPage === totalPages ? 'disabled' : ''}
-        aria-label="Trang tiếp">${icon('chevron')}</button>
-    `;
-  }
-
-  // Xem trước
   function openModal(modal) {
     previousFocus = document.activeElement;
     currentModal = modal;
@@ -796,7 +604,7 @@
 
   for (const id of ['newQuestionButton', 'resetButton']) {
     get(id).addEventListener('click', () => {
-      if (!busy) clearGroupForm(true);
+      if (!busy) clearPersonalForm(true);
     });
   }
 
@@ -968,7 +776,7 @@
 
       buildOptions();
       get('subjectFilter').disabled = false;
-      clearGroupForm();
+      clearPersonalForm();
       restoreQuestionSettings();
 
       get('saveButton').disabled = false;

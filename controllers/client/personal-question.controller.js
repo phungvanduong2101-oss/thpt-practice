@@ -6,21 +6,6 @@ const Group = require("../../models/group.model");
 const Exam = require("../../models/exam.model");
 
 // Áp dụng cho mọi route câu hỏi của nhóm, kể cả API sửa/xóa.
-module.exports.requireOwner = async (req, res, next) => {
-  try {
-    const group = await Group.findById(req.params.id).lean();
-    if (!group) return res.status(404).json({ code: "error", message: "Không tìm thấy nhóm." });
-    if (String(group.ownerId) !== String(req.account._id)) {
-      return res.status(403).json({ code: "error", message: "Chỉ trưởng nhóm được quản lý câu hỏi." });
-    }
-    req.group = group;
-    return next();
-  } catch (error) {
-    if (error.name === "CastError") return res.status(400).json({ code: "error", message: "ID không hợp lệ." });
-    return next(error);
-  }
-};
-
 module.exports.index = async (req, res, next) => {
   try {
     const keyword = typeof req.query.keyword === "string"
@@ -46,7 +31,7 @@ module.exports.index = async (req, res, next) => {
       : "all";
 
     // Chỉ quản lý câu hỏi hệ thống
-    const baseFilter = { groupId: req.group._id };
+    const baseFilter = { createdBy: req.account._id, scope: 'personal' };
     const filter = { ...baseFilter };
 
     if (keyword) {
@@ -148,13 +133,12 @@ module.exports.index = async (req, res, next) => {
         page: String(page),
       });
 
-      return `/groups/${req.group._id}/questions?${params.toString()}`;
+      return `/my/questions?${params.toString()}`;
     };
 
-    res.render("client/group-questions", {
-      group: req.group,
+    res.render("client/personal-questions", {
       title: "Ngân hàng câu hỏi",
-      activePage: "groups",
+      activePage: "my",
 
       questions,
       subjects,
@@ -285,18 +269,18 @@ async function saveQuestion(req, res, next, editing) {
         : [],
       explanation,
       published,
-      groupId: req.group._id,
+      createdBy: req.account._id, scope: 'personal',
     };
 
     let message = "Tạo câu hỏi thành công!";
     let statusCode = 201;
     if (editing) {
       const question = await Question.findOneAndUpdate(
-        { _id: req.params.questionId, groupId: req.group._id },
+        { _id: req.params.questionId, createdBy: req.account._id, scope: 'personal' },
         { $set: changes },
         { new: true, runValidators: true }
       );
-      if (!question) return res.status(404).json({ code: "error", message: "Không tìm thấy câu hỏi trong nhóm." });
+      if (!question) return res.status(404).json({ code: "error", message: "Không tìm thấy câu hỏi của bạn." });
       message = "Cập nhật câu hỏi thành công!";
       statusCode = 200;
     } else {
@@ -320,9 +304,9 @@ module.exports.update = (req, res, next) => saveQuestion(req, res, next, true);
 
 module.exports.remove = async (req, res, next) => {
   try {
-    const filter = { _id: req.params.questionId , groupId: req.group._id };
+    const filter = { _id: req.params.questionId , createdBy: req.account._id, scope: 'personal' };
     const question = await Question.findOne(filter).select("_id").lean();
-    if (!question) return res.status(404).json({ code: "error", message: "Không tìm thấy câu hỏi trong nhóm." });
+    if (!question) return res.status(404).json({ code: "error", message: "Không tìm thấy câu hỏi của bạn." });
     const used = await Exam.exists({ questionIds: question._id });
     if (used) return res.status(409).json({ code: "error", message: "Câu hỏi đã thuộc đề thi, chỉ được sửa." });
     const result = await Question.deleteOne(filter);

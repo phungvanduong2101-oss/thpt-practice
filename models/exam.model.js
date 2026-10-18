@@ -62,13 +62,13 @@ const examSchema = new mongoose.Schema(
       required: true,
     },
 
-    // null: đề hệ thống; có ID: đề của nhóm
-    groupId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Group",
-      default: null,
+    scope: {
+      type: String,
+      enum: ['system', 'personal'],
+      default: 'personal',
       index: true,
     },
+    groupIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Group', index: true }],
   },
   {
     timestamps: true,

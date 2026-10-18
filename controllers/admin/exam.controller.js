@@ -20,7 +20,7 @@ module.exports.index = async (req, res, next) => {
       ? req.query.status
       : "all";
 
-    const baseFilter = { groupId: null };
+    const baseFilter = { scope: "system" };
     const filter = { ...baseFilter };
 
     if (keyword) {
@@ -90,10 +90,10 @@ module.exports.index = async (req, res, next) => {
         .sort({ name: 1 })
         .lean(),
 
-      Question.find({ groupId: null })
+      Question.find({ scope: "system" })
         .select(
           "subjectId topicId type bloomLevel content contentText " +
-          "options correctAnswer acceptedAnswers explanation published groupId"
+          "options correctAnswer acceptedAnswers explanation published scope"
         )
         .lean(),
     ]);
@@ -147,43 +147,222 @@ module.exports.index = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-}; 
+};
 
-module.exports.create = async (req, res, next) => { 
-  try { 
-   const {title,subjectId,duration,description,status,questionIds } = req.body; 
+module.exports.create = async (req, res, next) => {
+  try {
+    const {
+      title,
+      subjectId,
+      duration,
+      description,
+      status,
+      questionIds,
+    } = req.body;
 
-   const existSubject = await Subject.findById(subjectId); 
-   if(!existSubject || !existSubject.active) { 
-      return res.json({ code: "error", message: 'Môn học không tồn tại hoặc đã bị ẩn!' }); 
-   } 
-    
-   if(!questionIds || questionIds.length === 0) { 
-      return res.json({ code: "error", message: 'Đề thi phải có ít nhất 1 câu hỏi!' }); 
-   }
-    
-   await Exam.create({title,subjectId,duration,description,status,questionIds,createdBy: req.account._id}); 
-   res.json({ code: "success", message: 'Tạo đề thi thành công!' });
-  } catch(error) { 
-    res.json({ code: "error", message: 'Tạo đề thi thất bại!' });
+    if (!mongoose.isObjectIdOrHexString(subjectId)) {
+      return res.status(400).json({
+        code: "error",
+        message: "Môn học không hợp lệ!",
+      });
+    }
+
+    const subject = await Subject.findOne({
+      _id: subjectId,
+      active: true,
+    }).lean();
+
+    if (!subject) {
+      return res.status(400).json({
+        code: "error",
+        message: "Môn học không tồn tại hoặc đã bị ẩn!",
+      });
+    }
+
+    if (!Array.isArray(questionIds) || questionIds.length === 0) {
+      return res.status(400).json({
+        code: "error",
+        message: "Đề thi phải có ít nhất 1 câu hỏi!",
+      });
+    }
+
+    if (!questionIds.every(id => mongoose.isObjectIdOrHexString(id))) {
+      return res.status(400).json({
+        code: "error",
+        message: "ID câu hỏi không hợp lệ!",
+      });
+    }
+
+    const uniqueIds = new Set(
+      questionIds.map(id => String(id).toLowerCase())
+    );
+
+    if (uniqueIds.size !== questionIds.length) {
+      return res.status(400).json({
+        code: "error",
+        message: "Không được chọn trùng câu hỏi!",
+      });
+    }
+
+    const questionCount = await Question.countDocuments({
+      _id: { $in: questionIds },
+      subjectId,
+      scope: "system",
+      published: true,
+    });
+
+    if (questionCount !== questionIds.length) {
+      return res.status(400).json({
+        code: "error",
+        message:
+          "Câu hỏi phải thuộc hệ thống, đúng môn và đã xuất bản!",
+      });
+    }
+
+    await Exam.create({
+      title,
+      subjectId,
+      duration,
+      description,
+      status,
+      questionIds,
+      createdBy: req.account._id,
+      scope: "system",
+    });
+
+    return res.status(201).json({
+      code: "success",
+      message: "Tạo đề thi thành công!",
+    });
+  } catch (error) {
+    if (error.name === "ValidationError" || error.name === "CastError") {
+      return res.status(400).json({
+        code: "error",
+        message: "Dữ liệu đề thi không hợp lệ!",
+      });
+    }
+
+    next(error);
   }
-}      
+};
 
 module.exports.update = async (req, res, next) => {
-  try { 
-     const {title,subjectId,duration,description,status,questionIds } = req.body; 
-     const existSubject = await Subject.findById(subjectId); 
-     if(!existSubject || !existSubject.active) {
-        return res.json({ code: "error", message: 'Môn học không tồn tại hoặc đã bị ẩn!' });
-     } 
-     
-     if(!questionIds || questionIds.length === 0) {
-        return res.json({ code: "error", message: 'Đề thi phải có ít nhất 1 câu hỏi!' });
-     }
-     
-     await Exam.updateOne({ _id: req.params.id }, { title,subjectId,duration,description,status,questionIds }); 
-     res.json({ code: "success", message: 'Cập nhật đề thi thành công!' });
-  } catch(error) { 
-    res.json({ code: "error", message: 'Cập nhật đề thi thất bại!' });
+  try {
+    const {
+      title,
+      subjectId,
+      duration,
+      description,
+      status,
+      questionIds,
+    } = req.body;
+
+    if (!mongoose.isObjectIdOrHexString(req.params.id)) {
+      return res.status(400).json({
+        code: "error",
+        message: "ID đề thi không hợp lệ!",
+      });
+    }
+
+    if (!mongoose.isObjectIdOrHexString(subjectId)) {
+      return res.status(400).json({
+        code: "error",
+        message: "Môn học không hợp lệ!",
+      });
+    }
+
+    const subject = await Subject.findOne({
+      _id: subjectId,
+      active: true,
+    }).lean();
+
+    if (!subject) {
+      return res.status(400).json({
+        code: "error",
+        message: "Môn học không tồn tại hoặc đã bị ẩn!",
+      });
+    }
+
+    if (!Array.isArray(questionIds) || questionIds.length === 0) {
+      return res.status(400).json({
+        code: "error",
+        message: "Đề thi phải có ít nhất 1 câu hỏi!",
+      });
+    }
+
+    if (!questionIds.every(id => mongoose.isObjectIdOrHexString(id))) {
+      return res.status(400).json({
+        code: "error",
+        message: "ID câu hỏi không hợp lệ!",
+      });
+    }
+
+    const uniqueIds = new Set(
+      questionIds.map(id => String(id).toLowerCase())
+    );
+
+    if (uniqueIds.size !== questionIds.length) {
+      return res.status(400).json({
+        code: "error",
+        message: "Không được chọn trùng câu hỏi!",
+      });
+    }
+
+    const questionCount = await Question.countDocuments({
+      _id: { $in: questionIds },
+      subjectId,
+      scope: "system",
+      published: true,
+    });
+
+    if (questionCount !== questionIds.length) {
+      return res.status(400).json({
+        code: "error",
+        message:
+          "Câu hỏi phải thuộc hệ thống, đúng môn và đã xuất bản!",
+      });
+    }
+
+    const exam = await Exam.findOneAndUpdate(
+      {
+        _id: req.params.id,
+        scope: "system",
+      },
+      {
+        $set: {
+          title,
+          subjectId,
+          duration,
+          description,
+          status,
+          questionIds,
+        },
+      },
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+
+    if (!exam) {
+      return res.status(404).json({
+        code: "error",
+        message: "Không tìm thấy đề thi hệ thống!",
+      });
+    }
+
+    return res.json({
+      code: "success",
+      message: "Cập nhật đề thi thành công!",
+    });
+  } catch (error) {
+    if (error.name === "ValidationError" || error.name === "CastError") {
+      return res.status(400).json({
+        code: "error",
+        message: "Dữ liệu đề thi không hợp lệ!",
+      });
+    }
+
+    next(error);
   }
-}
+};

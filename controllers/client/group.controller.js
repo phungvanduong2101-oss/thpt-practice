@@ -113,7 +113,7 @@ module.exports.index = async (req, res, next) => {
   } catch (error) {
     return next(error);
   }
-}; 
+};
 
 module.exports.create = async (req, res, next) => {
   try {
@@ -148,7 +148,7 @@ module.exports.createPost = async (req, res, next) => {
 
     if (typeof req.body.description === "string") {
       formData.description = req.body.description.trim();
-    }  
+    }
 
     if (req.body.acceptingMembers === "true") {
       formData.acceptingMembers = true;
@@ -188,8 +188,61 @@ module.exports.createPost = async (req, res, next) => {
   } catch (error) {
     return next(error);
   }
-}; 
+};
 
+module.exports.edit = async (req, res, next) => {
+  try {
+
+    const { id } = req.params;
+    const existingGroup = await Group.findById(id).lean();
+
+    if (!existingGroup) {
+      return res.status(404).send("Không tìm thấy nhóm.");
+    }
+    if (String(existingGroup.ownerId) !== String(req.account._id)) {
+      return res.status(403).send("Bạn không có quyền quản lý nhóm.");
+    }
+
+
+    return res.render("client/group-edit", {
+      title: "Tạo nhóm học tập",
+      activePage: "groups",
+      error: "",
+      formData: {
+        name: existingGroup.name,
+        description: existingGroup.description,
+        acceptingMembers: existingGroup.acceptingMembers,
+      },
+      groupId: existingGroup._id
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+module.exports.editPatch = async (req, res, next) => {  
+  try {
+    const { id } = req.params;
+    const existingGroup = await Group.findById(id).lean();
+    if (!existingGroup) {
+      return res.status(404).send("Không tìm thấy nhóm.");
+    }
+    if (String(existingGroup.ownerId) !== String(req.account._id)) {
+      return res.status(403).send("Bạn không có quyền quản lý nhóm.");
+    }
+
+    existingGroup.name = req.body.name;
+    existingGroup.description = req.body.description;
+    existingGroup.acceptingMembers = req.body.acceptingMembers;
+
+    await Group.findByIdAndUpdate(existingGroup._id, existingGroup);
+    return res.redirect(
+      `/groups/${req.params.id}?message=${encodeURIComponent("Cập nhật nhóm thành công!")}`
+    );
+  } catch (error) {
+    return next(error);
+  }
+}
 module.exports.detail = async (req, res, next) => {
   try {
     const group = await Group.findById(req.params.id)
@@ -346,7 +399,7 @@ module.exports.cancelJoin = async (req, res, next) => {
 
     return next(error);
   }
-}; 
+};
 
 module.exports.manage = async (req, res, next) => {
   try {

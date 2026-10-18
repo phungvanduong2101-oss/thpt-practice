@@ -3,9 +3,9 @@
 (() => {
   const get = id => document.getElementById(id);
   const form = get('examForm');
-  const baseUrl = get('examPageData').dataset.baseUrl;
-  const groupId = get('examPageData').dataset.groupId;
-  if (!form) return;
+  const pageData = get('examPageData');
+  if (!form || !pageData) return;
+  const baseUrl = pageData.dataset.baseUrl;
 
 
   const TYPES = {
@@ -441,9 +441,10 @@
   let pickerTotalItems = 0;
   let pickerRequestId = 0;
 
-  function canUseQuestion(question) {
-    return !question.groupId || idOf(question.groupId) === groupId;
-  }
+function canUseQuestion(question) {
+  return question.scope === "system" ||
+    question.scope === "personal";
+}
 
   async function renderPicker() {
     const requestId = ++pickerRequestId;
@@ -494,7 +495,7 @@
           <article class="examadmin-bank-card">
             <div class="examadmin-bank-main">
               <div class="examadmin-bank-top">
-                <span class="examadmin-chip">${question.groupId ? 'Của nhóm' : 'Hệ thống'}</span>
+                <span class="examadmin-chip">${question.scope === 'system' ? 'Hệ thống' : 'Của tôi'}</span>
                 <span class="examadmin-chip examadmin-chip--blue">
                   ${escapeHtml(TYPES[question.type] || '')}
                 </span>

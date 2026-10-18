@@ -112,11 +112,11 @@ const questionSchema = new mongoose.Schema(
       required: true,
     },
 
-    // null: câu hỏi hệ thống; có ID: câu hỏi của nhóm
-    groupId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Group",
-      default: null,
+    scope: {
+      type: String,
+      enum: ['system', 'personal'],
+      default: 'personal',
+      index: true,
     },
   },
   {

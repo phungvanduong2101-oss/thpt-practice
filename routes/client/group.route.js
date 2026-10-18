@@ -54,10 +54,8 @@ router.post(
   groupController.cancelJoin
 );
 
-router.use("/:id/questions", require("./group-question.route"));
-
-router.use("/:id/exams", require("./group-exam.route"));
-
+router.get("/:id/edit",authMiddleware.requireAuth ,groupController.edit);  
+router.post("/:id/edit",authMiddleware.requireAuth,groupController.editPatch);
 router.get("/:id", groupController.detail);
 
 module.exports = router;

@@ -20,8 +20,6 @@ block content
             h1= group.name
 
             .gd-meta
-              
-
               span #{group.memberIds.length} thành viên
 
               if group.status === "active"
@@ -51,8 +49,6 @@ block content
                 else
                   | Tài khoản không còn tồn tại
 
-            
-
             .gd-info-row
               span Ngày tạo
               strong
@@ -69,81 +65,86 @@ block content
                   | Đã đóng
 
         aside.gd-card.gd-join-card(aria-labelledby="groupJoinTitle")
-          h2#groupJoinTitle Tham gia nhóm
-
           if isOwner
+            h2#groupJoinTitle Quản trị nhóm
+
             .gd-role
               i(data-lucide="crown" aria-hidden="true")
               strong Bạn là trưởng nhóm
 
-            p.gd-muted Bạn có quyền duyệt thành viên và quản lý nhóm. 
-            a.gd-button.gd-button--primary(
-              href="/groups/" + group._id + "/manage"
-            ) Quản lý thành viên
+            p.gd-muted
+              | Cập nhật thông tin, duyệt thành viên và chia sẻ đề thi của bạn vào nhóm.
 
             a.gd-button.gd-button--secondary(
-              href="/groups/" + group._id + "/questions"
-            ) Quản lý câu hỏi    
+              href="/groups/" + group._id + "/edit"
+            ) Sửa thông tin nhóm
+
+            a.gd-button.gd-button--secondary(
+              href="/groups/" + group._id + "/manage"
+            ) Quản lý và duyệt thành viên
 
             a.gd-button.gd-button--secondary(
               href="/groups/" + group._id + "/exams/manage"
-            ) Quản lý đề thi
-
-          else if isMember
-            .gd-role
-              i(data-lucide="user-check" aria-hidden="true")
-              strong Bạn đã là thành viên
-
-            p.gd-muted Bạn đã tham gia nhóm học tập này.
-
-          else if isPending
-            .gd-role
-              i(data-lucide="clock" aria-hidden="true")
-              strong Đang chờ duyệt
-     
-            p.gd-muted Yêu cầu đã được gửi tới trưởng nhóm.
-
-            form(
-              action="/groups/" + group._id + "/cancel-join"
-              method="POST"
-            )
-              button.gd-button.gd-button--secondary(type="submit")
-                | Hủy yêu cầu
-
-          else if group.status !== "active"
-            p.gd-muted Nhóm hiện đang ngừng hoạt động.
-
-            button.gd-button.gd-button--secondary(
-              type="button"
-              disabled
-            ) Không thể tham gia
-
-          else if !group.acceptingMembers
-            p.gd-muted Nhóm hiện không nhận thêm yêu cầu tham gia.
-
-            button.gd-button.gd-button--secondary(
-              type="button"
-              disabled
-            ) Đã đóng đăng ký
-
-          else if !currentAccount
-            p.gd-muted Đăng nhập để gửi yêu cầu tham gia nhóm.
-
-            a.gd-button.gd-button--primary(href="/auth/login")
-              | Đăng nhập để tham gia
+            ) Chia sẻ đề thi vào nhóm
 
           else
-            p.gd-muted
-              | Gửi yêu cầu tham gia. Trưởng nhóm sẽ xem xét và duyệt yêu cầu của bạn.
+            h2#groupJoinTitle Tham gia nhóm
 
-            form(
-              action="/groups/" + group._id + "/join"
-              method="POST"
-            )
-              button.gd-button.gd-button--primary(type="submit")
-                | Xin tham gia  
-                
+            if isMember
+              .gd-role
+                i(data-lucide="user-check" aria-hidden="true")
+                strong Bạn đã là thành viên
+
+              p.gd-muted Bạn đã tham gia nhóm học tập này.
+
+            else if isPending
+              .gd-role
+                i(data-lucide="clock" aria-hidden="true")
+                strong Đang chờ duyệt
+
+              p.gd-muted Yêu cầu đã được gửi tới trưởng nhóm.
+
+              form(
+                action="/groups/" + group._id + "/cancel-join"
+                method="POST"
+              )
+                button.gd-button.gd-button--secondary(type="submit")
+                  | Hủy yêu cầu
+
+            else if group.status !== "active"
+              p.gd-muted Nhóm hiện đang ngừng hoạt động.
+
+              button.gd-button.gd-button--secondary(
+                type="button"
+                disabled
+              ) Không thể tham gia
+
+            else if !group.acceptingMembers
+              p.gd-muted Nhóm hiện không nhận thêm yêu cầu tham gia.
+
+              button.gd-button.gd-button--secondary(
+                type="button"
+                disabled
+              ) Đã đóng đăng ký
+
+            else if !currentAccount
+              p.gd-muted Đăng nhập để gửi yêu cầu tham gia nhóm.
+
+              a.gd-button.gd-button--primary(href="/auth/login")
+                | Đăng nhập để tham gia
+
+            else
+              p.gd-muted
+                | Gửi yêu cầu tham gia. Trưởng nhóm sẽ xem xét và duyệt yêu cầu của bạn.
+
+              form(
+                action="/groups/" + group._id + "/join"
+                method="POST"
+              )
+                button.gd-button.gd-button--primary(type="submit")
+                  | Xin tham gia
+
           if isOwner || isMember
             a.gd-button.gd-button--primary(
               href="/groups/" + group._id + "/exams"
-            ) Đề thi của nhóm
+            ) Xem đề thi của nhóm

@@ -27,8 +27,8 @@ module.exports.index = async (req, res, next) => {
       ? req.query.bloomLevel
       : "all";
 
-    // Chỉ quản lý câu hỏi hệ thống
-    const baseFilter = { groupId: null };
+    // Chỉ quản lý câu hỏi hệ thống.
+    const baseFilter = { scope: "system" };
     const filter = { ...baseFilter };
 
     if (keyword) {
@@ -107,7 +107,6 @@ module.exports.index = async (req, res, next) => {
       .limit(limit)
       .lean();
 
-    // Chuyên đề hiển thị trong bộ lọc theo môn đang chọn
     const filteredTopics = subjectId === "all"
       ? topics
       : topics.filter(topic => String(topic.subjectId) === subjectId);
@@ -167,12 +166,20 @@ module.exports.index = async (req, res, next) => {
 module.exports.create = async (req, res, next) => {
   try {
     const {
-      subjectId, topicId, type, bloomLevel,
-      content, contentText, options, correctAnswer,
-      acceptedAnswers, explanation, published,
+      subjectId,
+      topicId,
+      type,
+      bloomLevel,
+      content,
+      contentText,
+      options,
+      correctAnswer,
+      acceptedAnswers,
+      explanation,
+      published,
     } = req.body;
 
-    // Kiểm tra chữ hoặc công thức trong Quill Delta
+    // Kiểm tra chữ hoặc công thức trong Quill Delta.
     function hasContent(value) {
       const ops = Array.isArray(value?.delta)
         ? value.delta
@@ -260,7 +267,7 @@ module.exports.create = async (req, res, next) => {
       explanation,
       published,
       createdBy: req.account._id,
-      groupId: null,
+      scope: "system",
     });
 
     return res.status(201).json({

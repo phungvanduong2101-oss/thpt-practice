@@ -16,14 +16,14 @@ block content
   include ../admin/partials/icons.pug
 
   .group-question-page.container
-    a.group-questions-back(href="/groups/" + group._id) ← Chi tiết nhóm
+    a.group-questions-back(href="/") ← Trang chủ
     - const typeLabels = { mcq: "Trắc nghiệm ABCD", truefalse: "Đúng / Sai", fill: "Điền đáp số" };
     - const bloomLabels = ["", "Nhớ", "Hiểu", "Vận dụng", "Phân tích", "Đánh giá", "Sáng tạo"];
 
     #questionPageData(
       hidden
-      data-base-url="/groups/" + group._id + "/questions"
-      data-subject-id=String(group.subjectId)
+      data-account-id=String(currentAccount._id)
+      data-base-url="/my/questions"
       data-bootstrap=JSON.stringify({ subjects, topics, questions })
     )
 
@@ -34,8 +34,8 @@ block content
             svg.icon
               use(href="#i-help")
             |  NGÂN HÀNG NỘI DUNG
-          h1= "Câu hỏi · " + group.name
-          p Soạn câu hỏi riêng của nhóm theo chuyên đề và thang Bloom.
+          h1 Câu hỏi của tôi
+          p Soạn câu hỏi cá nhân theo chuyên đề và thang Bloom.
 
         button#newQuestionButton.button.button--primary(type="button")
           svg.icon
@@ -80,7 +80,7 @@ block content
               p Tìm, lọc và chỉnh sửa các câu hỏi hiện có.
 
           form#questionFilterForm.question-toolbar(
-            action="/groups/" + group._id + "/questions"
+            action="/my/questions"
             method="GET"
           )
             label.question-search
@@ -155,7 +155,7 @@ block content
 
             .form-actions
               button.button.button--primary(type="submit") Tìm kiếm
-              a.button.button--secondary(href="/groups/" + group._id + "/questions") Đặt lại
+              a.button.button--secondary(href="/my/questions") Đặt lại
 
           #questionList.question-list(aria-live="polite")
             each question, index in questions
@@ -459,4 +459,4 @@ block scripts
     defer
     src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"
   )
-  script(src="/client/js/group-questions.js" defer)
+  script(src="/client/js/personal-questions.js" defer)

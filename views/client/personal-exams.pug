@@ -15,11 +15,10 @@ block content
   include ../admin/partials/icons.pug
 
   .group-exam-page.container
-    a.group-exams-back(href="/groups/" + group._id) ← Chi tiết nhóm
+    a.group-exams-back(href="/") ← Trang chủ
     #examPageData(
       hidden
-      data-base-url="/groups/" + group._id + "/exams"
-      data-group-id=String(group._id)
+      data-base-url="/my/exams"
       data-bootstrap=JSON.stringify({ subjects, topics, questions, exams })
     )
 
@@ -31,8 +30,8 @@ block content
               use(href="#i-clipboard")
             |  QUẢN LÝ NỘI DUNG
 
-          h1= "Đề thi · " + group.name
-          p Tạo đề theo môn học và chọn câu hỏi riêng của nhóm.
+          h1 Đề thi của tôi
+          p Tạo đề theo môn học và chọn câu hỏi từ ngân hàng cá nhân.
 
         button#newExamButton.button.button--primary(type="button")
           svg.icon
@@ -79,7 +78,7 @@ block content
               p Xem, chỉnh sửa và quản lý trạng thái các đề thi.
 
           form#examFilterForm.examadmin-toolbar(
-            action="/groups/" + group._id + "/exams/manage"
+            action="/my/exams"
             method="GET"
           )
             label.examadmin-search
@@ -136,7 +135,7 @@ block content
                   use(href="#i-search")
                 |  Tìm kiếm
 
-              a.button.button--secondary(href="/groups/" + group._id + "/exams/manage")
+              a.button.button--secondary(href="/my/exams")
                 | Đặt lại
 
           #examList.examadmin-list(aria-live="polite")
@@ -336,9 +335,9 @@ block content
           label
             span.sr-only Nguồn câu hỏi
             select#pickerSource
-              option(value="all") Tất cả nguồn
-              option(value="system") Câu hỏi hệ thống
-              option(value="group") Câu hỏi của nhóm
+              option(value="all") Tất cả câu hỏi
+              option(value="system") Câu hỏi hệ thống 
+              option(value="personal") Câu hỏi của tôi
 
           label
             span.sr-only Chuyên đề
@@ -443,4 +442,4 @@ block scripts
     defer
     src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"
   )
-  script(src="/client/js/group-exams.js" defer)
+  script(src="/client/js/personal-exams.js" defer)

@@ -1,0 +1,10 @@
+const router = require('express').Router();
+const controller = require('../../controllers/client/personal-exam.controller');
+const auth = require('../../middlewares/auth.middleware');
+router.use(auth.requireAuth);
+router.get('/', controller.index);
+router.get('/questions', controller.questions);
+router.post('/create', controller.create);
+router.patch('/:examId', controller.update);
+router.delete('/:examId', controller.remove);
+module.exports = router;
