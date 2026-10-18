@@ -57,7 +57,7 @@ block content
             span#topicCount.count-chip= totalItems
           p Tra cứu, lọc và cập nhật chuyên đề theo môn học.
 
-      form.list-toolbar.topic-toolbar(action="/admin/topics" method="GET")
+      form.list-toolbar.topic-toolbar(action="/admin/topics" method="GET" data-filter-form)
         label.search-input
           svg.icon
             use(href="#i-search")

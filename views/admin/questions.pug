@@ -82,7 +82,9 @@ block content
 
         form#questionFilterForm.question-toolbar(
           action="/admin/questions"
-          method="GET"
+          method="GET" 
+          data-filter-form
+
         )
           label.question-search
             svg.icon
@@ -99,7 +101,7 @@ block content
           .question-filters
             label
               span.sr-only Lọc môn học
-              select#subjectFilter(name="subjectId")
+              select#subjectFilter(name="subjectId" data-reset-filter="topicFilter")
                 option(
                   value="all"
                   selected=subjectId === "all"

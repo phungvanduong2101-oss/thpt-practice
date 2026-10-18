@@ -5,7 +5,6 @@
   const form = get('questionForm');
   if (!form) return;
 
-  const PAGE_SIZE = 6;
   const KEYS = ['A', 'B', 'C', 'D'];
 
   const TYPES = {
@@ -29,21 +28,13 @@
 
   let editingId = null;
   let deletingId = null;
-  let currentPage = 1;
   let busy = false;
   let currentModal = null;
   let previousFocus = null;
 
   const editors = new Map();
 
-  function escapeHtml(value) {
-    return String(value ?? '')
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
-  }
+
 
   function plainText(html) {
     const element = document.createElement('div');
@@ -51,66 +42,12 @@
     return element.textContent || '';
   }
 
-  function normalise(value) {
-    return String(value ?? '')
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/đ/g, 'd')
-      .replace(/Đ/g, 'D')
-      .toLowerCase()
-      .trim();
-  }
-
-  function idOf(value) {
-    return String(value?._id ?? value ?? '');
-  }
-
-  function icon(name) {
-    return `<svg class="icon" aria-hidden="true">
-      <use href="#i-${name}"/>
-    </svg>`;
-  }
 
   function setError(message = '') {
     get('formError').textContent = message;
     get('formError').hidden = !message;
   }
 
-  async function request(url, method = 'GET', payload) {
-    const response = await fetch(url, {
-      method,
-      headers: {
-        Accept: 'application/json',
-        ...(payload !== undefined
-          ? { 'Content-Type': 'application/json' }
-          : {}),
-      },
-      ...(payload !== undefined
-        ? { body: JSON.stringify(payload) }
-        : {}),
-    });
-
-    if (response.redirected) {
-      window.location.href = response.url;
-      throw new Error('Phiên đăng nhập đã thay đổi.');
-    }
-
-    const contentType = response.headers.get('content-type') || '';
-
-    if (!contentType.includes('application/json')) {
-      throw new Error(
-        `Server không trả JSON (HTTP ${response.status}). Kiểm tra route.`
-      );
-    }
-
-    const data = await response.json();
-
-    if (!response.ok || data.code !== 'success') {
-      throw new Error(data.message || 'Thao tác thất bại!');
-    }
-
-    return data;
-  }
 
   // Quill / chế độ dự phòng
   function createEditor(id, small = false) {
@@ -249,19 +186,7 @@
   }
 
   // Các lựa chọn môn học / chuyên đề
-  function fillSubjects() {
-    const options = subjects.map(subject => `
-      <option value="${escapeHtml(subject._id)}">
-        ${escapeHtml(subject.name)}${subject.active ? '' : ' (Đã ẩn)'}
-      </option>
-    `).join('');
 
-    get('questionSubject').innerHTML =
-      '<option value="">Chọn môn học</option>' + options;
-
-    get('subjectFilter').innerHTML =
-      '<option value="all">Tất cả môn học</option>' + options;
-  }
 
   function fillQuestionTopics(subjectId, selectedId = '') {
     const available = topics.filter(topic =>
@@ -280,27 +205,7 @@
     get('questionTopic').value = selectedId;
   }
 
-  function fillTopicFilter() {
-    const subjectId = get('subjectFilter').value;
-    const previous = get('topicFilter').value;
 
-    const available = topics.filter(topic =>
-      subjectId === 'all' || idOf(topic.subjectId) === subjectId
-    );
-
-    get('topicFilter').innerHTML =
-      '<option value="all">Tất cả chuyên đề</option>' +
-      available.map(topic => `
-        <option value="${escapeHtml(topic._id)}">
-          ${escapeHtml(topic.name)}
-        </option>
-      `).join('');
-
-    get('topicFilter').value =
-      available.some(topic => idOf(topic) === previous)
-        ? previous
-        : 'all';
-  }
 
   function updateTypeUI() {
     const type = get('questionType').value;
@@ -495,148 +400,8 @@
   }
 
   // Search / filter / phân trang
-  function filteredQuestions() {
-    const keyword = normalise(get('searchInput').value);
 
-    return questions.filter(question => {
-      const subjectId = idOf(question.subjectId);
-      const topicId = idOf(question.topicId);
 
-      const subject = subjects.find(item => idOf(item) === subjectId);
-      const topic = topics.find(item => idOf(item) === topicId);
-
-      const text = normalise([
-        question.contentText || plainText(question.content?.html),
-        subject?.name,
-        topic?.name,
-      ].join(' '));
-
-      return (
-        (!keyword || text.includes(keyword)) &&
-        (get('subjectFilter').value === 'all' ||
-          subjectId === get('subjectFilter').value) &&
-        (get('topicFilter').value === 'all' ||
-          topicId === get('topicFilter').value) &&
-        (get('typeFilter').value === 'all' ||
-          question.type === get('typeFilter').value) &&
-        (get('bloomFilter').value === 'all' ||
-          String(question.bloomLevel) === get('bloomFilter').value)
-      );
-    });
-  }
-
-  function renderList() {
-    const filtered = filteredQuestions();
-    const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-
-    currentPage = Math.min(currentPage, totalPages);
-    const start = (currentPage - 1) * PAGE_SIZE;
-
-    get('questionList').innerHTML = filtered
-      .slice(start, start + PAGE_SIZE)
-      .map((question, index) => {
-        const subject = subjects.find(item =>
-          idOf(item) === idOf(question.subjectId)
-        );
-
-        const topic = topics.find(item =>
-          idOf(item) === idOf(question.topicId)
-        );
-
-        const title = question.contentText ||
-          plainText(question.content?.html) || 'Câu hỏi';
-
-        return `
-          <article class="question-entry" data-id="${escapeHtml(question._id)}">
-            <span class="question-number">${start + index + 1}</span>
-            <div class="question-entry__body">
-              <div class="question-entry__title">${escapeHtml(title)}</div>
-              <div class="question-entry__meta">
-                <span class="question-pill question-pill--subject">
-                  ${escapeHtml(subject?.name || 'Môn không còn tồn tại')}
-                </span>
-                <span class="question-pill question-pill--type">
-                  ${escapeHtml(TYPES[question.type])}
-                </span>
-                <span class="question-pill question-pill--bloom">
-                  Bloom ${question.bloomLevel} · ${escapeHtml(BLOOM[question.bloomLevel])}
-                </span>
-                <span class="question-pill question-pill--${question.published ? 'published' : 'draft'}">
-                  ${question.published ? 'Đã xuất bản' : 'Bản nháp'}
-                </span>
-              </div>
-              <div class="question-entry__topic">
-                ${escapeHtml(topic?.name || 'Chuyên đề không còn tồn tại')}
-              </div>
-            </div>
-            <div class="question-entry__actions">
-              <button class="question-mini-action" type="button"
-                data-action="preview" aria-label="Xem trước">
-                ${icon('search')}
-              </button>
-              <button class="question-mini-action" type="button"
-                data-action="edit" aria-label="Sửa câu hỏi">
-                ${icon('edit')}
-              </button>
-              <button class="question-mini-action danger" type="button"
-                data-action="delete" aria-label="Xóa câu hỏi">
-                ${icon('trash')}
-              </button>
-            </div>
-          </article>
-        `;
-      }).join('');
-
-    get('emptyState').hidden = filtered.length > 0;
-    get('questionCount').textContent = filtered.length;
-
-    get('statTotal').textContent = questions.length;
-    get('statPublished').textContent =
-      questions.filter(question => question.published).length;
-
-    get('statTopics').textContent =
-      new Set(questions.map(question => idOf(question.topicId))).size;
-
-    get('paginationSummary').textContent = filtered.length
-      ? `Hiển thị ${start + 1}–${Math.min(start + PAGE_SIZE, filtered.length)} / ${filtered.length} câu hỏi`
-      : 'Hiển thị 0 câu hỏi';
-
-    const pages = [...new Set([
-      1,
-      currentPage - 1,
-      currentPage,
-      currentPage + 1,
-      totalPages,
-    ])].filter(page => page >= 1 && page <= totalPages)
-      .sort((a, b) => a - b);
-
-    let lastPage = 0;
-
-    get('pagination').innerHTML = totalPages <= 1 ? '' : `
-      <button type="button" class="page-button"
-        data-page="${currentPage - 1}"
-        ${currentPage === 1 ? 'disabled' : ''}
-        aria-label="Trang trước">${icon('left')}</button>
-      ${pages.map(page => {
-        const gap = page - lastPage > 1
-          ? '<span aria-hidden="true">…</span>'
-          : '';
-
-        lastPage = page;
-
-        return `${gap}<button type="button"
-          class="page-button ${page === currentPage ? 'is-active' : ''}"
-          data-page="${page}"
-          ${page === currentPage ? 'aria-current="page"' : ''}>
-          ${page}
-        </button>`;
-      }).join('')}
-      <button type="button" class="page-button"
-        data-page="${currentPage + 1}"
-        ${currentPage === totalPages ? 'disabled' : ''}
-        aria-label="Trang tiếp">${icon('chevron')}</button>
-    `;
-  }
 
   // Xem trước
   function openModal(modal) {
@@ -703,15 +468,7 @@
       ` : ''}
     `;
 
-    get('previewBody').querySelectorAll('.ql-formula[data-value]')
-      .forEach(element => {
-        if (window.katex?.render) {
-          window.katex.render(element.dataset.value, element, {
-            throwOnError: false,
-            trust: false,
-          });
-        }
-      });
+    renderFormulas(get('previewBody'));
 
     openModal(get('previewModal'));
   }
@@ -756,7 +513,9 @@
           : '/admin/questions/create',
         id ? 'PATCH' : 'POST',
         payload
-      );
+      ); 
+
+      if (!data) return;
 
       alert(data.message);
       window.location.reload();
@@ -768,21 +527,7 @@
     }
   });
 
-   // Search dùng form GET: Enter hoặc nút Tìm kiếm.
-  // Phân trang dùng link do Pug render.
-  const filterForm = get('questionFilterForm');
 
-  get('subjectFilter').addEventListener('change', () => {
-    // Bỏ chuyên đề của môn trước khi đổi môn học
-    get('topicFilter').value = 'all';
-    filterForm.requestSubmit();
-  });
-
-  for (const id of ['topicFilter', 'typeFilter', 'bloomFilter']) {
-    get(id).addEventListener('change', () => {
-      filterForm.requestSubmit();
-    });
-  }
   get('questionList').addEventListener('click', event => {
     const button = event.target.closest('button[data-action]');
     if (!button || busy) return;
@@ -818,7 +563,9 @@
       const data = await request(
         `/admin/questions/${encodeURIComponent(deletingId)}`,
         'DELETE'
-      );
+      ); 
+
+      if (!data) return;
 
       alert(data.message);
       window.location.reload();

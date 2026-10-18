@@ -14,27 +14,11 @@
   let editingId = null;
   let deletingId = null;
 
-  function toCode(value) {
-    return value
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/đ/g, 'd')
-      .replace(/Đ/g, 'D')
-      .toUpperCase()
-      .replace(/[^A-Z0-9]+/g, '_')
-      .replace(/^_+|_+$/g, '')
-      .slice(0, 15);
-  }
 
-  function setError(input, errorId, message) {
-    get(errorId).textContent = message;
-    input.classList.toggle('is-invalid', Boolean(message));
-    input.setAttribute('aria-invalid', String(Boolean(message)));
-  }
 
   function clearErrors() {
-    setError(nameInput, 'nameError', '');
-    setError(codeInput, 'codeError', '');
+    setFieldError(nameInput, 'nameError', '');
+    setFieldError(codeInput, 'codeError', '');
   }
 
   function updatePreview() {
@@ -110,7 +94,7 @@
 
   nameInput.addEventListener('input', () => {
     if (!codeEditedManually) {
-      codeInput.value = toCode(nameInput.value);
+      codeInput.value = makeCode(nameInput.value,15);
     }
 
     setError(nameInput, 'nameError', '');
@@ -138,26 +122,7 @@
     clearForm(true);
   });
 
-  async function request(url, method, payload) {
-    const response = await fetch(url, {
-      method,
-      headers: { 'Content-Type': 'application/json' },
-      ...(payload ? { body: JSON.stringify(payload) } : {}),
-    });
 
-    if (response.redirected) {
-      window.location.href = response.url;
-      return null;
-    }
-
-    const data = await response.json();
-
-    if (!response.ok || data.code !== 'success') {
-      throw new Error(data.message || 'Thao tác thất bại!');
-    }
-
-    return data;
-  }
 
   form.addEventListener('submit', async event => {
     event.preventDefault();
@@ -290,10 +255,7 @@
     }
   });
 
-  // Đổi trạng thái → gửi form tìm kiếm, quay về trang 1
-  get('statusFilter')?.addEventListener('change', event => {
-    event.target.form.requestSubmit();
-  });
+ 
 
   clearForm();
 

@@ -38,7 +38,6 @@
   let previousFocus = null;
   const modalStack = [];
 
-  const idOf = value => String(value?._id ?? value ?? '');
 
   const subjectById = id =>
     subjects.find(item => idOf(item) === idOf(id));
@@ -49,14 +48,7 @@
   const questionById = id =>
     questions.find(item => idOf(item) === idOf(id));
 
-  function escapeHtml(value) {
-    return String(value ?? '')
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
-  }
+
 
   function normalise(value) {
     return String(value ?? '')
@@ -101,41 +93,7 @@
     get('examFormError').hidden = !message;
   }
 
-  async function request(url, method, payload) {
-    const response = await fetch(url, {
-      method,
-      headers: {
-        Accept: 'application/json',
-        ...(payload !== undefined
-          ? { 'Content-Type': 'application/json' }
-          : {}),
-      },
-      ...(payload !== undefined
-        ? { body: JSON.stringify(payload) }
-        : {}),
-    });
 
-    if (response.redirected) {
-      window.location.href = response.url;
-      return null;
-    }
-
-    const contentType = response.headers.get('content-type') || '';
-
-    if (!contentType.includes('application/json')) {
-      throw new Error(
-        `Server không trả JSON (HTTP ${response.status}). Kiểm tra route.`
-      );
-    }
-
-    const data = await response.json();
-
-    if (!response.ok || data.code !== 'success') {
-      throw new Error(data.message || 'Thao tác thất bại!');
-    }
-
-    return data;
-  }
 
   // Modal có thể mở xem trước từ cửa sổ chọn câu hỏi.
   function showModal(modal) {
@@ -556,28 +514,6 @@
     showModal(get('pickerModal'));
   }
 
-  function renderFormulas(container) {
-    container.querySelectorAll('.ql-formula[data-value]')
-      .forEach(element => {
-        const latex = element.dataset.value || '';
-        element.replaceChildren();
-
-        if (!window.katex?.render) {
-          element.textContent = latex;
-          return;
-        }
-
-        try {
-          window.katex.render(latex, element, {
-            throwOnError: false,
-            trust: false,
-            displayMode: false,
-          });
-        } catch {
-          element.textContent = latex;
-        }
-      });
-  }
 
   function previewFullQuestion(id) {
     const question = questionById(id);
@@ -808,13 +744,7 @@
     });
   }
 
-  // Bộ lọc danh sách đề gửi GET lên backend.
-  // Form không có trường page nên đổi lọc sẽ về trang 1.
-  for (const id of ['examSubjectFilter', 'examStatusFilter']) {
-    get(id)?.addEventListener('change', () => {
-      get('examFilterForm').requestSubmit();
-    });
-  }
+
 
   get('openPickerButton').addEventListener('click', openPicker);
 

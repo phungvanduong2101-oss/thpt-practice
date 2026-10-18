@@ -22,17 +22,6 @@
   let manuallyEditedCode = false;
   let previousFocus = null;
 
-  function makeCode(value) {
-    return value
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/đ/g, 'd')
-      .replace(/Đ/g, 'D')
-      .toUpperCase()
-      .replace(/[^A-Z0-9]+/g, '_')
-      .replace(/^_+|_+$/g, '')
-      .slice(0, 30);
-  }
 
   function setError(input, errorId, message) {
     get(errorId).textContent = message;
@@ -142,44 +131,11 @@
     return valid;
   }
 
-  async function request(url, method, payload) {
-    const response = await fetch(url, {
-      method,
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-      ...(payload !== undefined
-        ? { body: JSON.stringify(payload) }
-        : {}),
-    });
-
-    if (response.redirected) {
-      window.location.href = response.url;
-      return null;
-    }
-
-    const contentType = response.headers.get('content-type') || '';
-
-    if (!contentType.includes('application/json')) {
-      throw new Error(
-        `Server không trả JSON (HTTP ${response.status}). Kiểm tra route và controller.`
-      );
-    }
-
-    const data = await response.json();
-
-    if (!response.ok || data.code !== 'success') {
-      throw new Error(data.message || 'Thao tác thất bại!');
-    }
-
-    return data;
-  }
 
   // Tự tạo mã và cập nhật xem trước
   nameInput.addEventListener('input', () => {
     if (!manuallyEditedCode) {
-      codeInput.value = makeCode(nameInput.value);
+      codeInput.value = makeCode(nameInput.value,30);
     }
 
     setError(nameInput, 'nameError', '');
@@ -351,12 +307,7 @@
     }
   });
 
-  // Bộ lọc gửi GET; form không chứa page nên trở về trang 1
-  ['subjectFilter', 'statusFilter'].forEach(id => {
-    get(id)?.addEventListener('change', event => {
-      event.target.form.requestSubmit();
-    });
-  });
+
 
   // Search dùng Enter/nút Tìm kiếm.
   // Phân trang dùng các link pageUrl trong Pug.

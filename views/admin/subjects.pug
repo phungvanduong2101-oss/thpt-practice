@@ -54,7 +54,7 @@ block content
             span#subjectCount.count-chip= totalItems
           p Tra cứu và cập nhật thông tin các môn học.
 
-      form.list-toolbar(action="/admin/subjects" method="GET")
+      form.list-toolbar(action="/admin/subjects" method="GET" data-filter-form)
         label.search-input
           svg.icon
             use(href="#i-search")
