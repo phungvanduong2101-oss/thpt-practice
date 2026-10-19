@@ -1,0 +1,88 @@
+extends layouts/default.pug
+
+block styles
+  link(rel="stylesheet" href="/client/css/my-groups.css")
+
+block content
+  .container.mg-page
+    .mg-heading
+      div
+        h1 Nhóm của tôi
+        p Quản lý nhóm bạn làm chủ và truy cập các nhóm đã tham gia.
+
+      .mg-actions
+        a.mg-button.mg-button--secondary(href="/groups") Khám phá nhóm
+        a.mg-button.mg-button--primary(href="/groups/create") Tạo nhóm
+
+    form.mg-filter(action="/groups/my" method="GET")
+      input(
+        type="search"
+        name="keyword"
+        value=keyword
+        placeholder="Tìm tên nhóm..."
+        aria-label="Tìm tên nhóm"
+      )
+
+      select(name="role" aria-label="Vai trò trong nhóm")
+        option(value="all" selected=role === "all") Tất cả nhóm
+        option(value="owner" selected=role === "owner") Tôi làm chủ
+        option(value="member" selected=role === "member") Tôi tham gia
+
+      button.mg-button.mg-button--primary(type="submit") Tìm kiếm
+      a.mg-button.mg-button--secondary(href="/groups/my") Đặt lại
+
+    p.mg-summary Tìm thấy #{totalItems} nhóm
+
+    if !groups.length
+      .mg-empty Không tìm thấy nhóm phù hợp. Bạn có thể tạo nhóm hoặc khám phá nhóm để tham gia.
+
+    .mg-grid
+      each group in groups
+        article.mg-card
+          .mg-tags
+            span.mg-role= group.isOwner ? "Trưởng nhóm" : "Thành viên"
+
+            if group.status === "active"
+              span.mg-status Đang hoạt động
+            else
+              span.mg-status.mg-status--inactive Ngừng hoạt động
+
+          h2
+            a(href="/groups/" + group._id)= group.name
+
+          p.mg-description= group.description || "Nhóm chưa có mô tả."
+
+          p.mg-members #{group.memberCount} thành viên
+
+          .mg-card-actions
+            a.mg-button.mg-button--secondary(
+              href="/groups/" + group._id
+            ) Chi tiết nhóm
+
+            if group.status === "active"
+              a.mg-button.mg-button--primary(
+                href="/groups/" + group._id + "/exams"
+              ) Làm đề thi
+
+            if group.isOwner
+              a.mg-button.mg-button--secondary(
+                href="/groups/" + group._id + "/manage"
+              ) Thành viên
+
+    if totalPages > 1
+      nav.mg-pagination(aria-label="Phân trang nhóm")
+        if currentPage > 1
+          a.mg-page-link(href=pageUrl(currentPage - 1)) Trước
+
+        each page in Array.from({ length: totalPages }, (_, index) => index + 1)
+          if page === 1 || page === totalPages || Math.abs(page - currentPage) <= 1
+            a.mg-page-link(
+              href=pageUrl(page)
+              class=page === currentPage ? "is-active" : ""
+              aria-current=page === currentPage ? "page" : false
+            )= page
+          else if page === currentPage - 2 || page === currentPage + 2
+            span …
+
+        if currentPage < totalPages
+          a.mg-page-link(href=pageUrl(currentPage + 1)) Sau

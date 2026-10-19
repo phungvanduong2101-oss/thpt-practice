@@ -132,10 +132,16 @@ const attemptSchema = new Schema(
       index: true,
     },
 
+    kind: {
+      type: String,
+      enum: ['exam', 'practice'],
+      default: 'exam',
+    },
+
     examId: {
       type: Schema.Types.ObjectId,
       ref: "Exam",
-      required: true,
+      required: function () { return this.kind !== "practice"; },
       index: true,
     },
 
@@ -169,7 +175,7 @@ const attemptSchema = new Schema(
 
     status: {
       type: String,
-      enum: ["in_progress", "submitted"],
+      enum: ["ready", "in_progress", "submitted"],
       default: "in_progress",
       required: true,
     },

@@ -1,0 +1,12 @@
+const router = require('express').Router({ mergeParams: true });
+const auth = require('../../middlewares/auth.middleware');
+const taking = require('../../controllers/client/group-exam-taking.controller');
+const sharing = require('../../controllers/client/exam-sharing.controller');
+router.use(auth.requireAuth);
+router.get('/', taking.requireMember, taking.index);
+router.get('/manage', sharing.requireOwner, sharing.index);
+router.post('/share', sharing.requireOwner, sharing.share);
+router.post('/:examId/unshare', sharing.requireOwner, sharing.unshare);
+router.get('/:examId/take', taking.requireMember, taking.detail);
+router.post('/:examId/start', taking.requireMember, taking.start);
+module.exports = router;

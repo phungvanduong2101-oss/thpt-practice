@@ -116,7 +116,7 @@ module.exports.detail = async (req, res, next) => {
     const exam = await Exam.findOne({
       _id: id,
       status: "published",
-      groupId: null,
+      scope: 'system',
     })
       .select("title description duration subjectId questionIds")
       .populate("subjectId", "name active")
@@ -131,7 +131,7 @@ module.exports.detail = async (req, res, next) => {
       _id: { $in: exam.questionIds },
       subjectId: exam.subjectId._id,
       published: true,
-      groupId: null,
+      scope: 'system',
     })
       .select("_id type content contentText options.key options.content")
       .lean();
@@ -365,10 +365,6 @@ module.exports.result = async (req, res, next) => {
     }
 
     let groupId = attempt.groupId;
-    if (!groupId) {
-      const sourceExam = await Exam.findById(attempt.examId).select("groupId").lean();
-      if (sourceExam) groupId = sourceExam.groupId;
-    }
     let listUrl = "/exams";
     let retryUrl = "/exams/" + attempt.examId;
     if (groupId) {
@@ -401,7 +397,7 @@ module.exports.start = async (req, res, next) => {
     const exam = await Exam.findOne({
       _id: examId,
       status: "published",
-      groupId: null,
+      scope: 'system',
     })
       .populate("subjectId", "active")
       .lean();
@@ -417,7 +413,7 @@ module.exports.start = async (req, res, next) => {
       _id: { $in: exam.questionIds },
       subjectId: exam.subjectId._id,
       published: true,
-      groupId: null,
+      scope: 'system',
     }).lean();
 
     const questionMap = new Map(

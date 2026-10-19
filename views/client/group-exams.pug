@@ -1,0 +1,142 @@
+extends layouts/default.pug
+
+block styles
+  link(rel="stylesheet" href="/client/css/exams.css")
+  link(rel="stylesheet" href="/client/css/group-exam-list.css")
+
+block content
+  a.group-exam-list-back.container(href="/groups/" + group._id) ← Chi tiết nhóm
+
+  section.exam-page-hero(aria-labelledby="examPageTitle")
+    .container.exam-page-hero__inner
+      span.exam-page-hero__badge ĐỀ THI THPT
+
+      h1#examPageTitle.exam-page-hero__title= "Đề thi · " + group.name
+
+      p.exam-page-hero__desc
+        | Khám phá các đề thi theo môn học, luyện tập và củng cố kiến thức.
+
+  section.exam-filter-section(aria-label="Tìm kiếm và lọc đề thi")
+    form#clientExamFilterForm.container.exam-filter-bar(
+      action="/groups/" + group._id + "/exams"
+      method="GET"
+    )
+      .exam-search-wrap
+        i.exam-search-icon(
+          data-lucide="search"
+          aria-hidden="true"
+        )
+
+        label.sr-only(for="examSearchInput")
+          | Tìm kiếm đề thi theo tên
+
+        input#examSearchInput.exam-search-input(
+          name="keyword"
+          type="search"
+          value=keyword
+          placeholder="Tìm kiếm đề thi theo tên..."
+          autocomplete="off"
+        )
+
+      .exam-filter-selects
+        .exam-select-wrap
+          i.exam-select-icon(
+            data-lucide="book-open"
+            aria-hidden="true"
+          )
+
+          label.sr-only(for="filterSubject") Lọc theo môn học
+
+          select#filterSubject.exam-select(name="subjectId")
+            option(
+              value="all"
+              selected=subjectId === "all"
+            ) Tất cả môn học
+
+            each subject in subjects
+              option(
+                value=subject._id
+                selected=String(subject._id) === subjectId
+              )= subject.name
+
+          i.exam-select-chevron(
+            data-lucide="chevron-down"
+            aria-hidden="true"
+          )
+
+      .exam-filter-actions
+        button.exam-filter-submit(type="submit") Tìm kiếm
+        a.exam-filter-reset(href="/groups/" + group._id + "/exams") Đặt lại
+
+  section.exam-list-section(aria-label="Danh sách đề thi")
+    .container
+      p.client-exam-summary
+        | Hiển thị #{startItem}–#{endItem} / #{totalItems} đề thi
+
+      #examGrid.exam-grid(
+        role="list"
+        aria-live="polite"
+        aria-atomic="false"
+      )
+        each exam in exams
+          article.client-exam-card(role="listitem")
+            span.client-exam-card__subject
+              = exam.subjectId ? exam.subjectId.name : "Môn học không còn tồn tại"
+
+            h2.client-exam-card__title= exam.title
+
+            if exam.description
+              p.client-exam-card__description= exam.description
+
+            .client-exam-card__meta
+              span #{exam.questionCount} câu hỏi
+              span #{exam.duration} phút
+
+            a.client-exam-card__start(
+              href="/groups/" + group._id + "/exams/" + exam._id + "/take"
+            ) Làm ngay
+
+      #examEmpty.exam-empty(hidden=totalItems > 0)
+        i.exam-empty__icon(
+          data-lucide="file-text"
+          aria-hidden="true"
+        )
+
+        p.exam-empty__title Không tìm thấy đề thi
+
+        p.exam-empty__desc
+          | Thử thay đổi từ khóa hoặc bộ lọc để tìm đề thi phù hợp.
+
+      if totalPages > 1
+        nav#examPagination.exam-pagination(
+          aria-label="Phân trang danh sách đề thi"
+        )
+          if currentPage > 1
+            a(
+              href=pageUrl(currentPage - 1)
+              aria-label="Trang trước"
+            ) Trước
+
+          each pageNumber in Array.from({ length: totalPages }, (_, index) => index + 1)
+            if pageNumber === 1 || pageNumber === totalPages || Math.abs(pageNumber - currentPage) <= 2
+              a(
+                href=pageUrl(pageNumber)
+                class=pageNumber === currentPage ? "is-active" : ""
+                aria-current=pageNumber === currentPage ? "page" : false
+                aria-label="Trang " + pageNumber
+              )= pageNumber
+            else if pageNumber === currentPage - 3 || pageNumber === currentPage + 3
+              span(aria-hidden="true") …
+
+          if currentPage < totalPages
+            a(
+              href=pageUrl(currentPage + 1)
+              aria-label="Trang tiếp"
+            ) Tiếp
+
+block scripts
+  script.
+    document.getElementById('filterSubject')
+      ?.addEventListener('change', () => {
+        document.getElementById('clientExamFilterForm').requestSubmit();
+      });

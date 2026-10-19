@@ -577,4 +577,95 @@ module.exports.removeMember = async (req, res, next) => {
 
     return next(error);
   }
+}; 
+
+module.exports.myGroups = async (req, res, next) => {
+  try {
+    const accountId = req.account._id;
+
+    const keyword = typeof req.query.keyword === "string"
+      ? req.query.keyword.trim()
+      : "";
+
+    const role = ["owner", "member"].includes(req.query.role)
+      ? req.query.role
+      : "all";
+
+    const filter = {};
+
+    if (role === "owner") {
+      filter.ownerId = accountId;
+    } else if (role === "member") {
+      filter.memberIds = accountId;
+      filter.ownerId = { $ne: accountId };
+    } else {
+      filter.$or = [
+        { ownerId: accountId },
+        { memberIds: accountId },
+      ];
+    }
+
+    if (keyword) {
+      const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+      filter.name = {
+        $regex: escaped,
+        $options: "i",
+      };
+    }
+
+    const limit = 9;
+    let currentPage = Number(req.query.page);
+
+    if (!Number.isSafeInteger(currentPage) || currentPage < 1) {
+      currentPage = 1;
+    }
+
+    const totalItems = await Group.countDocuments(filter);
+    const totalPages = Math.max(1, Math.ceil(totalItems / limit));
+
+    currentPage = Math.min(currentPage, totalPages);
+
+    const skip = (currentPage - 1) * limit;
+
+    const records = await Group.find(filter)
+      .select("name description ownerId memberIds status createdAt")
+      .sort({ createdAt: -1, _id: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    const groups = records.map(group => ({
+      _id: group._id,
+      name: group.name,
+      description: group.description,
+      status: group.status,
+      memberCount: group.memberIds.length,
+      isOwner: String(group.ownerId) === String(accountId),
+    }));
+
+    const pageUrl = page => {
+      const params = new URLSearchParams({
+        keyword,
+        role,
+        page: String(page),
+      });
+
+      return `/groups/my?${params.toString()}`;
+    };
+
+    res.render("client/my-groups", {
+      title: "Nhóm của tôi",
+      activePage: "groups",
+      groups,
+      keyword,
+      role,
+      totalItems,
+      currentPage,
+      totalPages,
+      pageUrl,
+    });
+  } catch (error) {
+    next(error);
+  }
 };

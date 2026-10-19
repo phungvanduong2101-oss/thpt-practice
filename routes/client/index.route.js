@@ -24,5 +24,6 @@ router.use("/exams", examRoute);
 router.use("/groups", groupRoutes);  
 router.use("/notifications", notificationRoutes);    
 router.use('/my/questions', require('./personal-question.route'));
-router.use('/my/exams', require('./personal-exam.route'));
+router.use('/my/exams', require('./personal-exam.route')); 
+router.use("/practice", require("./practice.route"));
 module.exports = router;

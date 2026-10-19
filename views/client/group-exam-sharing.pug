@@ -1,0 +1,251 @@
+extends layouts/default.pug
+
+block styles
+  link(rel="stylesheet" href="/client/css/group-exam-sharing.css")
+
+block content
+  .container.gs-page
+    a.gs-back(href="/groups/" + group._id) ← Chi tiết nhóm
+
+    .gs-heading
+      h1 Chia sẻ đề thi · #{group.name}
+      p Chọn đề đã xuất bản của bạn để thành viên nhóm cùng làm bài.
+
+      .gs-actions
+        a.button.button--secondary(href="/my/exams") Đề thi của tôi
+        a.button.button--primary(
+          href="/groups/" + group._id + "/exams"
+        ) Xem đề thi của nhóm
+
+    section.gs-panel
+      h2 Bộ lọc đề thi
+
+      .gs-form
+        .gs-field
+          label(for="examKeyword") Tìm kiếm
+          input#examKeyword(
+            type="search"
+            placeholder="Nhập tên đề thi..."
+            autocomplete="off"
+          )
+
+        .gs-field
+          label(for="examStatus") Trạng thái
+          select#examStatus
+            option(value="all") Tất cả trạng thái
+            option(value="published") Đã xuất bản
+            option(value="draft") Bản nháp
+
+        .gs-field
+          label(for="examSort") Sắp xếp
+          select#examSort
+            option(value="newest") Mới tạo trước
+            option(value="oldest") Cũ trước
+            option(value="nameAsc") Tên A → Z
+            option(value="nameDesc") Tên Z → A
+
+        button#resetFilters.button.button--secondary(type="button")
+          | Đặt lại
+
+    section.gs-panel
+      h2 Thêm đề vào nhóm
+
+      if group.status !== "active"
+        p.gs-empty Nhóm đang ngừng hoạt động. Hãy kích hoạt nhóm trước khi chia sẻ đề mới.
+
+      else if available.length
+        p.gs-empty Chỉ đề đã xuất bản mới có thể chia sẻ.
+
+        form#shareForm.gs-form(
+          action="/groups/" + group._id + "/exams/share"
+          method="POST"
+        )
+          .gs-field
+            label(for="shareExam")
+              | Đề thi của tôi · 
+              span#availableCount= available.length
+              |  kết quả
+
+            select#shareExam(name="examId" required)
+              option(value="") Chọn đề thi
+              each exam, index in available
+                option(
+                  value=exam._id
+                  data-title=exam.title
+                  data-status=exam.status
+                  data-order=index
+                )= exam.title
+
+          button#shareButton.button.button--primary(
+            type="submit"
+            disabled
+          ) Chia sẻ vào nhóm
+
+        p#availableEmpty.gs-empty(hidden)
+          | Không có đề chưa chia sẻ phù hợp với bộ lọc.
+
+      else
+        p.gs-empty Không có đề mới để chia sẻ. Hãy tạo và xuất bản đề trong “Đề thi của tôi”.
+
+    section.gs-panel
+      h2
+        | Đề đang chia sẻ · 
+        span#sharedCount= shared.length
+        | /#{shared.length}
+
+      p.gs-empty Gỡ chia sẻ không xóa đề gốc hoặc lịch sử bài làm.
+
+      #sharedList
+        each exam, index in shared
+          article.gs-item(
+            data-title=exam.title
+            data-status=exam.status
+            data-order=index
+          )
+            div
+              h3= exam.title
+
+              span.gs-status
+                if exam.status === "published"
+                  | Đã xuất bản · thành viên có thể làm bài
+                else
+                  | Bản nháp · thành viên chưa thể làm bài
+
+            form(
+              action="/groups/" + group._id + "/exams/" + exam._id + "/unshare"
+              method="POST"
+            )
+              button.button.button--secondary(type="submit")
+                | Gỡ khỏi nhóm
+
+      p#sharedEmpty.gs-empty(hidden=shared.length > 0)
+        if shared.length
+          | Không tìm thấy đề đang chia sẻ phù hợp với bộ lọc.
+        else
+          | Nhóm chưa có đề được chia sẻ.
+
+block scripts
+  script.
+    (() => {
+      const get = id => document.getElementById(id);
+
+      const keywordInput = get('examKeyword');
+      const statusInput = get('examStatus');
+      const sortInput = get('examSort');
+
+      const sharedList = get('sharedList');
+      const sharedItems = [...sharedList.querySelectorAll('.gs-item')];
+
+      const select = get('shareExam');
+      const shareButton = get('shareButton');
+
+      const availableOptions = select
+        ? [...select.querySelectorAll('option[data-title]')]
+        : [];
+
+      function normalize(value) {
+        return String(value)
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .replace(/đ/g, 'd')
+          .replace(/Đ/g, 'D')
+          .toLowerCase()
+          .trim();
+      }
+
+      function matches(element, keyword, status) {
+        const title = normalize(element.dataset.title);
+
+        return title.includes(keyword) &&
+          (status === 'all' || element.dataset.status === status);
+      }
+
+      function compare(a, b) {
+        const sort = sortInput.value;
+
+        if (sort === 'nameAsc') {
+          return a.dataset.title.localeCompare(b.dataset.title, 'vi');
+        }
+
+        if (sort === 'nameDesc') {
+          return b.dataset.title.localeCompare(a.dataset.title, 'vi');
+        }
+
+        const order = Number(a.dataset.order) - Number(b.dataset.order);
+
+        return sort === 'oldest' ? -order : order;
+      }
+
+      function updateShareButton() {
+        if (shareButton) {
+          shareButton.disabled = !select.value;
+        }
+      }
+
+      function applyFilters() {
+        const keyword = normalize(keywordInput.value);
+        const status = statusInput.value;
+
+        // Danh sách đề đã chia sẻ.
+        const sortedItems = [...sharedItems].sort(compare);
+        let sharedCount = 0;
+
+        for (const item of sortedItems) {
+          const visible = matches(item, keyword, status);
+
+          item.hidden = !visible;
+
+          if (visible) sharedCount++;
+
+          sharedList.appendChild(item);
+        }
+
+        get('sharedCount').textContent = sharedCount;
+        get('sharedEmpty').hidden = sharedCount > 0;
+
+        // Danh sách đề có thể chia sẻ.
+        if (!select) return;
+
+        const selectedId = select.value;
+
+        const filteredOptions = availableOptions
+          .filter(option => matches(option, keyword, status))
+          .sort(compare);
+
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = filteredOptions.length
+          ? 'Chọn đề thi'
+          : 'Không có đề phù hợp';
+
+        select.replaceChildren(placeholder, ...filteredOptions);
+
+        const keepSelection = filteredOptions.some(
+          option => option.value === selectedId
+        );
+
+        select.value = keepSelection ? selectedId : '';
+        select.disabled = filteredOptions.length === 0;
+
+        get('availableCount').textContent = filteredOptions.length;
+        get('availableEmpty').hidden = filteredOptions.length > 0;
+
+        updateShareButton();
+      }
+
+      keywordInput.addEventListener('input', applyFilters);
+      statusInput.addEventListener('change', applyFilters);
+      sortInput.addEventListener('change', applyFilters);
+
+      select?.addEventListener('change', updateShareButton);
+
+      get('resetFilters').addEventListener('click', () => {
+        keywordInput.value = '';
+        statusInput.value = 'all';
+        sortInput.value = 'newest';
+
+        applyFilters();
+      });
+
+      applyFilters();
+    })();

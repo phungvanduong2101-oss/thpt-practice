@@ -1,0 +1,37 @@
+extends layouts/default.pug
+
+block styles
+  link(rel="stylesheet" href="/client/css/practice.css")
+
+block content
+  .container.pr-page
+    .pr-heading
+      span LUYỆN TẬP CHỦ ĐỘNG
+      h1 Luyện tập theo chuyên đề
+      p Chọn môn, chuyên đề và số câu. Hệ thống tạo bài ngẫu nhiên từ câu hỏi hệ thống đã xuất bản.
+    section.pr-card
+      h2 Tạo bài luyện tập
+      form#practiceForm(action="/practice")
+        .pr-field
+          label(for="practiceSubject") Môn học
+          select#practiceSubject(name="subjectId" required)
+            option(value="") Chọn môn học
+            each subject in subjects
+              option(value=subject._id)= subject.name
+        .pr-field
+          label(for="practiceTopic") Chuyên đề
+          select#practiceTopic(name="topicId" disabled)
+            option(value="all") Tất cả chuyên đề
+          small Tất cả chuyên đề: lấy câu hỏi từ các chuyên đề đang hoạt động trong môn đã chọn.
+        .pr-field
+          label(for="practiceCount") Số câu hỏi
+          input#practiceCount(type="number" name="count" min="1" max="100" step="1" value="10" required)
+          small Từ 1 đến 100 câu. Thời gian mặc định 2 phút/câu.
+        p#practiceError.pr-error(role="alert" hidden)
+        button#practiceCreate.pr-button(type="submit" disabled=!subjects.length) Tạo bài ngẫu nhiên
+        if !subjects.length
+          p.pr-error Chưa có môn học đang hoạt động.
+    #practiceData(hidden data-topics=JSON.stringify(topics))
+
+block scripts
+  script(src="/client/js/practice.js" defer)

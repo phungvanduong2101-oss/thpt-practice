@@ -1,0 +1,219 @@
+.mg-page {
+  padding-top: 36px;
+  padding-bottom: 56px;
+}
+
+.mg-heading,
+.mg-actions,
+.mg-filter,
+.mg-tags,
+.mg-card-actions,
+.mg-pagination {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.mg-heading {
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.mg-heading h1 {
+  margin: 0 0 10px;
+  font-size: 32px;
+}
+
+.mg-heading p,
+.mg-summary,
+.mg-members {
+  color: #64748b;
+}
+
+.mg-filter {
+  padding: 18px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+}
+
+.mg-filter input,
+.mg-filter select {
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 9px;
+  background: #fff;
+  font: inherit;
+}
+
+.mg-filter input {
+  flex: 1;
+  min-width: 180px;
+}
+
+.mg-button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 42px;
+  padding: 10px 16px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.mg-button--primary {
+  background: #2563eb;
+  color: #fff;
+}
+
+.mg-button--primary:hover {
+  background: #1d4ed8;
+}
+
+.mg-button--secondary {
+  background: #fff;
+  border-color: #cbd5e1;
+  color: #334155;
+}
+
+.mg-button--secondary:hover {
+  background: #f1f5f9;
+}
+
+.mg-summary {
+  margin: 22px 0 16px;
+}
+
+.mg-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.mg-card {
+  display: flex;
+  flex-direction: column;
+  padding: 22px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+}
+
+.mg-role,
+.mg-status {
+  padding: 5px 9px;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.mg-role {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.mg-status {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.mg-status--inactive {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.mg-card h2 {
+  margin: 18px 0 12px;
+  font-size: 20px;
+  overflow-wrap: anywhere;
+}
+
+.mg-card h2 a {
+  color: #0f172a;
+  text-decoration: none;
+}
+
+.mg-card h2 a:hover {
+  color: #2563eb;
+}
+
+.mg-description {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  color: #64748b;
+  line-height: 1.7;
+  margin: 0;
+}
+
+.mg-card-actions {
+  margin-top: auto;
+  padding-top: 16px;
+}
+
+.mg-empty {
+  padding: 36px 24px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 14px;
+  text-align: center;
+  color: #64748b;
+  line-height: 1.7;
+}
+
+.mg-pagination {
+  justify-content: center;
+  margin-top: 28px;
+}
+
+.mg-page-link {
+  padding: 9px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  color: #334155;
+  text-decoration: none;
+}
+
+.mg-page-link.is-active {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #fff;
+}
+
+.mg-button:focus-visible,
+.mg-page-link:focus-visible,
+.mg-filter input:focus-visible,
+.mg-filter select:focus-visible {
+  outline: 3px solid #93c5fd;
+  outline-offset: 3px;
+}
+
+@media (max-width: 1000px) {
+  .mg-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .mg-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mg-filter input,
+  .mg-filter select {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .mg-heading h1 {
+    font-size: 27px;
+  }
+}
