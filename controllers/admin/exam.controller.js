@@ -365,4 +365,13 @@ module.exports.update = async (req, res, next) => {
 
     next(error);
   }
-};
+}; 
+
+module.exports.delete = async (req, res, next) => {
+  try { 
+    await Exam.deleteOne({ _id: req.params.id });
+    res.json({ code: "success", message: "Xóa đề thi thành công!" });
+  } catch (error) {
+    res.json({ code: "error", message: "Xóa đề thi thất bại!" });
+  }
+}

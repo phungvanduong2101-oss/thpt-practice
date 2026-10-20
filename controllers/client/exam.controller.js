@@ -44,7 +44,7 @@ module.exports.index = async (req, res, next) => {
       };
     }
 
-    const limit = 9;
+    const limit = 4;
     const requestedPage = Number(req.query.page);
 
     let currentPage =

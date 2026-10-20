@@ -228,30 +228,22 @@ block content
           nav#pagination.pagination(aria-label="Phân trang câu hỏi")
             if currentPage > 1
               a.page-button(
-                href=pageUrl(currentPage - 1)
+                href=pageUrl(Number(currentPage) - 1)
                 aria-label="Trang trước"
-              )
-                svg.icon
-                  use(href="#i-left")
+              ) ‹
 
             each pageNumber in Array.from({ length: totalPages }, (_, index) => index + 1)
-              if pageNumber === 1 || pageNumber === totalPages || Math.abs(pageNumber - currentPage) <= 2
-                a.page-button(
-                  href=pageUrl(pageNumber)
-                  class=pageNumber === currentPage ? "is-active" : ""
-                  aria-current=pageNumber === currentPage ? "page" : false
-                  aria-label="Trang " + pageNumber
-                )= pageNumber
-              else if pageNumber === currentPage - 3 || pageNumber === currentPage + 3
-                span(aria-hidden="true") …
+              a.page-button(
+                href=pageUrl(pageNumber)
+                class=pageNumber === Number(currentPage) ? "is-active" : ""
+                aria-label="Trang " + pageNumber
+              )= pageNumber
 
             if currentPage < totalPages
               a.page-button(
-                href=pageUrl(currentPage + 1)
+                href=pageUrl(Number(currentPage) + 1)
                 aria-label="Trang tiếp"
-              )
-                svg.icon
-                  use(href="#i-chevron")
+              ) ›
 
       section#editorPanel.panel.question-editor-panel(
         aria-labelledby="formTitle"

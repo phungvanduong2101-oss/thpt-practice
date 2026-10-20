@@ -277,4 +277,13 @@ module.exports.create = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-};
+}; 
+
+module.exports.delete = async (req, res, next) => {
+  try {
+    await Question.deleteOne({ _id: req.params.id });
+    res.json({ code: "success", message: "Xóa câu hỏi thành công!" });
+  } catch (error) {
+    res.json({ code: "error", message: "Xóa câu hỏi thất bại!" });
+  }
+}

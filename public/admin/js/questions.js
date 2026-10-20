@@ -61,12 +61,12 @@
           toolbar: small
             ? [['bold', 'italic'], ['formula'], ['clean']]
             : [
-                [{ header: [false, 2, 3] }],
-                ['bold', 'italic', 'underline'],
-                [{ list: 'ordered' }, { list: 'bullet' }],
-                ['formula'],
-                ['clean'],
-              ],
+              [{ header: [false, 2, 3] }],
+              ['bold', 'italic', 'underline'],
+              [{ list: 'ordered' }, { list: 'bullet' }],
+              ['formula'],
+              ['clean'],
+            ],
         },
       });
 
@@ -294,8 +294,8 @@
           },
           isCorrect: type === 'truefalse'
             ? form.querySelector(
-                `input[name="tf-${key}"]:checked`
-              )?.value === 'true'
+              `input[name="tf-${key}"]:checked`
+            )?.value === 'true'
             : null,
         });
       }
@@ -513,10 +513,16 @@
           : '/admin/questions/create',
         id ? 'PATCH' : 'POST',
         payload
-      ); 
+      );
 
       if (!data) return;
-
+      sessionStorage.setItem('questionFormSelections', JSON.stringify({
+        subjectId: get('questionSubject').value,
+        topicId: get('questionTopic').value,
+        type: get('questionType').value,
+        bloomLevel: get('questionBloom').value,
+        status: get('questionStatus').value,
+      }));
       alert(data.message);
       window.location.reload();
     } catch (error) {
@@ -563,7 +569,7 @@
       const data = await request(
         `/admin/questions/${encodeURIComponent(deletingId)}`,
         'DELETE'
-      ); 
+      );
 
       if (!data) return;
 
@@ -645,17 +651,50 @@
       buildOptions();
       clearForm();
 
+      const saved = sessionStorage.getItem('questionFormSelections');
+
+      if (saved) {
+        const selections = JSON.parse(saved);
+
+        get('questionSubject').value = selections.subjectId;
+
+        fillQuestionTopics(
+          selections.subjectId,
+          selections.topicId
+        );
+
+        get('questionType').value = selections.type;
+        get('questionBloom').value = selections.bloomLevel;
+        get('questionStatus').value = selections.status;
+
+        updateTypeUI();
+
+        sessionStorage.removeItem('questionFormSelections');
+      }
+
       get('saveButton').disabled = false;
     } catch (error) {
       console.error(error);
       setError(error.message);
     }
-  } 
+  }
 
   boot();
-})(); 
+})();
 
 const link = document.querySelector('#pagination a');
 console.log(link?.outerHTML);
-console.log(link && getComputedStyle(link).pointerEvents);  
+console.log(link && getComputedStyle(link).pointerEvents);
 console.log(document.getElementById('pagination')?.outerHTML);
+
+
+// readEditor() → collectQuestion() → request() 
+console.table(
+  [...document.querySelectorAll('#pagination a')].map(a => ({
+    text: a.textContent.trim(),
+    href: a.getAttribute('href'),
+    display: getComputedStyle(a).display,
+    visibility: getComputedStyle(a).visibility,
+    width: a.getBoundingClientRect().width,
+  }))
+);
