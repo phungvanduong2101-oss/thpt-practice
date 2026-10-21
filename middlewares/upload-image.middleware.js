@@ -4,7 +4,7 @@ const uploadImage = multer({
   storage: multer.memoryStorage(),
 
   limits: {
-    fileSize: 3 * 1024 * 1024, // Tối đa 2 MB/ảnh
+    fileSize: 3 * 1024 * 1024, // Tối đa 3 MB/ảnh
   },
 
   fileFilter(req, file, cb) {

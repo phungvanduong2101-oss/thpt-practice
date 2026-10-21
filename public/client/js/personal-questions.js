@@ -6,23 +6,10 @@
   if (!form) return;
 
   const baseUrl = get('questionPageData').dataset.baseUrl;
-  const settingsKey = `question-settings:${get('questionPageData').dataset.accountId}`;
+  const settingsKey =
+    `question-settings:${get('questionPageData').dataset.accountId}`;
+
   const KEYS = ['A', 'B', 'C', 'D'];
-
-  const TYPES = {
-    mcq: 'Trắc nghiệm ABCD',
-    truefalse: 'Đúng / Sai',
-    fill: 'Điền đáp số',
-  };
-
-  const BLOOM = {
-    1: 'Nhớ',
-    2: 'Hiểu',
-    3: 'Vận dụng',
-    4: 'Phân tích',
-    5: 'Đánh giá',
-    6: 'Sáng tạo',
-  };
 
   let subjects = [];
   let topics = [];
@@ -31,6 +18,7 @@
   let editingId = null;
   let deletingId = null;
   let busy = false;
+  let uploadingImage = false;
   let currentModal = null;
   let previousFocus = null;
 
@@ -51,11 +39,9 @@
     return element.textContent || '';
   }
 
-
   function idOf(value) {
     return String(value?._id ?? value ?? '');
   }
-
 
   function setError(message = '') {
     get('formError').textContent = message;
@@ -98,7 +84,156 @@
     return data;
   }
 
-  // Quill / chế độ dự phòng
+  // Upload ảnh cho nội dung, lời giải và các phương án.
+  async function uploadEditorImage(quill, file) {
+    if (!file || busy || uploadingImage) return;
+
+    const allowedTypes = [
+      'image/jpeg',
+      'image/png',
+      'image/webp',
+      'image/gif',
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      setError('Chỉ nhận ảnh JPG, PNG, WEBP hoặc GIF.');
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      setError('Ảnh không được vượt quá 2 MB.');
+      return;
+    }
+
+    const range = quill.getSelection(true);
+    const index = range?.index ?? quill.getLength() - 1;
+
+    const body = new FormData();
+    body.append('image', file);
+
+    uploadingImage = true;
+    get('saveButton').disabled = true;
+    quill.enable(false);
+    setError('Đang tải ảnh lên...');
+
+    try {
+      const response = await fetch(`${baseUrl}/images`, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+        },
+        body,
+      });
+
+      if (response.redirected) {
+        throw new Error(
+          'Phiên đăng nhập đã thay đổi. Vui lòng đăng nhập lại.'
+        );
+      }
+
+      const contentType =
+        response.headers.get('content-type') || '';
+
+      if (!contentType.includes('application/json')) {
+        throw new Error(
+          `Server không trả JSON (HTTP ${response.status}). Kiểm tra route upload ảnh.`
+        );
+      }
+
+      const data = await response.json();
+
+      if (
+        !response.ok ||
+        typeof data.url !== 'string' ||
+        !data.url
+      ) {
+        throw new Error(data.message || 'Upload ảnh thất bại.');
+      }
+
+      // Bật editor trước khi chèn ảnh với source 'user'.
+      quill.enable(true);
+      quill.insertEmbed(index, 'image', data.url, 'user');
+      quill.setSelection(index + 1, 0, 'silent');
+
+      setError();
+    } catch (error) {
+      setError(error.message || 'Không thể tải ảnh lên.');
+    } finally {
+      uploadingImage = false;
+      quill.enable(true);
+      quill.focus();
+      get('saveButton').disabled = busy;
+    }
+  }
+
+  function bindEditorImages(instance) {
+    // Chọn ảnh từ toolbar.
+    instance.getModule('toolbar').addHandler('image', () => {
+      if (busy || uploadingImage) return;
+
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/jpeg,image/png,image/webp,image/gif';
+
+      input.addEventListener('change', () => {
+        uploadEditorImage(instance, input.files[0]);
+      });
+
+      input.click();
+    });
+
+    // Dán file ảnh từ clipboard bằng Ctrl+V.
+    instance.root.addEventListener('paste', event => {
+      const items = [...(event.clipboardData?.items || [])];
+
+      const image = items.find(item =>
+        item.kind === 'file' &&
+        item.type.startsWith('image/')
+      );
+
+      if (!image) return;
+
+      event.preventDefault();
+      event.stopImmediatePropagation();
+
+      if (busy || uploadingImage) return;
+
+      uploadEditorImage(instance, image.getAsFile());
+    }, true);
+
+    // Cho phép thả file vào editor.
+    instance.root.addEventListener('dragover', event => {
+      const types = [...(event.dataTransfer?.types || [])];
+
+      if (types.includes('Files')) {
+        event.preventDefault();
+      }
+    }, true);
+
+    // Upload ảnh được kéo thả.
+    instance.root.addEventListener('drop', event => {
+      const files = [...(event.dataTransfer?.files || [])];
+
+      if (!files.length) return;
+
+      event.preventDefault();
+      event.stopImmediatePropagation();
+
+      if (busy || uploadingImage) return;
+
+      const image = files.find(file =>
+        file.type.startsWith('image/')
+      );
+
+      if (image) {
+        uploadEditorImage(instance, image);
+      } else {
+        setError('Vui lòng chọn file ảnh.');
+      }
+    }, true);
+  }
+
+  // Quill / chế độ dự phòng.
   function createEditor(id, small = false) {
     const target = get(id);
 
@@ -108,18 +243,28 @@
         placeholder: 'Nhập nội dung...',
         modules: {
           toolbar: small
-            ? [['bold', 'italic'], ['formula'], ['clean']]
+            ? [
+                ['bold', 'italic'],
+                ['formula', 'image'],
+                ['clean'],
+              ]
             : [
-              [{ header: [false, 2, 3] }],
-              ['bold', 'italic', 'underline'],
-              [{ list: 'ordered' }, { list: 'bullet' }],
-              ['formula'],
-              ['clean'],
-            ],
+                [{ header: [false, 2, 3] }],
+                ['bold', 'italic', 'underline'],
+                [{ list: 'ordered' }, { list: 'bullet' }],
+                ['formula', 'image'],
+                ['clean'],
+              ],
         },
       });
 
-      editors.set(id, { instance, quill: true });
+      bindEditorImages(instance);
+
+      editors.set(id, {
+        instance,
+        quill: true,
+      });
+
       return;
     }
 
@@ -130,7 +275,11 @@
     fallback.setAttribute('aria-multiline', 'true');
 
     target.appendChild(fallback);
-    editors.set(id, { instance: fallback, quill: false });
+
+    editors.set(id, {
+      instance: fallback,
+      quill: false,
+    });
 
     get('editorOfflineNote').hidden = false;
   }
@@ -140,12 +289,17 @@
 
     if (editor.quill) {
       const instance = editor.instance;
-      const hasFormula = instance.root.querySelector('.ql-formula');
+      const hasFormula =
+        instance.root.querySelector('.ql-formula');
+      const hasImage = instance.root.querySelector('img');
 
       return {
         html: instance.root.innerHTML,
         delta: instance.getContents(),
-        text: instance.getText().trim() || (hasFormula ? '[Công thức]' : ''),
+        text:
+          instance.getText().trim() ||
+          (hasFormula ? '[Công thức]' : '') ||
+          (hasImage ? '[Hình ảnh]' : ''),
       };
     }
 
@@ -185,25 +339,40 @@
 
   function buildOptions() {
     ['mcq', 'tf'].forEach(prefix => {
-      const parent = get(prefix === 'mcq' ? 'mcqOptions' : 'tfOptions');
+      const parent = get(
+        prefix === 'mcq' ? 'mcqOptions' : 'tfOptions'
+      );
 
       parent.innerHTML = KEYS.map(key => {
         const control = prefix === 'mcq'
           ? `
             <label class="option-choice">
-              <input type="radio" name="correctMcq" value="${key}"
-                ${key === 'A' ? 'checked' : ''}>
+              <input
+                type="radio"
+                name="correctMcq"
+                value="${key}"
+                ${key === 'A' ? 'checked' : ''}
+              >
               Đáp án đúng
             </label>
           `
           : `
             <div class="option-choice option-choice--tf">
               <label>
-                <input type="radio" name="tf-${key}" value="true" checked>
+                <input
+                  type="radio"
+                  name="tf-${key}"
+                  value="true"
+                  checked
+                >
                 Đúng
               </label>
               <label>
-                <input type="radio" name="tf-${key}" value="false">
+                <input
+                  type="radio"
+                  name="tf-${key}"
+                  value="false"
+                >
                 Sai
               </label>
             </div>
@@ -215,8 +384,10 @@
               ${prefix === 'tf' ? key.toLowerCase() : key}
             </span>
             <div class="option-editor-shell">
-              <div id="${prefix}Opt${key}"
-                class="rich-editor rich-editor--option"></div>
+              <div
+                id="${prefix}Opt${key}"
+                class="rich-editor rich-editor--option"
+              ></div>
             </div>
             ${control}
           </div>
@@ -234,8 +405,7 @@
     }
   }
 
-  // Các lựa chọn môn học / chuyên đề
-
+  // Môn học / chuyên đề.
   function fillQuestionTopics(subjectId, selectedId = '') {
     const available = topics.filter(topic =>
       idOf(topic.subjectId) === subjectId
@@ -253,7 +423,6 @@
     get('questionTopic').value = selectedId;
   }
 
-
   function updateTypeUI() {
     const type = get('questionType').value;
 
@@ -263,6 +432,8 @@
   }
 
   function clearForm(focus = false) {
+    if (busy || uploadingImage) return;
+
     editingId = null;
     form.reset();
     setError();
@@ -287,21 +458,35 @@
     }
   }
 
-  // Payload khớp question.model.js
   function collectQuestion() {
+    if (uploadingImage) {
+      throw new Error('Ảnh đang tải lên, vui lòng đợi.');
+    }
+
     const subjectId = get('questionSubject').value;
     const topicId = get('questionTopic').value;
     const type = get('questionType').value;
 
-    const subject = subjects.find(item => idOf(item) === subjectId);
-    const topic = topics.find(item => idOf(item) === topicId);
-    const original = questions.find(item => idOf(item) === editingId);
+    const subject = subjects.find(item =>
+      idOf(item) === subjectId
+    );
+
+    const topic = topics.find(item =>
+      idOf(item) === topicId
+    );
+
+    const original = questions.find(item =>
+      idOf(item) === editingId
+    );
 
     if (!subject) {
       throw new Error('Vui lòng chọn môn học.');
     }
 
-    if (!subject.active && subjectId !== idOf(original?.subjectId)) {
+    if (
+      !subject.active &&
+      subjectId !== idOf(original?.subjectId)
+    ) {
       throw new Error('Môn học đã bị ẩn.');
     }
 
@@ -309,7 +494,10 @@
       throw new Error('Chọn chuyên đề thuộc đúng môn học.');
     }
 
-    if (!topic.active && topicId !== idOf(original?.topicId)) {
+    if (
+      !topic.active &&
+      topicId !== idOf(original?.topicId)
+    ) {
       throw new Error('Chuyên đề đã bị ẩn.');
     }
 
@@ -330,7 +518,9 @@
         const option = readEditor(`${prefix}Opt${key}`);
 
         if (!option.text) {
-          throw new Error(`Chưa nhập nội dung phương án ${key}.`);
+          throw new Error(
+            `Chưa nhập nội dung phương án ${key}.`
+          );
         }
 
         options.push({
@@ -341,8 +531,8 @@
           },
           isCorrect: type === 'truefalse'
             ? form.querySelector(
-              `input[name="tf-${key}"]:checked`
-            )?.value === 'true'
+                `input[name="tf-${key}"]:checked`
+              )?.value === 'true'
             : null,
         });
       }
@@ -393,15 +583,20 @@
   }
 
   function clearPersonalForm(focus = false) {
+    if (busy || uploadingImage) return;
+
     clearForm(focus);
     get('questionSubject').disabled = false;
   }
 
   function startEdit(question) {
+    if (busy || uploadingImage) return;
+
     clearPersonalForm();
     editingId = idOf(question);
 
     get('questionSubject').value = idOf(question.subjectId);
+
     fillQuestionTopics(
       idOf(question.subjectId),
       idOf(question.topicId)
@@ -415,11 +610,17 @@
     writeEditor('questionContent', question.content);
     writeEditor('questionExplanation', question.explanation);
 
-    if (question.type === 'mcq' || question.type === 'truefalse') {
+    if (
+      question.type === 'mcq' ||
+      question.type === 'truefalse'
+    ) {
       const prefix = question.type === 'mcq' ? 'mcq' : 'tf';
 
       for (const key of KEYS) {
-        const option = question.options.find(item => item.key === key);
+        const option = question.options.find(item =>
+          item.key === key
+        );
+
         writeEditor(`${prefix}Opt${key}`, option?.content);
 
         const selector = question.type === 'mcq'
@@ -428,10 +629,13 @@
 
         const radio = form.querySelector(selector);
 
-        if (radio && (
-          question.type === 'truefalse' ||
-          question.correctAnswer === key
-        )) {
+        if (
+          radio &&
+          (
+            question.type === 'truefalse' ||
+            question.correctAnswer === key
+          )
+        ) {
           radio.checked = true;
         }
       }
@@ -451,9 +655,7 @@
     });
   }
 
-  // Search / filter / phân trang
-
-
+  // Modal xem trước / xóa.
   function openModal(modal) {
     previousFocus = document.activeElement;
     currentModal = modal;
@@ -469,6 +671,7 @@
     currentModal.hidden = true;
     currentModal = null;
     deletingId = null;
+
     document.body.style.overflow = '';
 
     previousFocus?.focus();
@@ -498,7 +701,9 @@
         return `
           <div class="preview-answer ${correct ? 'preview-correct' : ''}">
             <b>${escapeHtml(label)}</b>
-            <div class="preview-html">${option.content.html}</div>
+            <div class="preview-html">
+              ${option.content.html}
+            </div>
           </div>
         `;
       }).join('');
@@ -508,8 +713,10 @@
       <div class="preview-content preview-html">
         ${question.content.html}
       </div>
+
       <div class="preview-label">Phương án trả lời</div>
       <div class="preview-answers">${answers}</div>
+
       ${question.explanation?.html ? `
         <div class="preview-label">Lời giải</div>
         <div class="preview-solution preview-html">
@@ -518,19 +725,25 @@
       ` : ''}
     `;
 
-    get('previewBody').querySelectorAll('.ql-formula[data-value]')
+    get('previewBody')
+      .querySelectorAll('.ql-formula[data-value]')
       .forEach(element => {
         if (window.katex?.render) {
-          window.katex.render(element.dataset.value, element, {
-            throwOnError: false,
-            trust: false,
-          });
+          window.katex.render(
+            element.dataset.value,
+            element,
+            {
+              throwOnError: false,
+              trust: false,
+            }
+          );
         }
       });
 
     openModal(get('previewModal'));
   }
 
+  // Ghi nhớ lựa chọn sau khi lưu.
   function saveQuestionSettings() {
     const settings = {
       subjectId: get('questionSubject').value,
@@ -541,9 +754,12 @@
     };
 
     try {
-      sessionStorage.setItem(settingsKey, JSON.stringify(settings));
+      sessionStorage.setItem(
+        settingsKey,
+        JSON.stringify(settings)
+      );
     } catch {
-      // Vẫn cho lưu câu hỏi nếu trình duyệt không cho dùng storage.
+      // Vẫn cho lưu nếu trình duyệt không cho dùng storage.
     }
   }
 
@@ -555,7 +771,10 @@
       const settings = JSON.parse(saved);
 
       const subject = subjects.find(item => {
-        return idOf(item) === settings.subjectId && item.active;
+        return (
+          idOf(item) === settings.subjectId &&
+          item.active
+        );
       });
 
       if (subject) {
@@ -569,42 +788,57 @@
           );
         });
 
-        let selectedTopicId = "";
+        const selectedTopicId = topic
+          ? settings.topicId
+          : '';
 
-        if (topic) {
-          selectedTopicId = settings.topicId;
-        }
-
-        fillQuestionTopics(settings.subjectId, selectedTopicId);
+        fillQuestionTopics(
+          settings.subjectId,
+          selectedTopicId
+        );
       }
 
-      if (['mcq', 'truefalse', 'fill'].includes(settings.type)) {
+      if (
+        ['mcq', 'truefalse', 'fill'].includes(settings.type)
+      ) {
         get('questionType').value = settings.type;
       }
 
-      if (['1', '2', '3', '4', '5', '6'].includes(settings.bloomLevel)) {
+      if (
+        ['1', '2', '3', '4', '5', '6'].includes(
+          settings.bloomLevel
+        )
+      ) {
         get('questionBloom').value = settings.bloomLevel;
       }
 
-      if (['draft', 'published'].includes(settings.status)) {
+      if (
+        ['draft', 'published'].includes(settings.status)
+      ) {
         get('questionStatus').value = settings.status;
       }
 
       updateTypeUI();
     } catch {
-      // Dữ liệu nhớ không hợp lệ thì dùng lựa chọn mặc định.
+      // Dữ liệu nhớ không hợp lệ thì dùng mặc định.
     }
   }
-  // Events
+
+  // Events.
   get('questionSubject').addEventListener('change', event => {
     fillQuestionTopics(event.target.value);
   });
 
-  get('questionType').addEventListener('change', updateTypeUI);
+  get('questionType').addEventListener(
+    'change',
+    updateTypeUI
+  );
 
   for (const id of ['newQuestionButton', 'resetButton']) {
     get(id).addEventListener('click', () => {
-      if (!busy) clearPersonalForm(true);
+      if (!busy && !uploadingImage) {
+        clearPersonalForm(true);
+      }
     });
   }
 
@@ -619,10 +853,12 @@
 
   form.addEventListener('submit', async event => {
     event.preventDefault();
-    if (busy) return;
+
+    if (busy || uploadingImage) return;
 
     try {
       setError();
+
       const payload = collectQuestion();
       const id = editingId;
 
@@ -636,38 +872,52 @@
         id ? 'PATCH' : 'POST',
         payload
       );
+
       saveQuestionSettings();
+
       alert(data.message);
       window.location.reload();
     } catch (error) {
       setError(error.message);
     } finally {
       busy = false;
-      get('saveButton').disabled = false;
+      get('saveButton').disabled = uploadingImage;
     }
   });
 
-  // Search dùng form GET: Enter hoặc nút Tìm kiếm.
-  // Phân trang dùng link do Pug render.
+  // Search dùng form GET, phân trang dùng link Pug.
   const filterForm = get('questionFilterForm');
 
   get('subjectFilter').addEventListener('change', () => {
-    // Bỏ chuyên đề của môn trước khi đổi môn học
     get('topicFilter').value = 'all';
     filterForm.requestSubmit();
   });
 
-  for (const id of ['topicFilter', 'typeFilter', 'bloomFilter']) {
+  for (
+    const id of [
+      'topicFilter',
+      'typeFilter',
+      'bloomFilter',
+    ]
+  ) {
     get(id).addEventListener('change', () => {
       filterForm.requestSubmit();
     });
   }
+
   get('questionList').addEventListener('click', event => {
-    const button = event.target.closest('button[data-action]');
-    if (!button || busy) return;
+    const button = event.target.closest(
+      'button[data-action]'
+    );
+
+    if (!button || busy || uploadingImage) return;
 
     const row = button.closest('[data-id]');
-    const question = questions.find(item => idOf(item) === row?.dataset.id);
+
+    const question = questions.find(item =>
+      idOf(item) === row?.dataset.id
+    );
+
     if (!question) return;
 
     if (button.dataset.action === 'edit') {
@@ -679,7 +929,8 @@
 
       get('deleteDescription').textContent =
         `Bạn có chắc muốn xóa câu hỏi “${(
-          question.contentText || plainText(question.content.html)
+          question.contentText ||
+          plainText(question.content.html)
         ).slice(0, 100)}”?`;
 
       openModal(get('deleteModal'));
@@ -687,7 +938,7 @@
   });
 
   get('confirmDelete').addEventListener('click', async () => {
-    if (!deletingId || busy) return;
+    if (!deletingId || busy || uploadingImage) return;
 
     try {
       busy = true;
@@ -711,24 +962,35 @@
     }
   });
 
-  for (const id of ['closePreview', 'donePreview', 'cancelDelete']) {
+  for (
+    const id of [
+      'closePreview',
+      'donePreview',
+      'cancelDelete',
+    ]
+  ) {
     get(id).addEventListener('click', closeModal);
   }
 
   for (const id of ['previewModal', 'deleteModal']) {
     get(id).addEventListener('click', event => {
-      if (event.target === get(id)) closeModal();
+      if (event.target === get(id)) {
+        closeModal();
+      }
     });
   }
 
   document.addEventListener('keydown', event => {
     if (!currentModal) return;
 
-    if (event.key === 'Escape') closeModal();
+    if (event.key === 'Escape') {
+      closeModal();
+    }
 
     if (event.key === 'Tab') {
-      const buttons = [...currentModal.querySelectorAll('button')]
-        .filter(button => !button.disabled);
+      const buttons = [
+        ...currentModal.querySelectorAll('button'),
+      ].filter(button => !button.disabled);
 
       if (!buttons.length) {
         event.preventDefault();
@@ -738,10 +1000,16 @@
       const first = buttons[0];
       const last = buttons[buttons.length - 1];
 
-      if (event.shiftKey && document.activeElement === first) {
+      if (
+        event.shiftKey &&
+        document.activeElement === first
+      ) {
         event.preventDefault();
         last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
+      } else if (
+        !event.shiftKey &&
+        document.activeElement === last
+      ) {
         event.preventDefault();
         first.focus();
       }
@@ -775,7 +1043,9 @@
       questions = data.questions;
 
       buildOptions();
+
       get('subjectFilter').disabled = false;
+
       clearPersonalForm();
       restoreQuestionSettings();
 
@@ -787,4 +1057,4 @@
   }
 
   boot();
-})(); 
+})();
