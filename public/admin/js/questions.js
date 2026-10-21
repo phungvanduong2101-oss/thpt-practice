@@ -34,7 +34,67 @@
 
   const editors = new Map();
 
+  let uploadingImage = false;
 
+  async function uploadEditorImage(quill, file) {
+    if (!file || busy || uploadingImage) return;
+
+    const allowedTypes = [
+      'image/jpeg',
+      'image/png',
+      'image/webp',
+      'image/gif',
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      setError('Chỉ nhận ảnh JPG, PNG, WEBP hoặc GIF.');
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      setError('Ảnh không được vượt quá 2 MB.');
+      return;
+    }
+
+    const range = quill.getSelection(true);
+    const index = range?.index ?? quill.getLength() - 1;
+
+    const body = new FormData();
+    body.append('image', file);
+
+    uploadingImage = true;
+    get('saveButton').disabled = true;
+    quill.enable(false);
+    setError('Đang tải ảnh lên...');
+
+    try {
+      const response = await fetch('/admin/questions/images', {
+        method: 'POST',
+        body,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.url) {
+        throw new Error(data.message || 'Upload ảnh thất bại.');
+      }
+
+      // Bật lại editor trước khi chèn ảnh bằng source 'user'
+      quill.enable(true);
+
+      quill.insertEmbed(index, 'image', data.url, 'user');
+      quill.setSelection(index + 1, 0, 'silent');
+
+      setError();
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      uploadingImage = false;
+      quill.enable(true);
+      quill.focus();
+      get('saveButton').disabled = busy;
+    }
+  }
 
   function plainText(html) {
     const element = document.createElement('div');
@@ -59,16 +119,63 @@
         placeholder: 'Nhập nội dung...',
         modules: {
           toolbar: small
-            ? [['bold', 'italic'], ['formula'], ['clean']]
+            ? [['bold', 'italic'], ['formula', 'image'], ['clean']]
             : [
               [{ header: [false, 2, 3] }],
               ['bold', 'italic', 'underline'],
               [{ list: 'ordered' }, { list: 'bullet' }],
-              ['formula'],
+              ['formula', 'image'],
               ['clean'],
             ],
         },
       });
+
+      // Bấm nút ảnh trên toolbar
+      instance.getModule('toolbar').addHandler('image', () => {
+        if (busy || uploadingImage) return;
+
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/jpeg,image/png,image/webp,image/gif';
+
+        input.addEventListener('change', () => {
+          uploadEditorImage(instance, input.files[0]);
+        });
+
+        input.click();
+      });
+
+      // Dán ảnh bằng Ctrl+V
+      // Capture để xử lý trước sự kiện paste mặc định của Quill.
+      instance.root.addEventListener('paste', event => {
+        const items = [...(event.clipboardData?.items || [])];
+
+        const imageItem = items.find(item =>
+          item.kind === 'file' && item.type.startsWith('image/')
+        );
+
+        if (!imageItem) return;
+
+        event.preventDefault();
+        event.stopImmediatePropagation();
+
+        uploadEditorImage(instance, imageItem.getAsFile());
+      }, true);
+
+      // Chặn kéo thả ảnh đi qua luồng mặc định của Quill
+      instance.root.addEventListener('drop', event => {
+        const files = [...(event.dataTransfer?.files || [])];
+        if (!files.length) return;
+
+        event.preventDefault();
+        event.stopImmediatePropagation();
+
+        const image = files.find(file => file.type.startsWith('image/'));
+
+        if (image) {
+          uploadEditorImage(instance, image);
+        }
+      }, true);
 
       editors.set(id, { instance, quill: true });
       return;
@@ -92,11 +199,14 @@
     if (editor.quill) {
       const instance = editor.instance;
       const hasFormula = instance.root.querySelector('.ql-formula');
+      const hasImage = instance.root.querySelector('img');
 
       return {
         html: instance.root.innerHTML,
         delta: instance.getContents(),
-        text: instance.getText().trim() || (hasFormula ? '[Công thức]' : ''),
+        text: instance.getText().trim()
+          || (hasFormula ? '[Công thức]' : '')
+          || (hasImage ? '[Hình ảnh]' : ''),
       };
     }
 
@@ -216,6 +326,7 @@
   }
 
   function clearForm(focus = false) {
+    if (uploadingImage) return;
     editingId = null;
     form.reset();
     setError();
@@ -242,6 +353,9 @@
 
   // Payload khớp question.model.js
   function collectQuestion() {
+    if (uploadingImage) {
+      throw new Error('Ảnh đang tải lên, vui lòng đợi.');
+    }
     const subjectId = get('questionSubject').value;
     const topicId = get('questionTopic').value;
     const type = get('questionType').value;
@@ -346,6 +460,7 @@
   }
 
   function startEdit(question) {
+    if (uploadingImage) return;
     clearForm();
     editingId = idOf(question);
 
@@ -536,7 +651,7 @@
 
   get('questionList').addEventListener('click', event => {
     const button = event.target.closest('button[data-action]');
-    if (!button || busy) return;
+    if (!button || busy || uploadingImage) return;
 
     const row = button.closest('[data-id]');
     const question = questions.find(item => idOf(item) === row?.dataset.id);
