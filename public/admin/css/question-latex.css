@@ -1,0 +1,270 @@
+.questions-layout.questions-layout--form.questions-layout--latex {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(320px, 1fr);
+  align-items: start;
+  gap: 20px;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+}
+
+.questions-layout--latex > .question-editor-panel {
+  min-width: 0;
+}
+
+.latex-sidebar,
+.latex-sidebar * {
+  box-sizing: border-box;
+}
+
+.latex-sidebar {
+  position: sticky;
+  top: 20px;
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+}
+
+.latex-library,
+.latex-composer {
+  min-width: 0;
+  padding: 20px;
+}
+
+.latex-panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.latex-panel-heading h2 {
+  margin: 4px 0 0;
+  color: #0f172a;
+  font-size: 17px;
+}
+
+.latex-eyebrow {
+  color: #0866ff;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.latex-count {
+  padding: 4px 9px;
+  border-radius: 20px;
+  background: #edf4ff;
+  color: #0866ff;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.latex-label {
+  display: block;
+  margin-bottom: 8px;
+  color: #334155;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.latex-select-label {
+  margin-top: 15px;
+}
+
+.latex-input,
+.latex-source {
+  display: block;
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid #dce5f1;
+  border-radius: 8px;
+  background: #fbfdff;
+  color: #1e293b;
+  outline: none;
+}
+
+.latex-input {
+  min-height: 42px;
+  font: inherit;
+  font-size: 12px;
+}
+
+select.latex-input {
+  cursor: pointer;
+}
+
+.latex-input:focus,
+.latex-source:focus {
+  border-color: #0866ff;
+  box-shadow: 0 0 0 3px rgb(8 102 255 / 8%);
+}
+
+.latex-source {
+  min-height: 125px;
+  resize: vertical;
+  font: 12px/1.8 Consolas, Monaco, monospace;
+}
+
+.latex-source--template {
+  min-height: 65px;
+  background: #f5f8fc;
+}
+
+.latex-library-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.latex-library-actions .button {
+  flex: 1;
+  padding-inline: 10px;
+}
+
+.latex-sidebar button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.latex-text-button {
+  padding: 5px;
+  border: 0;
+  background: none;
+  color: #64748b;
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.latex-hint {
+  margin: 10px 0 0;
+  color: #8492a6;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.latex-preview-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 18px 0 10px;
+  font-size: 12px;
+}
+
+.latex-preview-heading span {
+  color: #16a36b;
+  font-size: 10px;
+}
+
+.latex-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 115px;
+  padding: 20px;
+  overflow-x: auto;
+  border: 1px dashed #d9e4f3;
+  border-radius: 9px;
+  background: #f7faff;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.latex-preview--template {
+  min-height: 90px;
+}
+
+.latex-preview .katex {
+  color: #0f172a;
+  font-size: 1.35em;
+}
+
+.latex-preview .katex-display {
+  margin: 0;
+}
+
+.latex-copy-button {
+  width: 100%;
+  margin-top: 15px;
+}
+
+.latex-error {
+  margin: 10px 0 0;
+  color: #dc2626;
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+.latex-status {
+  margin: 0;
+  color: #15803d;
+  font-size: 12px;
+}
+
+.latex-status:empty {
+  display: none;
+}
+
+.latex-status.is-error {
+  color: #dc2626;
+}
+
+.latex-sidebar button:focus-visible {
+  outline: 3px solid #93c5fd;
+  outline-offset: 2px;
+}
+
+.latex-sidebar [hidden] {
+  display: none !important;
+}
+
+@media (max-width: 1100px) {
+  .questions-layout.questions-layout--form.questions-layout--latex {
+    grid-template-columns: minmax(0, 1.4fr) minmax(280px, 1fr);
+    gap: 14px;
+  }
+
+  .latex-library,
+  .latex-composer {
+    padding: 15px;
+  }
+}
+
+@media (max-width: 900px) {
+  .questions-layout.questions-layout--form.questions-layout--latex {
+    grid-template-columns: 1fr;
+  }
+
+  .latex-sidebar {
+    position: static;
+  }
+} 
+@media (min-width: 901px) {
+  .questions-layout.questions-layout--form.questions-layout--latex {
+    height: auto;
+    min-height: 0;
+    align-items: start;
+  }
+
+  /* Bên trái cuộn theo trang bình thường */
+  .questions-layout--latex > #editorPanel {
+    height: auto;
+    max-height: none;
+    overflow: visible;
+  }
+
+  /* Bên phải bám màn hình và cuộn riêng */
+  .questions-layout--latex > .latex-sidebar {
+    position: sticky;
+    top: 20px;
+    max-height: calc(100dvh - 40px);
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    scrollbar-gutter: stable;
+    align-content: start;
+  }
+}

@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const Question = require("../../models/question.model");
 const Subject = require("../../models/subject.model");
 const Topic = require("../../models/topic.model");
-
+const Latex = require("../../models/latex.model");
 module.exports.index = async (req, res, next) => {
   try {
     const keyword = typeof req.query.keyword === "string"
@@ -93,7 +93,7 @@ module.exports.index = async (req, res, next) => {
         .sort({ name: 1 })
         .lean(),
     ]);
-
+    
     const totalPages = Math.max(1, Math.ceil(totalItems / limit));
     currentPage = Math.min(currentPage, totalPages);
 
@@ -173,13 +173,15 @@ module.exports.form = async (req, res, next) => {
       question = await Question.findOne({ _id: req.params.id, scope: "system" }).lean();
       if (!question) return res.status(404).send("Không tìm thấy câu hỏi.");
     }
-    const [subjects, topics] = await Promise.all([
+    const [subjects, topics , formulas] = await Promise.all([
       Subject.find().select("name code active").sort({ name: 1 }).lean(),
-      Topic.find().select("name code subjectId active").sort({ name: 1 }).lean(),
-    ]);
+      Topic.find().select("name code subjectId active").sort({ name: 1 }).lean(), 
+      Latex.find().lean()
+    ]); 
+    
     res.render("admin/question-form", {
       title: question ? "Chỉnh sửa câu hỏi" : "Soạn câu hỏi mới",
-      activePage: "questions", subjects, topics, question,
+      activePage: "questions", subjects, topics, question,formulas
     });
   } catch (error) { next(error); }
 };

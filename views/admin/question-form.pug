@@ -10,33 +10,35 @@ block styles
     href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css"
   )
   link(rel="stylesheet" href="/admin/css/questions.css")
-
-  style.
-    a.page-button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      text-decoration: none;
-    }
+  link(rel="stylesheet" href="/admin/css/question-latex.css")
 
 block content
   - const bloomLabels = ["", "Nhớ", "Hiểu", "Vận dụng", "Phân tích", "Đánh giá", "Sáng tạo"];
-  #questionPageData(hidden data-bootstrap=JSON.stringify({ subjects, topics, questions: question ? [question] : [] }))
+
+  #questionPageData(
+    hidden
+    data-bootstrap=JSON.stringify({ subjects, topics, questions: question ? [question] : [] })
+  )
+
   .question-main
     .page-heading.question-heading
       div
         .eyebrow BIÊN TẬP NỘI DUNG
         h1= question ? "Chỉnh sửa câu hỏi" : "Soạn câu hỏi mới"
-        p Soạn nội dung, đáp án và lời giải bằng Quill + KaTeX.
-      a.button.button--secondary(href="/admin/questions") Quay lại danh sách
-    .questions-layout.questions-layout--form
+        p Soạn nội dung, đáp án và lời giải.
+
+      a.button.button--secondary(href="/admin/questions")
+        | Quay lại danh sách
+
+    .questions-layout.questions-layout--form.questions-layout--latex
       section#editorPanel.panel.question-editor-panel(
         aria-labelledby="formTitle"
       )
         .panel-header.question-editor-header
           div
             .form-panel__eyebrow BIÊN TẬP NỘI DUNG
-            h2#formTitle Tạo câu hỏi mới
+            h2#formTitle= question ? "Chỉnh sửa câu hỏi" : "Tạo câu hỏi mới"
+
             p
               | Hỗ trợ công thức LaTeX tại nút 
               b ƒx
@@ -62,6 +64,7 @@ block content
 
               select#questionSubject(name="subjectId" required)
                 option(value="") Chọn môn học
+
                 each subject in subjects
                   option(value=subject._id)
                     = subject.name + (subject.active ? "" : " (Đã ẩn)")
@@ -103,6 +106,7 @@ block content
 
           .field
             label(for="questionStatus") Trạng thái
+
             select#questionStatus(name="status")
               option(value="published") Đã xuất bản
               option(value="draft") Bản nháp
@@ -117,15 +121,9 @@ block content
           )
 
           small.question-hint
-            | Chọn 
+            | Tra cứu và chỉnh công thức ở khung bên phải, sau đó copy mã vào nút 
             b ƒx
-            |  để nhập công thức LaTeX, ví dụ: 
-            code x^2+2x+1
-            | , 
-            code \frac{a}{b}
-            | , 
-            code \sqrt{x}
-            | .
+            |  để chèn.
 
           .editor-section-title
             span 03
@@ -136,6 +134,7 @@ block content
               | Soạn 4 lựa chọn, sau đó đánh dấu 
               b một đáp án đúng
               | .
+
             #mcqOptions.option-editors
 
           #tfAnswers.answer-section(hidden)
@@ -143,6 +142,7 @@ block content
               | Nhập bốn mệnh đề a, b, c, d. Chọn 
               b Đúng hoặc Sai riêng cho từng ý
               | .
+
             #tfOptions.option-editors
 
           #fillAnswers.answer-section(hidden)
@@ -185,6 +185,105 @@ block content
                 use(href="#i-save")
               span#saveButtonText Lưu câu hỏi
 
+      aside.latex-sidebar(aria-label="Tra cứu và soạn công thức")
+        section.panel.latex-library
+          .latex-panel-heading
+            div
+              span.latex-eyebrow THƯ VIỆN LATEX
+              h2 Công thức mẫu
+
+            span#latexCount.latex-count
+
+          label.latex-label(for="latexSearch") Tìm công thức
+
+          input#latexSearch.latex-input(
+            type="search"
+            placeholder="Tìm tên hoặc mã LaTeX..."
+            autocomplete="off"
+          )
+
+          label.latex-label.latex-select-label(for="latexCode")
+            | Chọn công thức
+
+          select#latexCode.latex-input
+            option(value="") — Chọn công thức mẫu —
+            each formula in formulas
+              option(value=formula.code)= formula.name
+
+          p#latexEmpty.latex-hint(hidden)
+            | Không tìm thấy công thức phù hợp.
+
+          .latex-preview-heading
+            strong Xem trước mẫu
+
+          #latexTemplatePreview.latex-preview.latex-preview--template
+            | Chọn một mẫu để xem công thức.
+
+          label.latex-label.latex-select-label(for="latexTemplateCode")
+            | Mã mẫu
+
+          textarea#latexTemplateCode.latex-source.latex-source--template(
+            rows="2"
+            readonly
+            spellcheck="false"
+            placeholder="Mã LaTeX của mẫu..."
+          )
+
+          .latex-library-actions
+            button#copyTemplate.button.button--secondary(
+              type="button"
+              disabled
+            ) Copy mẫu
+
+            button#addTemplate.button.button--primary(
+              type="button"
+              disabled
+            ) Thêm vào ô soạn
+
+          p.latex-hint
+            | Mẫu được thêm tại vị trí con trỏ hoặc thay thế đoạn đang bôi đen trong ô soạn.
+
+        section.panel.latex-composer
+          .latex-panel-heading
+            div
+              span.latex-eyebrow KHÔNG GIAN SOẠN THỬ
+              h2 Soạn công thức
+
+            button#clearLatex.latex-text-button(type="button")
+              | Xóa mã
+
+          label.latex-label(for="latexSource") Mã LaTeX
+
+          textarea#latexSource.latex-source(
+            rows="5"
+            spellcheck="false"
+            placeholder="Dán hoặc thêm các mẫu công thức tại đây..."
+          )
+
+          p.latex-hint
+            | Ghép các mẫu, sửa biến và thêm phép tính để tạo công thức.
+
+          .latex-preview-heading
+            strong Xem trước
+            span Cập nhật trực tiếp
+
+          #latexPreview.latex-preview(aria-live="polite")
+            | Công thức sẽ hiển thị ở đây.
+
+          p#latexError.latex-error(role="status" hidden)
+
+          button#copyLatex.button.button--primary.latex-copy-button(
+            type="button"
+          ) Copy LaTeX đã chỉnh sửa
+
+          p.latex-hint
+            | Copy mã → bấm ƒx tại nội dung, đáp án hoặc lời giải → dán mã.
+
+        p#latexStatus.latex-status(
+          role="status"
+          aria-live="polite"
+        )
+
   #previewModal.modal-overlay.question-modal(hidden)
     section.dialog.question-dialog(
       role="dialog"
@@ -221,3 +320,4 @@ block scripts
     src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"
   )
   script(src="/admin/js/question-form.js" defer)
+  script(src="/admin/js/question-latex.js" defer)
