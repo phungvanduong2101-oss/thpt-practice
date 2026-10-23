@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const Latex = require("../../models/latex.model");
 const Question = require("../../models/question.model");
 const Subject = require("../../models/subject.model");
 const Topic = require("../../models/topic.model");
@@ -327,13 +328,14 @@ module.exports.form = async (req, res, next) => {
       question = await Question.findOne({ _id: id, createdBy: req.account._id, scope: "personal" }).lean();
       if (!question) return res.status(404).send("Không tìm thấy câu hỏi.");
     }
-    const [subjects, topics] = await Promise.all([
+    const [subjects, topics, formulas] = await Promise.all([
       Subject.find().select("name code active").sort({ name: 1 }).lean(),
       Topic.find().select("name code subjectId active").sort({ name: 1 }).lean(),
+      Latex.find().select("name code").sort({ name: 1 }).lean(),
     ]);
     res.render("client/personal-question-form", {
       title: question ? "Chỉnh sửa câu hỏi" : "Soạn câu hỏi mới",
-      activePage: "my", subjects, topics, question,
+      activePage: "my", subjects, topics, question, formulas,
     });
   } catch (error) { next(error); }
 };
