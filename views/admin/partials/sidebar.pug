@@ -1,15 +1,15 @@
-- const currentPage = typeof activePage !== "undefined" ? activePage : "";
+- const currentNav = typeof activePage !== "undefined" ? activePage : "";
 
 mixin adminNavItem(url, label, icon, key)
   a.sidebar-link(
     href=url
-    class=currentPage === key ? "is-active" : ""
-    aria-current=currentPage === key ? "page" : false
+    class=currentNav === key ? "is-active" : ""
+    aria-current=currentNav === key ? "page" : false
   )
     svg.icon(aria-hidden="true")
       use(href="#" + icon)
     |  #{label}
-    if currentPage === key
+    if currentNav === key
       span.sidebar-link__pill Đang mở
 
 mixin adminComingSoon(label, icon)

@@ -9,6 +9,8 @@ const uploadController = require('../../controllers/admin/upload.controller');
 router.use(auth.requireAuth);
 
 router.get('/', controller.index);
+router.get('/create', controller.form);
+router.get('/:questionId/edit', controller.form);
 
 router.post(
   '/images',

@@ -6,6 +6,8 @@ const uploadImage = require("../../middlewares/upload-image.middleware");
 const uploadController = require("../../controllers/admin/upload.controller");
 
 router.get("/", controller.index);
+router.get("/create", controller.form);
+router.get("/:id/edit", controller.form);
 
 router.post(
   "/images",
@@ -27,6 +29,7 @@ router.post(
 );
 
 router.post("/create", controller.create);
+router.patch("/:id", controller.update);
 router.delete("/:id", controller.delete);
 
 module.exports = router;

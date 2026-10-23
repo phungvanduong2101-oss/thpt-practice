@@ -24,3 +24,10 @@
   transform: translate(-50%, -50%) !important;
   z-index: 100;
 }
+/* Trang danh sách và trang soạn câu hỏi độc lập. */
+.questions-layout.questions-layout--list,.questions-layout.questions-layout--form{grid-template-columns:minmax(0,1fr)}
+.questions-layout--list .question-list-panel{position:static}
+.questions-layout--list .question-filters{grid-template-columns:repeat(4,minmax(0,1fr))}
+.questions-layout--list .question-list{display:block}
+.questions-layout--form{max-width:1100px;margin:0 auto}
+@media(max-width:600px){.questions-layout--list .question-filters{grid-template-columns:repeat(2,minmax(0,1fr))}}

@@ -1,0 +1,254 @@
+extends layouts/default.pug
+
+block styles
+  link(
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css"
+  )
+  link(rel="stylesheet" href="/client/css/group-exams.css")
+
+block content
+  include ../admin/partials/icons.pug
+  .group-exam-page.container
+    #examPageData(hidden data-base-url="/my/exams" data-bootstrap=JSON.stringify({ subjects, topics, questions, exams: exam ? [exam] : [] }))
+    .examadmin-main
+      .page-heading.examadmin-heading
+        div
+          h1= exam ? "Chỉnh sửa đề thi" : "Soạn đề thi mới"
+          p Chọn câu hỏi, sắp xếp và thiết lập đề thi.
+        a.button.button--secondary(href="/my/exams") Quay lại danh sách
+      .examadmin-layout.examadmin-layout--form
+        section#examEditorPanel.panel.examadmin-editor-panel(
+          aria-labelledby="examFormTitle"
+        )
+          .panel-header.examadmin-form-heading
+            div
+              .form-panel__eyebrow BIÊN TẬP ĐỀ THI
+              h2#examFormTitle Tạo đề thi mới
+              p Mỗi đề chỉ thuộc một môn học. Chọn câu hỏi đã xuất bản từ ngân hàng.
+
+            span.form-header-icon
+              svg.icon
+                use(href="#i-edit")
+
+          form#examForm(novalidate)
+            .examadmin-step
+              span 01
+              |  Thông tin đề thi
+
+            .field
+              label(for="examTitle")
+                | Tên đề thi 
+                em *
+
+              input#examTitle(
+                name="title"
+                type="text"
+                maxlength="120"
+                required
+                placeholder="Ví dụ: Đề thi thử Tiếng Anh số 1"
+              )
+
+            .examadmin-fields-two
+              .field
+                label(for="examSubject")
+                  | Môn học 
+                  em *
+
+                select#examSubject(name="subjectId" required)
+                  option(value="") Chọn môn học
+
+              .field
+                label(for="examDuration")
+                  | Thời gian (phút) 
+                  em *
+
+                input#examDuration(
+                  name="duration"
+                  type="number"
+                  min="1"
+                  max="300"
+                  step="1"
+                  value="60"
+                  required
+                )
+
+            .field
+              label(for="examDescription") Mô tả ngắn
+
+              textarea#examDescription(
+                name="description"
+                rows="2"
+                maxlength="500"
+                placeholder="Mô tả nội dung và mục tiêu đề thi..."
+              )
+
+            .field
+              label(for="examStatus") Trạng thái
+
+              select#examStatus(name="status")
+                option(value="draft") Bản nháp – Chưa hiển thị cho học sinh
+                option(value="published") Đã xuất bản – Công khai
+
+            .examadmin-step.examadmin-step--second
+              span 02
+              |  Câu hỏi trong đề
+
+            .examadmin-picker-bar
+              div
+                b#pickedCount 0 câu hỏi
+                small#pickedScore Chưa chọn câu hỏi
+
+              button#openPickerButton.button.button--secondary.examadmin-add-btn(
+                type="button"
+              )
+                svg.icon
+                  use(href="#i-plus")
+                |  Chọn câu hỏi
+
+            #pickedList.examadmin-picked-list
+
+            #pickedEmpty.examadmin-picked-empty
+              | Chưa có câu hỏi nào. Hãy chọn môn học rồi nhấn 
+              strong Chọn câu hỏi
+              | .
+
+            p.examadmin-note
+              svg.icon
+                use(href="#i-info")
+              |  Một câu hỏi có thể dùng trong nhiều đề thi. Sửa thứ tự bằng mũi tên lên/xuống.
+
+            p#examFormError.examadmin-error(
+              role="alert"
+              hidden
+            )
+
+            .examadmin-form-actions
+              button#resetExamButton.button.button--secondary(
+                type="button"
+              )
+                | Làm mới
+
+              button#saveExamButton.button.button--primary(
+                type="submit"
+              )
+                svg.icon
+                  use(href="#i-save")
+                span#saveExamText Lưu đề thi
+
+    //- Modal chọn câu hỏi
+    #pickerModal.examadmin-modal-overlay(hidden)
+      section.examadmin-picker-modal(
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="pickerTitle"
+      )
+        .examadmin-modal-header
+          div
+            span NGÂN HÀNG CÂU HỎI
+            h2#pickerTitle Chọn câu hỏi vào đề thi
+            p#pickerSubjectInfo
+              | Chỉ hiển thị câu hỏi đã xuất bản đúng môn học
+
+          button#closePickerButton.examadmin-icon-button(
+            type="button"
+            aria-label="Đóng"
+          )
+            svg.icon
+              use(href="#i-x")
+
+        .examadmin-picker-filters
+          label.examadmin-search
+            svg.icon
+              use(href="#i-search")
+            span.sr-only Tìm câu hỏi
+
+            input#pickerSearch(
+              type="search"
+              placeholder="Tìm nội dung câu hỏi..."
+            )
+
+          label
+            span.sr-only Nguồn câu hỏi
+            select#pickerSource
+              option(value="all") Tất cả câu hỏi
+              option(value="system") Câu hỏi hệ thống 
+              option(value="personal") Câu hỏi của tôi
+
+          label
+            span.sr-only Chuyên đề
+            select#pickerTopic
+              option(value="all") Tất cả chuyên đề
+
+          label
+            span.sr-only Loại câu
+            select#pickerType
+              option(value="all") Mọi dạng câu
+              option(value="mcq") Trắc nghiệm ABCD
+              option(value="truefalse") Đúng / Sai
+              option(value="fill") Điền đáp số
+
+          label
+            span.sr-only Mức Bloom
+            select#pickerBloom
+              option(value="all") Mọi mức Bloom
+              option(value="1") 1 · Nhớ
+              option(value="2") 2 · Hiểu
+              option(value="3") 3 · Vận dụng
+              option(value="4") 4 · Phân tích
+              option(value="5") 5 · Đánh giá
+              option(value="6") 6 · Sáng tạo
+
+        #pickerResults.examadmin-picker-content(
+          aria-live="polite"
+        )
+
+        .examadmin-picker-bottom
+          span#pickerSummary 0 câu hỏi
+
+          .examadmin-picker-footer-right
+            nav#pickerPagination.pagination(
+              aria-label="Phân trang câu hỏi"
+            )
+
+            button#donePickerButton.button.button--primary(
+              type="button"
+            )
+              | Xong (
+              span#pickerSelectedCount 0
+              | )
+
+    //- Modal xem trước câu hỏi
+    #examQuestionPreviewModal.examadmin-modal-overlay.question-modal(hidden)
+      section.dialog.question-dialog(
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="examQuestionPreviewTitle"
+      )
+        .question-modal-heading
+          div
+            span XEM TRƯỚC CÂU HỎI VÀ ĐÁP ÁN
+            h2#examQuestionPreviewTitle Nội dung câu hỏi
+
+          button#closeExamQuestionPreview.question-icon-button(
+            type="button"
+            aria-label="Đóng xem trước"
+          )
+            svg.icon
+              use(href="#i-x")
+
+        #examQuestionPreviewBody.preview-body
+
+        .dialog__actions
+          button#doneExamQuestionPreview.button.button--primary(
+            type="button"
+          )
+            | Đóng xem trước
+
+    //- Modal xác nhận xóa đề thi
+block scripts
+  script(
+    defer
+    src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"
+  )
+  script(src="/client/js/personal-exam-form.js" defer)

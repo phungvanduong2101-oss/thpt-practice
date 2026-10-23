@@ -420,3 +420,8 @@
 .group-question-page .question-entry__title{overflow-wrap:anywhere}
 .gd-join-card .gd-button + .gd-button{margin-top:12px}
 @media(max-width:1100px){.group-question-page .questions-layout{grid-template-columns:minmax(0,1fr)}.group-question-page .question-list-panel{position:static}}
+
+/* Independent personal question list/editor. */
+.group-question-page .questions-layout.questions-layout--list,.group-question-page .questions-layout.questions-layout--form{grid-template-columns:minmax(0,1fr)}
+.group-question-page .questions-layout--list .question-list-panel{position:static}
+.group-question-page .questions-layout--form{max-width:1100px;margin:0 auto}

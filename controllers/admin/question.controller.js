@@ -163,7 +163,28 @@ module.exports.index = async (req, res, next) => {
   }
 };
 
-module.exports.create = async (req, res, next) => {
+module.exports.form = async (req, res, next) => {
+  try {
+    let question = null;
+    if (req.params.id) {
+      if (!mongoose.isObjectIdOrHexString(req.params.id)) {
+        return res.status(400).send("ID câu hỏi không hợp lệ.");
+      }
+      question = await Question.findOne({ _id: req.params.id, scope: "system" }).lean();
+      if (!question) return res.status(404).send("Không tìm thấy câu hỏi.");
+    }
+    const [subjects, topics] = await Promise.all([
+      Subject.find().select("name code active").sort({ name: 1 }).lean(),
+      Topic.find().select("name code subjectId active").sort({ name: 1 }).lean(),
+    ]);
+    res.render("admin/question-form", {
+      title: question ? "Chỉnh sửa câu hỏi" : "Soạn câu hỏi mới",
+      activePage: "questions", subjects, topics, question,
+    });
+  } catch (error) { next(error); }
+};
+
+const saveQuestion = async (req, res, next) => {
   try {
     const {
       subjectId,
@@ -195,7 +216,7 @@ module.exports.create = async (req, res, next) => {
         return (
           typeof op.insert?.formula === "string" &&
           op.insert.formula.trim().length > 0
-        );
+        ) || (typeof op.insert?.image === "string" && op.insert.image.trim().length > 0);
       });
     }
 
@@ -252,7 +273,7 @@ module.exports.create = async (req, res, next) => {
       return reject("Loại câu hỏi không hợp lệ!");
     }
 
-    await Question.create({
+    const payload = {
       subjectId,
       topicId,
       type,
@@ -266,18 +287,32 @@ module.exports.create = async (req, res, next) => {
         : [],
       explanation,
       published,
-      createdBy: req.account._id,
-      scope: "system",
-    });
+    };
 
-    return res.status(201).json({
+    const updating = req.method === "PATCH";
+    if (updating) {
+      if (!mongoose.isObjectIdOrHexString(req.params.id)) {
+        return reject("ID câu hỏi không hợp lệ!");
+      }
+      const question = await Question.findOne({ _id: req.params.id, scope: "system" });
+      if (!question) return res.status(404).json({ code: "error", message: "Không tìm thấy câu hỏi!" });
+      question.set(payload);
+      await question.save();
+    } else {
+      await Question.create({ ...payload, createdBy: req.account._id, scope: "system" });
+    }
+
+    return res.status(updating ? 200 : 201).json({
       code: "success",
-      message: "Tạo câu hỏi thành công!",
+      message: updating ? "Cập nhật câu hỏi thành công!" : "Tạo câu hỏi thành công!",
     });
   } catch (error) {
     next(error);
   }
 }; 
+
+module.exports.create = saveQuestion;
+module.exports.update = saveQuestion;
 
 module.exports.delete = async (req, res, next) => {
   try {

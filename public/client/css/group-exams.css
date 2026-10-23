@@ -619,3 +619,8 @@
 .group-exam-page .examadmin-picker-filters>label{flex:1 1 140px;min-width:0}
 .group-exam-page .examadmin-picker-filters>.examadmin-search{flex:2 1 230px}
 .group-exam-page .examadmin-picker-filters select{width:100%}
+
+/* Separate list and editor pages. */
+.group-exam-page .examadmin-layout.examadmin-layout--list,.group-exam-page .examadmin-layout.examadmin-layout--form{grid-template-columns:minmax(0,1fr)}
+.group-exam-page .examadmin-layout--list .examadmin-list-panel{position:static}
+.group-exam-page .examadmin-layout--form{max-width:1100px;margin:0 auto}

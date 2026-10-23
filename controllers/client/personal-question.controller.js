@@ -317,3 +317,23 @@ module.exports.remove = async (req, res, next) => {
     return next(error);
   }
 };
+
+module.exports.form = async (req, res, next) => {
+  try {
+    let question = null;
+    const id = req.params.questionId;
+    if (id) {
+      if (!mongoose.isObjectIdOrHexString(id)) return res.status(400).send("ID câu hỏi không hợp lệ.");
+      question = await Question.findOne({ _id: id, createdBy: req.account._id, scope: "personal" }).lean();
+      if (!question) return res.status(404).send("Không tìm thấy câu hỏi.");
+    }
+    const [subjects, topics] = await Promise.all([
+      Subject.find().select("name code active").sort({ name: 1 }).lean(),
+      Topic.find().select("name code subjectId active").sort({ name: 1 }).lean(),
+    ]);
+    res.render("client/personal-question-form", {
+      title: question ? "Chỉnh sửa câu hỏi" : "Soạn câu hỏi mới",
+      activePage: "my", subjects, topics, question,
+    });
+  } catch (error) { next(error); }
+};

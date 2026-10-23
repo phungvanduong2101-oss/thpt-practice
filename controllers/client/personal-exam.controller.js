@@ -70,7 +70,6 @@ module.exports.index = async (req, res, next) => {
       publishedExams,
       pickedStats,
       subjects,
-      topics,
     ] = await Promise.all([
       Exam.countDocuments(filter),
 
@@ -100,10 +99,6 @@ module.exports.index = async (req, res, next) => {
         .sort({ name: 1 })
         .lean(),
 
-      Topic.find()
-        .select("name code subjectId active")
-        .sort({ name: 1 })
-        .lean(),
     ]);
 
     const totalPages = Math.max(1, Math.ceil(totalItems / limit));
@@ -116,16 +111,6 @@ module.exports.index = async (req, res, next) => {
       .skip(skip)
       .limit(limit)
       .lean();
-
-    // Tải câu hỏi đã có trong đề để hiển thị khi chỉnh sửa.
-    const selectedQuestionIds = exams.flatMap(
-      exam => exam.questionIds || []
-    );
-
-    const questions = await Question.find({
-      _id: { $in: selectedQuestionIds },
-      $or: questionAccess(req.account._id),
-    }).lean();
 
     const pageUrl = page => {
       const params = new URLSearchParams({
@@ -143,8 +128,6 @@ module.exports.index = async (req, res, next) => {
       activePage: "my",
 
       subjects,
-      topics,
-      questions,
       exams,
 
       keyword,
@@ -483,4 +466,25 @@ module.exports.questions = async (req, res, next) => {
 
     next(error);
   }
+};
+
+module.exports.form = async (req, res, next) => {
+  try {
+    let exam = null;
+    const id = req.params.examId;
+    if (id) {
+      if (!mongoose.isObjectIdOrHexString(id)) return res.status(400).send("ID đề thi không hợp lệ.");
+      exam = await Exam.findOne({ _id: id, ...{ scope: "personal", createdBy: req.account._id } }).lean();
+      if (!exam) return res.status(404).send("Không tìm thấy đề thi.");
+    }
+    const [subjects, topics, questions] = await Promise.all([
+      Subject.find().select("name code active").sort({ name: 1 }).lean(),
+      Topic.find().select("name code subjectId active").sort({ name: 1 }).lean(),
+      Question.find({ _id: { $in: exam?.questionIds || [] }, $or: questionAccess(req.account._id) }).lean(),
+    ]);
+    res.render("client/personal-exam-form", {
+      title: exam ? "Chỉnh sửa đề thi" : "Soạn đề thi mới",
+      activePage: "my", subjects, topics, questions, exam,
+    });
+  } catch (error) { next(error); }
 };

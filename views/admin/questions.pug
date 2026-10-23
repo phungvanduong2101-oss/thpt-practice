@@ -5,10 +5,6 @@ block styles
     rel="stylesheet"
     href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css"
   )
-  link(
-    rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css"
-  )
   link(rel="stylesheet" href="/admin/css/questions.css")
 
   style.
@@ -25,7 +21,7 @@ block content
 
   #questionPageData(
     hidden
-    data-bootstrap=JSON.stringify({ subjects, topics, questions })
+    data-bootstrap=JSON.stringify({ questions })
   )
 
   .question-main
@@ -38,7 +34,7 @@ block content
         h1 Quản lý câu hỏi
         p Soạn câu hỏi, phân loại theo môn học, chuyên đề và thang Bloom.
 
-      button#newQuestionButton.button.button--primary(type="button")
+      a.button.button--primary(href="/admin/questions/create")
         svg.icon
           use(href="#i-plus")
         |  Tạo câu hỏi mới
@@ -71,7 +67,7 @@ block content
           strong#statTopics= topicsWithQuestions
           span.stat-card__note Phân loại theo môn học
 
-    .questions-layout
+    .questions-layout.questions-layout--list
       section.panel.question-list-panel(aria-labelledby="bankTitle")
         .panel-header
           div
@@ -218,7 +214,7 @@ block content
           svg.icon
             use(href="#i-search")
           strong Không tìm thấy câu hỏi
-          p Đổi bộ lọc hoặc tạo câu hỏi mới ở khung bên phải.
+          p Đổi bộ lọc hoặc chọn Tạo câu hỏi mới.
 
         .table-footer
           span#paginationSummary
@@ -244,161 +240,6 @@ block content
                 href=pageUrl(Number(currentPage) + 1)
                 aria-label="Trang tiếp"
               ) ›
-
-      section#editorPanel.panel.question-editor-panel(
-        aria-labelledby="formTitle"
-      )
-        .panel-header.question-editor-header
-          div
-            .form-panel__eyebrow BIÊN TẬP NỘI DUNG
-            h2#formTitle Tạo câu hỏi mới
-            p
-              | Hỗ trợ công thức LaTeX tại nút 
-              b ƒx
-              |  trên thanh công cụ.
-
-          span.form-header-icon
-            svg.icon
-              use(href="#i-edit")
-
-        #editorOfflineNote.editor-offline-note(hidden)
-          | Không tải được Quill/KaTeX. Trình soạn thảo đang dùng chế độ văn bản dự phòng.
-
-        form#questionForm(novalidate)
-          .editor-section-title
-            span 01
-            |  Phân loại câu hỏi
-
-          .question-field-grid
-            .field
-              label(for="questionSubject")
-                | Môn học 
-                em *
-
-              select#questionSubject(name="subjectId" required)
-                option(value="") Chọn môn học
-                each subject in subjects
-                  option(value=subject._id)
-                    = subject.name + (subject.active ? "" : " (Đã ẩn)")
-
-            .field
-              label(for="questionTopic")
-                | Chuyên đề 
-                em *
-
-              select#questionTopic(
-                name="topicId"
-                required
-                disabled
-              )
-                option(value="") Chọn chuyên đề
-
-            .field
-              label(for="questionType")
-                | Loại câu hỏi 
-                em *
-
-              select#questionType(name="type")
-                option(value="mcq") Trắc nghiệm ABCD
-                option(value="truefalse") Đúng / Sai (4 mệnh đề)
-                option(value="fill") Điền đáp số
-
-            .field
-              label(for="questionBloom")
-                | Mức độ Bloom 
-                em *
-
-              select#questionBloom(name="bloomLevel")
-                each bloomLabel, level in bloomLabels
-                  if level > 0
-                    option(
-                      value=level
-                      selected=level === 3
-                    )= level + " · " + bloomLabel
-
-          .field
-            label(for="questionStatus") Trạng thái
-            select#questionStatus(name="status")
-              option(value="published") Đã xuất bản
-              option(value="draft") Bản nháp
-
-          .editor-section-title
-            span 02
-            |  Nội dung câu hỏi 
-            em *
-
-          #questionContent.rich-editor.rich-editor--main(
-            aria-label="Soạn nội dung câu hỏi"
-          )
-
-          small.question-hint
-            | Chọn 
-            b ƒx
-            |  để nhập công thức LaTeX, ví dụ: 
-            code x^2+2x+1
-            | , 
-            code \frac{a}{b}
-            | , 
-            code \sqrt{x}
-            | .
-
-          .editor-section-title
-            span 03
-            |  Phương án trả lời và đáp án
-
-          #mcqAnswers.answer-section
-            .answer-section__intro
-              | Soạn 4 lựa chọn, sau đó đánh dấu 
-              b một đáp án đúng
-              | .
-            #mcqOptions.option-editors
-
-          #tfAnswers.answer-section(hidden)
-            .answer-section__intro
-              | Nhập bốn mệnh đề a, b, c, d. Chọn 
-              b Đúng hoặc Sai riêng cho từng ý
-              | .
-            #tfOptions.option-editors
-
-          #fillAnswers.answer-section(hidden)
-            .field
-              label(for="fillCorrectAnswer")
-                | Đáp án đúng 
-                em *
-
-              input#fillCorrectAnswer(
-                type="text"
-                placeholder="Ví dụ: 2.5"
-                autocomplete="off"
-              )
-
-              small.field-hint
-                | Nhiều đáp án hợp lệ ngăn cách bằng dấu |. Ví dụ: 0.5 | 1/2
-
-          .editor-section-title
-            span 04
-            |  Lời giải / giải thích 
-            small (không bắt buộc)
-
-          #questionExplanation.rich-editor.rich-editor--explanation(
-            aria-label="Soạn lời giải"
-          )
-
-          #formError.question-form-error(role="alert" hidden)
-
-          .question-form-actions
-            button#resetButton.button.button--secondary(type="button")
-              | Làm mới
-
-            button#previewButton.button.button--secondary(type="button")
-              svg.icon
-                use(href="#i-search")
-              |  Xem trước
-
-            button#saveButton.button.button--primary(type="submit")
-              svg.icon
-                use(href="#i-save")
-              span#saveButtonText Lưu câu hỏi
 
   #previewModal.modal-overlay.question-modal(hidden)
     section.dialog.question-dialog(
@@ -450,8 +291,4 @@ block scripts
     defer
     src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"
   )
-  script(
-    defer
-    src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"
-  )
-  script(src="/admin/js/questions.js" defer)
+  script(src="/admin/js/questions-list.js" defer)

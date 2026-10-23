@@ -3,6 +3,8 @@ const controller = require('../../controllers/client/personal-exam.controller');
 const auth = require('../../middlewares/auth.middleware');
 router.use(auth.requireAuth);
 router.get('/', controller.index);
+router.get('/create', controller.form);
+router.get('/:examId/edit', controller.form);
 router.get('/questions', controller.questions);
 router.post('/create', controller.create);
 router.patch('/:examId', controller.update);
