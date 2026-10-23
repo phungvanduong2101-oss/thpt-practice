@@ -47,7 +47,9 @@ aside#sidebar.sidebar(aria-label="Điều hướng quản trị")
     +adminNavItem("/admin/subjects", "Môn học", "i-book", "subjects")
     +adminNavItem("/admin/topics", "Chuyên đề", "i-layers", "topics")
     +adminNavItem("/admin/questions", "Ngân hàng câu hỏi", "i-help", "questions")
-    +adminNavItem("/admin/exams", "Quản lý đề thi", "i-clipboard", "exams")
+    +adminNavItem("/admin/exams", "Quản lý đề thi", "i-clipboard", "exams") 
+    +adminNavItem("/admin/latex", "Quản lý công thức", "i-function", "latex")
+
 
     .sidebar-section-label.sidebar-section-label--nested HỆ THỐNG
 
@@ -55,13 +57,7 @@ aside#sidebar.sidebar(aria-label="Điều hướng quản trị")
     +adminComingSoon("Thống kê", "i-chart")
     +adminComingSoon("Cài đặt", "i-settings")
 
-  .sidebar-bottom
-    .sidebar-tip
-      span.sidebar-tip__icon
-        svg.icon(aria-hidden="true")
-          use(href="#i-spark")
-      strong Xây dựng ngân hàng đề
-      p Tạo môn học là bước đầu tiên để thêm chuyên đề, câu hỏi và đề thi.
+  
 
     a.sidebar-website(href="/")
       svg.icon(aria-hidden="true")

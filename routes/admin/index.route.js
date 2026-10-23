@@ -9,6 +9,7 @@ const subjectRoutes = require("./subject.route");
 const topicRoutes = require("./topic.route");
 const questionRoutes = require("./question.route");
 const examRoutes = require("./exam.route");
+const katexRoutes = require("./katex.route"); 
 
 // Đăng nhập, đăng ký không yêu cầu xác thực.
 router.use("/auth", authRoutes);
@@ -23,5 +24,6 @@ router.use("/subjects", subjectRoutes);
 router.use("/topics", topicRoutes);
 router.use("/questions", questionRoutes);
 router.use("/exams", examRoutes);
+router.use("/latex", katexRoutes); 
 
 module.exports = router;

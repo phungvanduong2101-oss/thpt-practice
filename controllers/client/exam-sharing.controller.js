@@ -43,7 +43,6 @@ module.exports.share = async (req, res, next) => {
         content: `Nhóm ${req.group.name} có đề mới: ${exam.title}`.slice(0, 500),
         link: `/groups/${req.group._id}/exams`,
       })));
-      // Sharing is already saved; a notification failure must not undo it.
       for (const result of results) if (result.status === 'rejected') console.error('Không gửi được thông báo chia sẻ đề:', result.reason);
     }
     res.redirect(`/groups/${req.group._id}/exams/manage`);

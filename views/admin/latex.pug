@@ -1,0 +1,80 @@
+extends layouts/default.pug
+
+block styles
+  link(
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css"
+  )
+  link(rel="stylesheet" href="/admin/css/latex.css")
+
+block content
+  .formula-page
+    .formula-heading
+      div
+        h1 Quản lý công thức
+        p Lưu các công thức LaTeX để sử dụng khi soạn câu hỏi.
+
+      a.formula-btn.formula-btn--primary(href="/admin/latex/create")
+        | + Thêm công thức
+
+    .formula-card
+      .formula-filters
+        input#formulaSearch.formula-input(
+          type="search"
+          placeholder="Tìm tên hoặc mã LaTeX..."
+          aria-label="Tìm công thức" 
+          value= search
+        )
+        span#formulaCount.formula-count
+
+      .formula-table-wrap
+        table.formula-table
+          thead
+            tr
+              th STT
+              th Tên công thức
+              th Mã LaTeX 
+              th Hiển thị
+              th Thao tác
+          tbody#formulaList 
+             each formula,index in formulas 
+                tr 
+                  td= (currentPageLatex - 1) * 10 + index + 1
+                  td= formula.name
+                  td= formula.code  
+                  td!= formula.html   
+                  td 
+                    a.formula-edit(href=`/admin/latex/${formula._id}/edit`) Sửa 
+                    button#formulaDelete.formula-delete(href=`/admin/latex/${formula._id}/delete`) Xóa
+      nav.formula-pagination(aria-label="Phân trang công thức")
+        span.formula-pagination__info
+          | Hiển thị #{skip+1} – #{skip+formulas.length} trong #{totalLatex} bản ghi
+
+        .formula-pagination__buttons
+          - const pageCount = Number(totalPage)
+          - const active = Number(currentPageLatex) || 1
+
+          if active > 1
+            a.formula-page-btn(
+              href=`/admin/latex?page=${active - 1}&search=${encodeURIComponent(search || "")}`
+            ) ‹ Trước
+
+          - for (let p = 1; p <= pageCount; p++)
+            a.formula-page-btn(
+              href=`/admin/latex?page=${p}&search=${encodeURIComponent(search || "")}`
+              class=p === active ? "is-active" : ""
+            )= p
+
+          if active < pageCount
+            a.formula-page-btn(
+              href=`/admin/latex?page=${active + 1}&search=${encodeURIComponent(search || "")}`
+            ) Sau ›
+      p#formulaEmpty.formula-empty(hidden) Chưa có công thức.
+      p#formulaStatus.formula-status(role="status" aria-live="polite")
+
+block scripts
+  script(
+    defer
+    src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"
+  ) 
+  script(src="/admin/js/latex.js")

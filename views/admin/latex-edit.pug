@@ -1,0 +1,60 @@
+extends layouts/default.pug
+
+block styles
+  link(
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css"
+  )
+  link(rel="stylesheet" href="/admin/css/latex.css")
+
+block content
+  .formula-page
+    .formula-heading
+      div
+        h1 Cập nhật công thức
+        p Nhập tên và mã LaTeX, kiểm tra trước khi lưu.
+
+      a.formula-btn(href="/admin/latex") Quay lại
+
+    form#formulaForm.formula-create(id-formula = latex._id)
+      .formula-card
+        .formula-field
+          label(for="formulaName") Tên công thức
+          input#formulaName.formula-input(
+            type="text"
+            maxlength="120"
+            placeholder="Ví dụ: Công thức nghiệm phương trình bậc hai"
+            required 
+            value= latex.name
+          )
+
+        .formula-field
+          label(for="formulaLatex") Mã LaTeX
+          textarea#formulaLatex.formula-input.formula-code(
+            rows="7"
+            maxlength="5000"
+            placeholder="Ví dụ: \\frac{a}{b}"
+            spellcheck="false"
+            required 
+          ) #{latex.code}
+          small Chỉ nhập mã LaTeX, không cần bọc bằng dấu $.
+
+       
+        .formula-actions
+          a.formula-btn(href="/admin/latex") Hủy
+          button.formula-btn.formula-btn--primary(type="submit")
+            | Cập nhật
+
+        p#formulaStatus.formula-status(role="status" aria-live="polite")
+
+      .formula-card
+        h2 Xem trước
+        #formulaPreview.formula-preview
+        p#formulaError.formula-error(role="alert" hidden)
+
+block scripts
+  script(
+    defer
+    src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"
+  )
+  script(src="/admin/js/latex-edit.js" defer)
