@@ -1,10 +1,6 @@
 extends layouts/default.pug
 
 block styles
-  link(
-    rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css"
-  )
   link(rel="stylesheet" href="/admin/css/questions.css")
   link(rel="stylesheet" href="/admin/css/exams-admin.css")
 
@@ -27,53 +23,11 @@ block styles
       flex-wrap: wrap;
     }
 
-    #pickerModal[hidden],
-    #examQuestionPreviewModal[hidden],
     #deleteModal[hidden] {
       display: none !important;
     }
 
-    #examQuestionPreviewModal .question-dialog {
-      width: min(850px, calc(100vw - 32px));
-      max-height: 90vh;
-      overflow-y: auto;
-      text-align: left;
-    }
-
-    #examQuestionPreviewBody {
-      overflow-wrap: anywhere;
-    }
-
-    #examQuestionPreviewBody img {
-      max-width: 100%;
-      height: auto;
-    }
-
-    #examQuestionPreviewBody .ql-align-center {
-      text-align: center;
-    }
-
-    #examQuestionPreviewBody .ql-align-right {
-      text-align: right;
-    }
-
-    #examQuestionPreviewBody .ql-align-justify {
-      text-align: justify;
-    }
-
-    #examQuestionPreviewBody .ql-formula {
-      display: inline-block;
-      max-width: 100%;
-      overflow-x: auto;
-      vertical-align: middle;
-    }
-
 block content
-  #examPageData(
-    hidden
-    data-bootstrap=JSON.stringify({ subjects, exams })
-  )
-
   .examadmin-main
     .page-heading.examadmin-heading
       div
@@ -131,9 +85,8 @@ block content
 
         form#examFilterForm.examadmin-toolbar(
           action="/admin/exams"
-          method="GET" 
+          method="GET"
           data-filter-form
-
         )
           label.examadmin-search
             svg.icon
@@ -193,6 +146,49 @@ block content
               | Đặt lại
 
         #examList.examadmin-list(aria-live="polite")
+          each exam in exams
+            - const subject = subjects.find(item => String(item._id) === String(exam.subjectId))
+
+            article.examadmin-item(data-id=exam._id)
+              span.examadmin-item-icon
+                svg.icon
+                  use(href="#i-clipboard")
+
+              div
+                h3.examadmin-item-title= exam.title
+
+                .examadmin-item-meta
+                  span.examadmin-tag= subject ? subject.name : "Môn không còn tồn tại"
+
+                  span.examadmin-tag(
+                    class=exam.status === "published" ? "examadmin-tag--published" : "examadmin-tag--draft"
+                  )= exam.status === "published" ? "Đã xuất bản" : "Bản nháp"
+
+                p.examadmin-item-desc= exam.description || "Chưa có mô tả."
+
+                .examadmin-item-meta
+                  span #{exam.questionIds ? exam.questionIds.length : 0} câu hỏi
+                  span.examadmin-dot •
+                  span #{exam.duration} phút
+
+              .examadmin-item-actions
+                a.examadmin-icon-button(
+                  href="/admin/exams/" + exam._id + "/edit"
+                  title="Sửa đề thi"
+                  aria-label="Sửa đề thi"
+                )
+                  svg.icon
+                    use(href="#i-edit")
+
+                button.examadmin-icon-button.examadmin-icon-button--danger(
+                  type="button"
+                  data-action="delete"
+                  data-title=exam.title
+                  title="Xóa đề thi"
+                  aria-label="Xóa đề thi"
+                )
+                  svg.icon
+                    use(href="#i-trash")
 
         #examEmpty.examadmin-empty(hidden=totalItems > 0)
           svg.icon
@@ -253,15 +249,11 @@ block content
       .dialog__actions
         button#cancelDeleteButton.button.button--secondary(
           type="button"
-        )
-          | Hủy
+        ) Hủy
 
         button#confirmDeleteButton.button.button--danger(
           type="button"
-        )
-          | Xóa đề thi
-
-  #toast.toast(role="status" aria-live="polite")
+        ) Xóa đề thi
 
 block scripts
   script(src="/admin/js/exams-admin-list.js" defer)

@@ -4,9 +4,10 @@
   const get = id => document.getElementById(id);
   const form = get('examForm');
   const pageData = get('examPageData');
-  if (!form || !pageData) return;
-  const baseUrl = pageData.dataset.baseUrl;
 
+  if (!form || !pageData) return;
+
+  const baseUrl = pageData.dataset.baseUrl;
 
   const TYPES = {
     mcq: 'ABCD',
@@ -26,29 +27,34 @@
   let subjects = [];
   let topics = [];
   let questions = [];
-  let exams = [];
+  let originalExam = null;
 
   let editingId = null;
-  let deletingId = null;
   let selectedIds = [];
   let currentSubject = '';
-  let pickerPage = 1;
   let busy = false;
 
   let currentModal = null;
   let previousFocus = null;
   const modalStack = [];
 
+  let pickerRows = [];
+  let pickerPage = 1;
+  let pickerTotalPages = 1;
+  let pickerTotalItems = 0;
+  let pickerRequestId = 0;
+  let pickerSearchTimer;
+
   const idOf = value => String(value?._id ?? value ?? '');
 
   const subjectById = id =>
-    subjects.find(item => idOf(item) === idOf(id));
+    subjects.find(subject => idOf(subject) === idOf(id));
 
   const topicById = id =>
-    topics.find(item => idOf(item) === idOf(id));
+    topics.find(topic => idOf(topic) === idOf(id));
 
   const questionById = id =>
-    questions.find(item => idOf(item) === idOf(id));
+    questions.find(question => idOf(question) === idOf(id));
 
   function escapeHtml(value) {
     return String(value ?? '')
@@ -57,16 +63,6 @@
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#39;');
-  }
-
-  function normalise(value) {
-    return String(value ?? '')
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/đ/g, 'd')
-      .replace(/Đ/g, 'D')
-      .toLowerCase()
-      .trim();
   }
 
   function icon(name) {
@@ -79,17 +75,18 @@
 
   function questionText(question) {
     if (!question) return 'Câu hỏi không còn tồn tại';
-
     if (question.contentText) return question.contentText;
 
     const element = document.createElement('div');
     element.innerHTML = question.content?.html || '';
 
-    element.querySelectorAll('.ql-formula[data-value]').forEach(node => {
-      node.textContent = node.dataset.value || '';
-    });
+    element.querySelectorAll('.ql-formula[data-value]')
+      .forEach(node => {
+        node.textContent = node.dataset.value || '';
+      });
 
-    return element.textContent.trim() || 'Câu hỏi có nội dung định dạng';
+    return element.textContent.trim() ||
+      'Câu hỏi có nội dung định dạng';
   }
 
   function preview(question) {
@@ -117,7 +114,7 @@
     });
 
     if (response.redirected) {
-      window.location.href = response.url;
+      window.location.assign(response.url);
       return null;
     }
 
@@ -138,7 +135,7 @@
     return data;
   }
 
-  // Modal có thể mở xem trước từ cửa sổ chọn câu hỏi.
+  // Giữ modal chọn câu hỏi khi mở modal xem trước.
   function showModal(modal) {
     if (!modal || modal === currentModal) return;
 
@@ -164,14 +161,8 @@
   function closeModal() {
     if (busy || !currentModal) return;
 
-    const closingModal = currentModal;
     const focusToRestore = previousFocus;
-
-    closingModal.hidden = true;
-
-    if (closingModal.id === 'deleteModal') {
-      deletingId = null;
-    }
+    currentModal.hidden = true;
 
     const parent = modalStack.pop();
 
@@ -190,87 +181,8 @@
     }
   }
 
-  // Chỉ đổ môn học vào form biên tập.
-  // Bộ lọc môn học bên danh sách do Pug render.
-  function fillSubjects() {
-    get('examSubject').innerHTML =
-      '<option value="">Chọn môn học</option>' +
-      subjects.map(subject => `
-        <option value="${escapeHtml(idOf(subject))}">
-          ${escapeHtml(subject.name)}${subject.active ? '' : ' (Đã ẩn)'}
-        </option>
-      `).join('');
-  }
-
-  // Backend đã lọc và phân trang exams.
-  // Không sửa thống kê, bộ lọc hoặc phân trang do Pug render.
-
-  // Phân trang riêng cho modal chọn câu hỏi.
-  function renderPickerPager(totalPages) {
-    const container = get('pickerPagination');
-
-    if (totalPages <= 1) {
-      container.innerHTML = '';
-      return;
-    }
-
-    const pages = [...new Set([
-      1,
-      pickerPage - 1,
-      pickerPage,
-      pickerPage + 1,
-      totalPages,
-    ])]
-      .filter(page => page >= 1 && page <= totalPages)
-      .sort((a, b) => a - b);
-
-    let previous = 0;
-
-    const numbers = pages.map(page => {
-      const gap = page - previous > 1
-        ? '<span aria-hidden="true">…</span>'
-        : '';
-
-      previous = page;
-
-      return `
-        ${gap}
-        <button type="button"
-          class="page-button ${page === pickerPage ? 'is-active' : ''}"
-          data-page="${page}"
-          aria-label="Trang ${page}"
-          ${page === pickerPage ? 'aria-current="page"' : ''}>
-          ${page}
-        </button>
-      `;
-    }).join('');
-
-    container.innerHTML = `
-      <button type="button"
-        class="page-button"
-        data-page="${pickerPage - 1}"
-        ${pickerPage === 1 ? 'disabled' : ''}
-        aria-label="Trang trước">
-        ${icon('left')}
-      </button>
-
-      ${numbers}
-
-      <button type="button"
-        class="page-button"
-        data-page="${pickerPage + 1}"
-        ${pickerPage === totalPages ? 'disabled' : ''}
-        aria-label="Trang tiếp">
-        ${icon('chevron')}
-      </button>
-    `;
-  }
-
   function renderSelected() {
     get('pickedCount').textContent = `${selectedIds.length} câu hỏi`;
-    get('pickedScore').textContent =
-      'Thứ tự bên dưới là thứ tự trong đề';
-
     get('pickerSelectedCount').textContent = selectedIds.length;
     get('pickedEmpty').hidden = selectedIds.length > 0;
     get('openPickerButton').disabled = busy || !currentSubject;
@@ -329,16 +241,14 @@
   }
 
   function resetForm(focus = false) {
-    editingId = null;
-    selectedIds = [];
-    currentSubject = '';
-
+    // Khôi phục giá trị ban đầu được Pug render.
     form.reset();
+
+    editingId = originalExam ? idOf(originalExam) : null;
+    currentSubject = get('examSubject').value;
+    selectedIds = (originalExam?.questionIds || []).map(idOf);
+
     setError();
-
-    get('examFormTitle').textContent = 'Tạo đề thi mới';
-    get('saveExamText').textContent = 'Lưu đề thi';
-
     renderSelected();
 
     if (focus) {
@@ -351,44 +261,75 @@
     }
   }
 
-  function editExam(exam) {
-    resetForm();
+  function renderPickerPager() {
+    const container = get('pickerPagination');
 
-    editingId = idOf(exam);
-    currentSubject = idOf(exam.subjectId);
-    selectedIds = (exam.questionIds || []).map(idOf);
+    if (pickerTotalPages <= 1) {
+      container.innerHTML = '';
+      return;
+    }
 
-    get('examTitle').value = exam.title || '';
-    get('examSubject').value = currentSubject;
-    get('examDuration').value = exam.duration;
-    get('examDescription').value = exam.description || '';
-    get('examStatus').value = exam.status;
+    const pages = [...new Set([
+      1,
+      pickerPage - 1,
+      pickerPage,
+      pickerPage + 1,
+      pickerTotalPages,
+    ])]
+      .filter(page => page >= 1 && page <= pickerTotalPages)
+      .sort((a, b) => a - b);
 
-    get('examFormTitle').textContent = 'Chỉnh sửa đề thi';
-    get('saveExamText').textContent = 'Cập nhật đề thi';
+    let previous = 0;
 
-    renderSelected();
+    const numbers = pages.map(page => {
+      const gap = page - previous > 1
+        ? '<span aria-hidden="true">…</span>'
+        : '';
 
-    get('examEditorPanel').scrollIntoView({
-      behavior: 'smooth',
-      block: 'start',
-    });
+      previous = page;
 
-    get('examTitle').focus({ preventScroll: true });
+      return `
+        ${gap}
+        <button type="button"
+          class="page-button ${page === pickerPage ? 'is-active' : ''}"
+          data-page="${page}"
+          aria-label="Trang ${page}"
+          ${page === pickerPage ? 'aria-current="page"' : ''}>
+          ${page}
+        </button>
+      `;
+    }).join('');
+
+    container.innerHTML = `
+      <button type="button"
+        class="page-button"
+        data-page="${pickerPage - 1}"
+        ${pickerPage === 1 ? 'disabled' : ''}
+        aria-label="Trang trước">
+        ${icon('left')}
+      </button>
+
+      ${numbers}
+
+      <button type="button"
+        class="page-button"
+        data-page="${pickerPage + 1}"
+        ${pickerPage === pickerTotalPages ? 'disabled' : ''}
+        aria-label="Trang tiếp">
+        ${icon('chevron')}
+      </button>
+    `;
   }
 
-  let pickerRows = [];
-  let pickerTotalPages = 1;
-  let pickerTotalItems = 0;
-  let pickerRequestId = 0;
-
-function canUseQuestion(question) {
-  return question.scope === "system" ||
-    question.scope === "personal";
-}
+  function canUseQuestion(question) {
+    // Quyền sở hữu câu hỏi cá nhân được BE kiểm tra.
+    return question.scope === 'system' ||
+      question.scope === 'personal';
+  }
 
   async function renderPicker() {
     const requestId = ++pickerRequestId;
+
     const params = new URLSearchParams({
       subjectId: currentSubject,
       keyword: get('pickerSearch').value.trim(),
@@ -398,37 +339,56 @@ function canUseQuestion(question) {
       bloomLevel: get('pickerBloom').value,
       page: String(pickerPage),
     });
+
+    pickerRows = [];
     get('pickerResults').textContent = 'Đang tải câu hỏi...';
+    get('pickerSummary').textContent = 'Đang tải...';
     get('pickerPagination').innerHTML = '';
+
     try {
-      const data = await request(`${baseUrl}/questions?${params.toString()}`, 'GET');
+      const data = await request(
+        `${baseUrl}/questions?${params.toString()}`,
+        'GET'
+      );
+
       if (requestId !== pickerRequestId || !data) return;
+
       pickerRows = data.questions;
       pickerPage = data.currentPage;
       pickerTotalPages = data.totalPages;
       pickerTotalItems = data.totalItems;
-      // Cache chỉ để xem trước và giữ câu đã chọn khi đổi bộ lọc/trang.
-      const cache = new Map(questions.map(question => [idOf(question), question]));
-      for (const question of pickerRows) cache.set(idOf(question), question);
+
+      // Giữ câu đã chọn khi chuyển trang hoặc thay bộ lọc.
+      const cache = new Map(
+        questions.map(question => [idOf(question), question])
+      );
+
+      for (const question of pickerRows) {
+        cache.set(idOf(question), question);
+      }
+
       questions = [...cache.values()];
+
       renderPickerRows();
     } catch (error) {
       if (requestId !== pickerRequestId) return;
+
       pickerRows = [];
       get('pickerResults').textContent = error.message;
-      get('pickerSummary').textContent = 'Không tải được câu hỏi. Đổi bộ lọc để thử lại.';
+      get('pickerSummary').textContent =
+        'Không tải được câu hỏi. Đổi bộ lọc để thử lại.';
     }
   }
 
   function renderPickerRows() {
-    const result = pickerRows;
-    const totalPages = pickerTotalPages;
-    get('pickerSummary').textContent = `${pickerTotalItems} câu hỏi phù hợp · Trang ${pickerPage}/${totalPages}`;
+    get('pickerSummary').textContent =
+      `${pickerTotalItems} câu hỏi phù hợp · ` +
+      `Trang ${pickerPage}/${pickerTotalPages}`;
 
     get('pickerSelectedCount').textContent = selectedIds.length;
 
-    get('pickerResults').innerHTML = result.length
-      ? result.map(question => {
+    get('pickerResults').innerHTML = pickerRows.length
+      ? pickerRows.map(question => {
         const id = idOf(question);
         const selected = selectedIds.includes(id);
 
@@ -436,7 +396,10 @@ function canUseQuestion(question) {
           <article class="examadmin-bank-card">
             <div class="examadmin-bank-main">
               <div class="examadmin-bank-top">
-                <span class="examadmin-chip">${question.scope === 'system' ? 'Hệ thống' : 'Của tôi'}</span>
+                <span class="examadmin-chip">
+                  ${question.scope === 'system' ? 'Hệ thống' : 'Của tôi'}
+                </span>
+
                 <span class="examadmin-chip examadmin-chip--blue">
                   ${escapeHtml(TYPES[question.type] || '')}
                 </span>
@@ -465,9 +428,7 @@ function canUseQuestion(question) {
               </button>
 
               <button type="button"
-                class="examadmin-bank-add ${
-                  selected ? 'is-selected' : ''
-                }"
+                class="examadmin-bank-add ${selected ? 'is-selected' : ''}"
                 data-pick="${escapeHtml(id)}"
                 aria-pressed="${selected}">
                 ${selected ? '✓ Đã chọn' : '＋ Thêm vào đề'}
@@ -483,11 +444,13 @@ function canUseQuestion(question) {
         </div>
       `;
 
-    renderPickerPager(totalPages);
+    renderPickerPager();
   }
 
   function openPicker() {
     if (!currentSubject || busy) return;
+
+    clearTimeout(pickerSearchTimer);
 
     get('pickerSearch').value = '';
     get('pickerSource').value = 'all';
@@ -509,8 +472,9 @@ function canUseQuestion(question) {
       ' · Câu hỏi đã xuất bản';
 
     pickerPage = 1;
-    renderPicker();
+
     showModal(get('pickerModal'));
+    renderPicker();
   }
 
   function renderFormulas(container) {
@@ -540,9 +504,7 @@ function canUseQuestion(question) {
     const question = questionById(id);
     if (!question) return;
 
-    const modal = get('examQuestionPreviewModal');
     const body = get('examQuestionPreviewBody');
-
     const subject = subjectById(question.subjectId);
     const topic = topicById(question.topicId);
 
@@ -567,18 +529,14 @@ function canUseQuestion(question) {
 
         const label = isMcq
           ? (correct ? '✓ Đáp án đúng' : '')
-          : (
-            option.isCorrect === true
-              ? 'Đúng'
-              : option.isCorrect === false
-                ? 'Sai'
-                : 'Chưa có đáp án'
-          );
+          : option.isCorrect === true
+            ? 'Đúng'
+            : option.isCorrect === false
+              ? 'Sai'
+              : 'Chưa có đáp án';
 
         return `
-          <div class="preview-answer ${
-            correct ? 'preview-correct' : ''
-          }">
+          <div class="preview-answer ${correct ? 'preview-correct' : ''}">
             <strong>
               ${escapeHtml(option.key)}.
               ${escapeHtml(label)}
@@ -608,9 +566,7 @@ function canUseQuestion(question) {
         </span>
       </div>
 
-      <p>
-        ${escapeHtml(topic?.name || 'Chuyên đề không còn tồn tại')}
-      </p>
+      <p>${escapeHtml(topic?.name || 'Chuyên đề không còn tồn tại')}</p>
 
       <div class="preview-content preview-html">
         ${question.content?.html ||
@@ -618,10 +574,7 @@ function canUseQuestion(question) {
       </div>
 
       <div class="preview-label">Phương án và đáp án</div>
-
-      <div class="preview-answers">
-        ${answers}
-      </div>
+      <div class="preview-answers">${answers}</div>
 
       ${question.explanation?.html ? `
         <div class="preview-label">Lời giải / giải thích</div>
@@ -631,7 +584,7 @@ function canUseQuestion(question) {
       ` : ''}
     `;
 
-    showModal(modal);
+    showModal(get('examQuestionPreviewModal'));
     renderFormulas(body);
   }
 
@@ -643,15 +596,12 @@ function canUseQuestion(question) {
     const status = get('examStatus').value;
 
     const subject = subjectById(subjectId);
-    const original = exams.find(exam => idOf(exam) === editingId);
 
     if (title.length < 5 || title.length > 120) {
       throw new Error('Tên đề thi cần từ 5 đến 120 ký tự.');
     }
 
-    if (!subject || (
-      !subject.active && subjectId !== idOf(original?.subjectId)
-    )) {
+    if (!subject || !subject.active) {
       throw new Error('Vui lòng chọn môn học đang hoạt động.');
     }
 
@@ -701,7 +651,6 @@ function canUseQuestion(question) {
     };
   }
 
-  // Tạo / cập nhật đề thi.
   form.addEventListener('submit', async event => {
     event.preventDefault();
     if (busy) return;
@@ -725,7 +674,7 @@ function canUseQuestion(question) {
       if (!data) return;
 
       alert(data.message || 'Lưu đề thi thành công!');
-      window.location.assign('/my/exams');
+      window.location.assign(baseUrl);
     } catch (error) {
       setError(error.message);
     } finally {
@@ -752,20 +701,18 @@ function canUseQuestion(question) {
       return;
     }
 
-    if (next !== currentSubject) selectedIds = [];
+    if (next !== currentSubject) {
+      selectedIds = [];
+    }
 
     currentSubject = next;
     setError();
     renderSelected();
   });
 
-  for (const id of ['resetExamButton']) {
-    get(id).addEventListener('click', () => {
-      if (busy) return;
-      if (exams[0]) editExam(exams[0]);
-      else resetForm(true);
-    });
-  }
+  get('resetExamButton').addEventListener('click', () => {
+    if (!busy) resetForm(true);
+  });
 
   get('openPickerButton').addEventListener('click', openPicker);
 
@@ -778,7 +725,6 @@ function canUseQuestion(question) {
     get(id).addEventListener('click', closeModal);
   }
 
-  let pickerSearchTimer;
   for (const id of [
     'pickerSearch',
     'pickerTopic',
@@ -791,10 +737,14 @@ function canUseQuestion(question) {
       () => {
         clearTimeout(pickerSearchTimer);
         pickerPage = 1;
+
         if (id === 'pickerSearch') {
           ++pickerRequestId;
+          pickerRows = [];
+
           get('pickerResults').textContent = 'Đang tìm kiếm...';
           get('pickerPagination').innerHTML = '';
+
           pickerSearchTimer = setTimeout(renderPicker, 300);
         } else {
           renderPicker();
@@ -862,6 +812,7 @@ function canUseQuestion(question) {
       if (!previewButton.disabled) {
         previewFullQuestion(previewButton.dataset.previewQuestion);
       }
+
       return;
     }
 
@@ -874,14 +825,15 @@ function canUseQuestion(question) {
     const index = selectedIds.indexOf(row.dataset.id);
     if (index < 0) return;
 
-    const action = button.dataset.action;
-
-    if (action === 'remove') {
+    if (button.dataset.action === 'remove') {
       selectedIds.splice(index, 1);
-    } else if (action === 'up' && index > 0) {
+    } else if (button.dataset.action === 'up' && index > 0) {
       [selectedIds[index - 1], selectedIds[index]] =
         [selectedIds[index], selectedIds[index - 1]];
-    } else if (action === 'down' && index < selectedIds.length - 1) {
+    } else if (
+      button.dataset.action === 'down' &&
+      index < selectedIds.length - 1
+    ) {
       [selectedIds[index + 1], selectedIds[index]] =
         [selectedIds[index], selectedIds[index + 1]];
     }
@@ -889,10 +841,7 @@ function canUseQuestion(question) {
     renderSelected();
   });
 
-  for (const id of [
-    'pickerModal',
-    'examQuestionPreviewModal',
-  ]) {
+  for (const id of ['pickerModal', 'examQuestionPreviewModal']) {
     const modal = get(id);
 
     modal.addEventListener('click', event => {
@@ -941,17 +890,8 @@ function canUseQuestion(question) {
   });
 
   function boot() {
-    get('saveExamButton').disabled = true;
-    get('openPickerButton').disabled = true;
-
     try {
-      const element = get('examPageData');
-
-      if (!element) {
-        throw new Error('Thiếu #examPageData trong Pug.');
-      }
-
-      const data = JSON.parse(element.dataset.bootstrap);
+      const data = JSON.parse(pageData.dataset.bootstrap);
 
       for (const key of ['subjects', 'topics', 'questions', 'exams']) {
         if (!Array.isArray(data[key])) {
@@ -962,11 +902,9 @@ function canUseQuestion(question) {
       subjects = data.subjects;
       topics = data.topics;
       questions = data.questions;
-      exams = data.exams;
+      originalExam = data.exams[0] || null;
 
-      fillSubjects();
       resetForm();
-      if (exams[0]) editExam(exams[0]);
 
       get('saveExamButton').disabled = false;
     } catch (error) {

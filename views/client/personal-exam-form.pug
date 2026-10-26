@@ -9,14 +9,26 @@ block styles
 
 block content
   include ../admin/partials/icons.pug
+
+  - const originalExam = exam || null
+  - const originalSubjectId = originalExam && originalExam.subjectId ? String(originalExam.subjectId._id || originalExam.subjectId) : ""
+
   .group-exam-page.container
-    #examPageData(hidden data-base-url="/my/exams" data-bootstrap=JSON.stringify({ subjects, topics, questions, exams: exam ? [exam] : [] }))
+    #examPageData(
+      hidden
+      data-base-url="/my/exams"
+      data-bootstrap=JSON.stringify({ subjects, topics, questions, exams: originalExam ? [originalExam] : [] })
+    )
+
     .examadmin-main
       .page-heading.examadmin-heading
         div
-          h1= exam ? "Chỉnh sửa đề thi" : "Soạn đề thi mới"
+          h1= originalExam ? "Chỉnh sửa đề thi" : "Soạn đề thi mới"
           p Chọn câu hỏi, sắp xếp và thiết lập đề thi.
-        a.button.button--secondary(href="/my/exams") Quay lại danh sách
+
+        a.button.button--secondary(href="/my/exams")
+          | Quay lại danh sách
+
       .examadmin-layout.examadmin-layout--form
         section#examEditorPanel.panel.examadmin-editor-panel(
           aria-labelledby="examFormTitle"
@@ -24,7 +36,7 @@ block content
           .panel-header.examadmin-form-heading
             div
               .form-panel__eyebrow BIÊN TẬP ĐỀ THI
-              h2#examFormTitle Tạo đề thi mới
+              h2#examFormTitle= originalExam ? "Chỉnh sửa đề thi" : "Tạo đề thi mới"
               p Mỗi đề chỉ thuộc một môn học. Chọn câu hỏi đã xuất bản từ ngân hàng.
 
             span.form-header-icon
@@ -44,6 +56,7 @@ block content
               input#examTitle(
                 name="title"
                 type="text"
+                value=originalExam ? originalExam.title : ""
                 maxlength="120"
                 required
                 placeholder="Ví dụ: Đề thi thử Tiếng Anh số 1"
@@ -56,7 +69,16 @@ block content
                   em *
 
                 select#examSubject(name="subjectId" required)
-                  option(value="") Chọn môn học
+                  option(
+                    value=""
+                    selected=originalSubjectId === ""
+                  ) Chọn môn học
+
+                  each subject in subjects
+                    option(
+                      value=subject._id
+                      selected=String(subject._id) === originalSubjectId
+                    )= subject.name + (subject.active ? "" : " (Đã ẩn)")
 
               .field
                 label(for="examDuration")
@@ -69,7 +91,7 @@ block content
                   min="1"
                   max="300"
                   step="1"
-                  value="60"
+                  value=originalExam ? originalExam.duration : 60
                   required
                 )
 
@@ -81,14 +103,21 @@ block content
                 rows="2"
                 maxlength="500"
                 placeholder="Mô tả nội dung và mục tiêu đề thi..."
-              )
+              )= originalExam ? originalExam.description : ""
 
             .field
               label(for="examStatus") Trạng thái
 
               select#examStatus(name="status")
-                option(value="draft") Bản nháp – Chưa hiển thị cho học sinh
-                option(value="published") Đã xuất bản – Công khai
+                option(
+                  value="draft"
+                  selected=!originalExam || originalExam.status === "draft"
+                ) Bản nháp – Chưa hiển thị cho học sinh
+
+                option(
+                  value="published"
+                  selected=!!originalExam && originalExam.status === "published"
+                ) Đã xuất bản – Công khai
 
             .examadmin-step.examadmin-step--second
               span 02
@@ -97,10 +126,11 @@ block content
             .examadmin-picker-bar
               div
                 b#pickedCount 0 câu hỏi
-                small#pickedScore Chưa chọn câu hỏi
+                small#pickedScore Thứ tự bên dưới là thứ tự trong đề
 
               button#openPickerButton.button.button--secondary.examadmin-add-btn(
                 type="button"
+                disabled
               )
                 svg.icon
                   use(href="#i-plus")
@@ -126,17 +156,16 @@ block content
             .examadmin-form-actions
               button#resetExamButton.button.button--secondary(
                 type="button"
-              )
-                | Làm mới
+              ) Làm mới
 
               button#saveExamButton.button.button--primary(
                 type="submit"
+                disabled
               )
                 svg.icon
                   use(href="#i-save")
-                span#saveExamText Lưu đề thi
+                span#saveExamText= originalExam ? "Cập nhật đề thi" : "Lưu đề thi"
 
-    //- Modal chọn câu hỏi
     #pickerModal.examadmin-modal-overlay(hidden)
       section.examadmin-picker-modal(
         role="dialog"
@@ -172,7 +201,7 @@ block content
             span.sr-only Nguồn câu hỏi
             select#pickerSource
               option(value="all") Tất cả câu hỏi
-              option(value="system") Câu hỏi hệ thống 
+              option(value="system") Câu hỏi hệ thống
               option(value="personal") Câu hỏi của tôi
 
           label
@@ -218,7 +247,6 @@ block content
               span#pickerSelectedCount 0
               | )
 
-    //- Modal xem trước câu hỏi
     #examQuestionPreviewModal.examadmin-modal-overlay.question-modal(hidden)
       section.dialog.question-dialog(
         role="dialog"
@@ -242,10 +270,8 @@ block content
         .dialog__actions
           button#doneExamQuestionPreview.button.button--primary(
             type="button"
-          )
-            | Đóng xem trước
+          ) Đóng xem trước
 
-    //- Modal xác nhận xóa đề thi
 block scripts
   script(
     defer

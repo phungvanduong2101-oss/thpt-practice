@@ -24,6 +24,7 @@ router.use("/subjects", subjectRoutes);
 router.use("/topics", topicRoutes);
 router.use("/questions", questionRoutes);
 router.use("/exams", examRoutes);
-router.use("/latex", katexRoutes); 
+router.use("/latex", katexRoutes);
+router.use("/users", require("./user.route")); 
 
 module.exports = router;

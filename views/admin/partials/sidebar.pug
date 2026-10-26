@@ -12,17 +12,6 @@ mixin adminNavItem(url, label, icon, key)
     if currentNav === key
       span.sidebar-link__pill Đang mở
 
-mixin adminComingSoon(label, icon)
-  button.sidebar-link.is-disabled(
-    type="button"
-    data-coming-soon=label
-    title="Sắp triển khai"
-    disabled
-  )
-    svg.icon(aria-hidden="true")
-      use(href="#" + icon)
-    |  #{label}
-
 aside#sidebar.sidebar(aria-label="Điều hướng quản trị")
   a.sidebar-brand(
     href="/"
@@ -42,23 +31,17 @@ aside#sidebar.sidebar(aria-label="Điều hướng quản trị")
   nav.sidebar-nav(aria-label="Các trang quản trị")
     +adminNavItem("/admin/dashboard", "Tổng quan", "i-grid", "dashboard")
 
-    .sidebar-section-label.sidebar-section-label--nested QUẢN LÝ NỘI DUNG
+    .sidebar-section-label.sidebar-section-label--nested QUẢN LÝ 
 
     +adminNavItem("/admin/subjects", "Môn học", "i-book", "subjects")
     +adminNavItem("/admin/topics", "Chuyên đề", "i-layers", "topics")
     +adminNavItem("/admin/questions", "Ngân hàng câu hỏi", "i-help", "questions")
     +adminNavItem("/admin/exams", "Quản lý đề thi", "i-clipboard", "exams") 
-    +adminNavItem("/admin/latex", "Quản lý công thức", "i-function", "latex")
-
+    +adminNavItem("/admin/latex", "Các mẫu công thức", "i-function", "latex")
+    
 
     .sidebar-section-label.sidebar-section-label--nested HỆ THỐNG
-
-    +adminComingSoon("Người dùng", "i-users")
-    +adminComingSoon("Thống kê", "i-chart")
-    +adminComingSoon("Cài đặt", "i-settings")
-
-  
-
+    +adminNavItem("/admin/users", "Quản lý người dùng", "i-users", "users")
     a.sidebar-website(href="/")
       svg.icon(aria-hidden="true")
         use(href="#i-external")

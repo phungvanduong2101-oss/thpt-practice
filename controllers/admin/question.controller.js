@@ -186,7 +186,7 @@ module.exports.form = async (req, res, next) => {
   } catch (error) { next(error); }
 };
 
-const saveQuestion = async (req, res, next) => {
+module.exports.create = async (req, res, next) => {
   try {
     const {
       subjectId,
@@ -202,80 +202,33 @@ const saveQuestion = async (req, res, next) => {
       published,
     } = req.body;
 
-    // Kiểm tra chữ hoặc công thức trong Quill Delta.
-    function hasContent(value) {
-      const ops = Array.isArray(value?.delta)
-        ? value.delta
-        : value?.delta?.ops;
-
-      if (!Array.isArray(ops)) return false;
-
-      return ops.some(op => {
-        if (typeof op.insert === "string") {
-          return op.insert.trim().length > 0;
-        }
-
-        return (
-          typeof op.insert?.formula === "string" &&
-          op.insert.formula.trim().length > 0
-        ) || (typeof op.insert?.image === "string" && op.insert.image.trim().length > 0);
-      });
-    }
-
-    function reject(message) {
+    if (
+      !mongoose.isObjectIdOrHexString(subjectId) ||
+      !mongoose.isObjectIdOrHexString(topicId)
+    ) {
       return res.status(400).json({
         code: "error",
-        message,
+        message: "ID môn học hoặc chuyên đề không hợp lệ!",
       });
     }
 
-    if (!hasContent(content)) {
-      return reject("Vui lòng nhập nội dung câu hỏi!");
+    const subject = await Subject.exists({ _id: subjectId });
+    if (!subject) {
+      return res.status(400).json({
+        code: "error",
+        message: "Môn học không tồn tại!",
+      });
     }
 
-    if (type === "mcq" || type === "truefalse") {
-      if (!Array.isArray(options) || options.length !== 4) {
-        return reject("Cần nhập đủ 4 phương án!");
-      }
-
-      const keys = options.map(option => option?.key);
-
-      if (
-        new Set(keys).size !== 4 ||
-        !keys.every(key => ["A", "B", "C", "D"].includes(key))
-      ) {
-        return reject("Các phương án phải có key A, B, C, D không trùng!");
-      }
-
-      if (!options.every(option => hasContent(option.content))) {
-        return reject("Vui lòng nhập nội dung cho cả 4 phương án!");
-      }
-
-      if (type === "mcq" && !keys.includes(correctAnswer)) {
-        return reject("Vui lòng chọn một đáp án đúng!");
-      }
-
-      if (
-        type === "truefalse" &&
-        !options.every(option => typeof option.isCorrect === "boolean")
-      ) {
-        return reject("Mỗi mệnh đề phải có đáp án Đúng hoặc Sai!");
-      }
-    } else if (type === "fill") {
-      if (
-        !Array.isArray(acceptedAnswers) ||
-        acceptedAnswers.length === 0 ||
-        !acceptedAnswers.every(
-          answer => typeof answer === "string" && answer.trim()
-        )
-      ) {
-        return reject("Vui lòng nhập ít nhất một đáp án hợp lệ!");
-      }
-    } else {
-      return reject("Loại câu hỏi không hợp lệ!");
+    const topic = await Topic.exists({ _id: topicId, subjectId });
+    if (!topic) {
+      return res.status(400).json({
+        code: "error",
+        message: "Chuyên đề không tồn tại hoặc không thuộc môn học!",
+      });
     }
 
-    const payload = {
+    await Question.create({
       subjectId,
       topicId,
       type,
@@ -284,37 +237,107 @@ const saveQuestion = async (req, res, next) => {
       contentText,
       options: type === "fill" ? [] : options,
       correctAnswer: type === "mcq" ? correctAnswer : "",
-      acceptedAnswers: type === "fill"
-        ? acceptedAnswers.map(answer => answer.trim())
-        : [],
+      acceptedAnswers: type === "fill" ? acceptedAnswers : [],
       explanation,
       published,
-    };
+      createdBy: req.account._id,
+      scope: "system",
+    });
 
-    const updating = req.method === "PATCH";
-    if (updating) {
-      if (!mongoose.isObjectIdOrHexString(req.params.id)) {
-        return reject("ID câu hỏi không hợp lệ!");
-      }
-      const question = await Question.findOne({ _id: req.params.id, scope: "system" });
-      if (!question) return res.status(404).json({ code: "error", message: "Không tìm thấy câu hỏi!" });
-      question.set(payload);
-      await question.save();
-    } else {
-      await Question.create({ ...payload, createdBy: req.account._id, scope: "system" });
-    }
-
-    return res.status(updating ? 200 : 201).json({
+    return res.status(201).json({
       code: "success",
-      message: updating ? "Cập nhật câu hỏi thành công!" : "Tạo câu hỏi thành công!",
+      message: "Tạo câu hỏi thành công!",
     });
   } catch (error) {
     next(error);
   }
-}; 
+};
 
-module.exports.create = saveQuestion;
-module.exports.update = saveQuestion;
+module.exports.update = async (req, res, next) => {
+  try {
+    const {
+      subjectId,
+      topicId,
+      type,
+      bloomLevel,
+      content,
+      contentText,
+      options,
+      correctAnswer,
+      acceptedAnswers,
+      explanation,
+      published,
+    } = req.body;
+
+    if (!mongoose.isObjectIdOrHexString(req.params.id)) {
+      return res.status(400).json({
+        code: "error",
+        message: "ID câu hỏi không hợp lệ!",
+      });
+    }
+
+    const question = await Question.findOne({
+      _id: req.params.id,
+      scope: "system",
+    });
+
+    if (!question) {
+      return res.status(404).json({
+        code: "error",
+        message: "Không tìm thấy câu hỏi!",
+      });
+    }
+
+    if (
+      !mongoose.isObjectIdOrHexString(subjectId) ||
+      !mongoose.isObjectIdOrHexString(topicId)
+    ) {
+      return res.status(400).json({
+        code: "error",
+        message: "ID môn học hoặc chuyên đề không hợp lệ!",
+      });
+    }
+
+    const subject = await Subject.exists({ _id: subjectId });
+    if (!subject) {
+      return res.status(400).json({
+        code: "error",
+        message: "Môn học không tồn tại!",
+      });
+    }
+
+    const topic = await Topic.exists({ _id: topicId, subjectId });
+    if (!topic) {
+      return res.status(400).json({
+        code: "error",
+        message: "Chuyên đề không tồn tại hoặc không thuộc môn học!",
+      });
+    }
+
+    question.set({
+      subjectId,
+      topicId,
+      type,
+      bloomLevel,
+      content,
+      contentText,
+      options: type === "fill" ? [] : options,
+      correctAnswer: type === "mcq" ? correctAnswer : "",
+      acceptedAnswers: type === "fill" ? acceptedAnswers : [],
+      explanation,
+      published,
+    });
+
+    await question.save();
+
+    return res.status(200).json({
+      code: "success",
+      message: "Cập nhật câu hỏi thành công!",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 module.exports.delete = async (req, res, next) => {
   try {

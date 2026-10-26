@@ -1,10 +1,6 @@
 extends layouts/default.pug
 
 block styles
-  link(
-    rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css"
-  )
   link(rel="stylesheet" href="/client/css/group-exams.css")
 
 block content
@@ -12,11 +8,6 @@ block content
 
   .group-exam-page.container
     a.group-exams-back(href="/") ← Trang chủ
-    #examPageData(
-      hidden
-      data-base-url="/my/exams"
-      data-bootstrap=JSON.stringify({ subjects, exams })
-    )
 
     .examadmin-main
       .page-heading.examadmin-heading
@@ -42,7 +33,7 @@ block content
           div
             span.stat-card__label Tổng đề thi
             strong#statTotal= totalExams
-            span.stat-card__note Trong hệ thống
+            span.stat-card__note Của bạn
 
         .stat-card
           span.stat-card__icon.stat-card__icon--green
@@ -135,6 +126,49 @@ block content
                 | Đặt lại
 
           #examList.examadmin-list(aria-live="polite")
+            each exam in exams
+              - const subject = subjects.find(item => String(item._id) === String(exam.subjectId))
+
+              article.examadmin-item(data-id=exam._id)
+                span.examadmin-item-icon
+                  svg.icon
+                    use(href="#i-clipboard")
+
+                div
+                  h3.examadmin-item-title= exam.title
+
+                  .examadmin-item-meta
+                    span.examadmin-tag= subject ? subject.name : "Môn không còn tồn tại"
+
+                    span.examadmin-tag(
+                      class=exam.status === "published" ? "examadmin-tag--published" : "examadmin-tag--draft"
+                    )= exam.status === "published" ? "Đã xuất bản" : "Bản nháp"
+
+                  p.examadmin-item-desc= exam.description || "Chưa có mô tả."
+
+                  .examadmin-item-meta
+                    span #{exam.questionIds ? exam.questionIds.length : 0} câu hỏi
+                    span.examadmin-dot •
+                    span #{exam.duration} phút
+
+                .examadmin-item-actions
+                  a.examadmin-icon-button(
+                    href="/my/exams/" + exam._id + "/edit"
+                    title="Sửa đề thi"
+                    aria-label="Sửa đề thi"
+                  )
+                    svg.icon
+                      use(href="#i-edit")
+
+                  button.examadmin-icon-button.examadmin-icon-button--danger(
+                    type="button"
+                    data-action="delete"
+                    data-title=exam.title
+                    title="Xóa đề thi"
+                    aria-label="Xóa đề thi"
+                  )
+                    svg.icon
+                      use(href="#i-trash")
 
           #examEmpty.examadmin-empty(hidden=totalItems > 0)
             svg.icon
@@ -195,15 +229,11 @@ block content
         .dialog__actions
           button#cancelDeleteButton.button.button--secondary(
             type="button"
-          )
-            | Hủy
+          ) Hủy
 
           button#confirmDeleteButton.button.button--danger(
             type="button"
-          )
-            | Xóa đề thi
-
-
+          ) Xóa đề thi
 
 block scripts
   script(src="/client/js/personal-exams-list.js" defer)

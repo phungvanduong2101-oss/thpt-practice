@@ -1,0 +1,145 @@
+extends layouts/default.pug
+
+block styles
+  link(rel="stylesheet" href="/admin/css/users.css")
+
+block content
+  .users-page
+    .page-heading
+      div
+        .eyebrow QUẢN LÝ HỆ THỐNG
+        h1 Quản lý người dùng
+        p Tìm tài khoản, cập nhật thông tin và khóa hoặc mở khóa truy cập.
+
+    .stats-grid
+      each item in [{ label: 'Tổng tài khoản', value: totalUsers, icon: 'i-users', color: 'blue' }, { label: 'Đang hoạt động', value: activeUsers, icon: 'i-check', color: 'green' }, { label: 'Quản trị viên', value: adminUsers, icon: 'i-settings', color: 'violet' }]
+        .stat-card
+          span.stat-card__icon(class='stat-card__icon--' + item.color)
+            svg.icon
+              use(href='#' + item.icon)
+          div
+            span.stat-card__label= item.label
+            strong= item.value
+
+    section.panel
+      .panel-header
+        div
+          h2 Danh sách người dùng
+          p Có #{totalItems} tài khoản phù hợp.
+
+      form.users-filters(action="/admin/users" method="GET" data-filter-form)
+        label.users-search
+          span.sr-only Tìm tên hoặc email
+          svg.icon
+            use(href="#i-search")
+          input(type="search" name="keyword" value=keyword placeholder="Tìm họ tên hoặc email…")
+        label
+          span.sr-only Vai trò
+          select(name="role")
+            option(value="all" selected=role==='all') Tất cả vai trò
+            option(value="user" selected=role==='user') Người dùng
+            option(value="admin" selected=role==='admin') Quản trị viên
+        label
+          span.sr-only Trạng thái
+          select(name="status")
+            option(value="all" selected=status==='all') Tất cả trạng thái
+            option(value="active" selected=status==='active') Đang hoạt động
+            option(value="inactive" selected=status==='inactive') Đã khóa
+        button.button.button--primary(type="submit") Tìm kiếm
+        a.button.button--secondary(href="/admin/users") Đặt lại
+
+      .users-table-wrap
+        table.users-table
+          thead
+            tr
+              th STT
+              th Người dùng
+              th Vai trò
+              th Trạng thái
+              th Ngày tạo
+              th Thao tác
+          tbody
+            each user, index in users
+              - const isSelf = String(user._id) === String(currentAccount._id);
+              tr
+                td= skip + index + 1
+                td
+                  .user-identity
+                    span.user-avatar= (user.fullName || '?').charAt(0).toUpperCase()
+                    div
+                      strong
+                        = user.fullName
+                        if isSelf
+                          span.user-self Bạn
+                      small= user.email
+                td
+                  span.user-badge(class=user.role==='admin' ? 'user-badge--admin' : '')
+                    = user.role === 'admin' ? 'Quản trị viên' : 'Người dùng'
+                td
+                  span.user-badge(class=user.status==='active' ? 'user-badge--active' : 'user-badge--locked')
+                    = user.status === 'active' ? 'Hoạt động' : 'Đã khóa'
+                td= user.createdAt ? new Date(user.createdAt).toLocaleDateString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }) : '—'
+                td
+                  .users-row-actions
+                    button.button.button--secondary.user-action(
+                      type="button"
+                      data-edit-user
+                      data-id=String(user._id)
+                      data-name=user.fullName
+                      data-email=user.email
+                      data-role=user.role
+                      data-self=isSelf ? 'true' : 'false'
+                    ) Sửa
+                    button.button.user-action(
+                      type="button"
+                      class=user.status==='active' ? 'user-lock' : 'user-unlock'
+                      data-status-user
+                      data-id=String(user._id)
+                      data-name=user.fullName
+                      data-status=user.status==='active' ? 'inactive' : 'active'
+                      disabled=isSelf
+                      title=isSelf ? 'Không thể khóa tài khoản đang đăng nhập' : false
+                    )= user.status==='active' ? 'Khóa' : 'Mở khóa'
+            else
+              tr
+                td.users-empty(colspan="6") Không tìm thấy người dùng phù hợp.
+
+      .table-footer.users-footer
+        span Hiển thị #{startItem}–#{endItem} / #{totalItems} · Trang #{currentPage}/#{totalPages}
+        nav.pagination(aria-label="Phân trang người dùng")
+          if currentPage > 1
+            a.page-button(href=pageUrl(currentPage-1) aria-label="Trang trước") ‹
+          each p in Array.from({ length: totalPages }, (_, i) => i + 1)
+            if p===1 || p===totalPages || Math.abs(p-currentPage)<=2
+              a.page-button(href=pageUrl(p) class=p===currentPage ? 'is-active' : '' aria-current=p===currentPage ? 'page' : false)= p
+            else if p===currentPage-3 || p===currentPage+3
+              span …
+          if currentPage < totalPages
+            a.page-button(href=pageUrl(currentPage+1) aria-label="Trang tiếp") ›
+
+  dialog#userEditDialog.user-edit-dialog(aria-labelledby="userEditTitle")
+    form#userEditForm
+      .user-dialog-heading
+        div
+          .eyebrow THÔNG TIN TÀI KHOẢN
+          h2#userEditTitle Chỉnh sửa người dùng
+        button#closeUserEdit.icon-btn(type="button" aria-label="Đóng") ✕
+      .field
+        label(for="userFullName") Họ tên
+        input#userFullName(name="fullName" required minlength="2" maxlength="80" autocomplete="name")
+      .field
+        label(for="userEmail") Email
+        input#userEmail(name="email" type="email" required maxlength="254" autocomplete="email")
+      .field
+        label(for="userRole") Vai trò
+        select#userRole(name="role")
+          option(value="user") Người dùng
+          option(value="admin") Quản trị viên
+        small#userSelfNote.field-hint(hidden) Không thể tự bỏ quyền quản trị của mình.
+      p#userEditError.user-error(role="alert" hidden)
+      .user-dialog-actions
+        button#cancelUserEdit.button.button--secondary(type="button") Hủy
+        button#saveUserEdit.button.button--primary(type="submit") Lưu thay đổi
+
+block scripts
+  script(src="/admin/js/users.js" defer)
