@@ -263,14 +263,13 @@ Cả hai check đạt 100%. Khi tăng từ 50 lên 100 VUs, throughput gần nh�
 
 Lưu bản sao câu hỏi, đáp án và lời giải khi tạo lượt làm bài. Khi câu hỏi gốc được chỉnh sửa, dữ liệu và kết quả của lượt đã tạo vẫn được giữ nguyên.
 
-### 11.2. Thông báo realtime theo tài khoản
+### 11.2. Kiểm soát yêu cầu nộp bài đồng thời
 
-Kết hợp Socket.IO và MongoDB để gửi thông báo riêng đến đúng người dùng:
+- Khi nhiều yêu cầu nộp cùng một lượt được gửi gần nhau, hệ thống chỉ cho phép cập nhật nếu trạng thái hiện tại là `in_progress`.
 
-- Xác thực kết nối Socket.IO bằng JWT trong cookie.
-- Đưa các kết nối của cùng tài khoản vào một room để nhận thông báo trên nhiều tab.
-- Lưu thông báo vào MongoDB trước khi gửi, giúp người dùng offline có thể xem lại khi truy cập.
-- Đồng bộ trạng thái đã đọc giữa các tab đang mở. 
+- Điều kiện này được kiểm tra ngay trong thao tác cập nhật MongoDB, giúp chỉ một yêu cầu chuyển lượt làm sang `submitted` và tránh ghi đè kết quả. 
+ 
+Đây là các đóng góp kỹ thuật trong phạm vi dự án, sử dụng những kỹ thuật đã có để bảo toàn dữ liệu và kiểm soát cập nhật đồng thời. 
 
 ## 12. Hạn chế
 
