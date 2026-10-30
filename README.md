@@ -33,17 +33,17 @@ Website luyện thi THPT sử dụng Node.js, Express, Pug và MongoDB. Hỗ tr�
 ## 2. Kiến trúc
 
 ```text
-                  Trình duyệt
-                    |      |
-                   HTTP    | Socket.IO
-                    |      | (realtime)
-                    v      v
-             Node.js / Express + Pug
-                        |
-                +-------+-------+
-                |               |
-             MongoDB        Cloudinary
-           Lưu dữ liệu        Lưu ảnh
+                    Trình duyệt
+                     ↕       ↕
+                   HTTP   Socket.IO
+                     ↕    (realtime)
+                     ↕       ↕
+              Node.js / Express + Pug
+                         |
+                 +-------+-------+
+                 ↕               ↕
+              MongoDB        Cloudinary
+            Lưu dữ liệu        Lưu ảnh
 ```
 
 Ứng dụng tổ chức theo MVC. Express render Pug và phục vụ frontend. Socket.IO dùng chung HTTP server và duy trì kết nối với trình duyệt để gửi thông báo realtime.
