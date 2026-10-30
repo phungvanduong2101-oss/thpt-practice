@@ -68,38 +68,64 @@ Danh sách dependency đầy đủ nằm trong `package.json`; phiên bản đư
 
 ## 4. Yêu cầu
 
-- Node.js từ 20.19 và Yarn.
+- Node.js từ 20.19, kèm npm.
 - MongoDB local hoặc MongoDB Atlas.
 - Tài khoản Cloudinary để tải ảnh.
+- Yarn nếu muốn sử dụng thay npm.
 
 ## 5. Cài đặt và cấu hình
+
+### Lấy mã nguồn
 
 ```bash
 git clone https://github.com/phungvanduong2101-oss/thpt-practice.git
 cd thpt-practice
+```
+
+### Cài thư viện
+
+Dùng npm:
+
+```bash
+npm install
+```
+
+Hoặc dùng Yarn:
+
+```bash
 yarn install
 ```
+
+Chọn một trình quản lý gói để sử dụng trong dự án.
+
+### Cấu hình môi trường
 
 Tạo file `.env` tại thư mục gốc:
 
 ```dotenv
-MONGO_URI=mongodb://127.0.0.1:27017/thpt_practice
+MONGO_URI=mongodb://127.0.0.1:27017/THPT
 JWT_SECRET=replace_with_a_long_random_secret
- 
+
 CLOUDINARY_CLOUD_NAME=your_cloud_name
 CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_api_secret
 ```
 
-Thay các giá trị mẫu bằng cấu hình của bạn. 
+Thay các giá trị mẫu bằng cấu hình của bạn. Không đưa file `.env` chứa khóa thật lên Git.
 
 ## 6. Database và seed tài khoản
 
-Khởi động MongoDB hoặc cấu hình URI Atlas trong `.env`. Không cần tạo collection thủ công; Mongoose quản lý các collection theo model.
+Khởi động MongoDB hoặc cấu hình URI Atlas trong `.env`. Không cần tạo database và collection thủ công; MongoDB tạo khi ứng dụng tạo collection hoặc ghi dữ liệu.
 
 Các collection: `accounts`, `subjects`, `topics`, `questions`, `exams`, `attempts`, `groups`, `notifications`, `latexes`.
 
 Chạy tại thư mục gốc để tạo tài khoản demo:
+
+```bash
+npm run seed
+```
+
+Nếu dùng Yarn:
 
 ```bash
 yarn seed
@@ -116,13 +142,25 @@ Seed chỉ tạo tài khoản; chưa tạo môn học, câu hỏi và đề thi.
 
 ## 7. Chạy server và client
 
-Chạy khi phát triển:
+### Chạy khi phát triển
+
+```bash
+npm run dev
+```
+
+Nếu dùng Yarn:
 
 ```bash
 yarn dev
 ```
 
-Hoặc chạy thông thường:
+### Chạy thông thường
+
+```bash
+npm start
+```
+
+Nếu dùng Yarn:
 
 ```bash
 yarn start
@@ -132,13 +170,13 @@ Mở [http://localhost:3000](http://localhost:3000). Mã nguồn hiện cố đ�
 
 1. Đăng nhập tại `/auth/login` bằng tài khoản admin.
 2. Vào `/admin/dashboard`, tạo môn → chuyên đề → câu hỏi → đề; xuất bản để sử dụng.
-3. Đăng nhập bằng tài khoản user để làm bài và thử các chức năng.
+3. Đăng nhập bằng tài khoản user để làm bài và thử các chức năng. 
 
 ## 8. Giao tiếp mạng
 
 - **HTTP:** trình duyệt gửi request đến Express; server trả trang HTML được render bằng Pug hoặc dữ liệu JSON. Tải ảnh sử dụng `multipart/form-data`.
 - **Xác thực và phân quyền:** JWT được lưu trong cookie `httpOnly`; middleware xác minh token, trạng thái tài khoản và quyền truy cập.
-- **Realtime:** Socket.IO duy trì giao tiếp hai chiều qua WebSocket hoặc HTTP long-polling. Server gửi thông báo đến đúng tài khoản mà không cần tải lại trang.
+- **Realtime:** Socket.IO duy trì giao tiếp hai chiều qua WebSocket. Server gửi thông báo đến đúng tài khoản mà không cần tải lại trang.
 - **Lưu thông báo:** thông báo được lưu vào MongoDB trước khi gửi realtime để người dùng offline có thể xem lại khi truy cập.
 - **Xử lý đồng thời:** Node.js sử dụng I/O bất đồng bộ để phục vụ nhiều request, không tạo một thread riêng cho mỗi người dùng.
 
