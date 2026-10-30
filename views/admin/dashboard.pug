@@ -256,28 +256,28 @@ block content
   section.stats-grid.dashboard-stats(aria-label="Thống kê hệ thống")
     +statCard(
       "Người dùng",
-      counts.accounts,
+      totalAccounts,
       "Tài khoản trong hệ thống",
       "i-users",
       "blue"
     )
     +statCard(
       "Môn học",
-      counts.subjects,
+      totalSubjects,
       "Danh mục môn học",
       "i-book",
       "green"
     )
     +statCard(
       "Câu hỏi",
-      counts.questions,
+      totalQuestions,
       "Ngân hàng câu hỏi",
       "i-help",
       "violet"
     )
     +statCard(
       "Đề thi",
-      counts.exams,
+      totalExams,
       "Đề thi trong hệ thống",
       "i-clipboard",
       "blue"
@@ -328,20 +328,19 @@ block content
             p Các câu hỏi được thêm gần đây.
           a.dashboard-link(href="/admin/questions") Xem tất cả
 
-        if questions.length
+        if newestQuestion.length
           .table-scroll
             table.dashboard-table
               thead
                 tr
                   th CÂU HỎI
-                  th MÔN HỌC
                   th TRẠNG THÁI
               tbody
-                each question in questions
+                each question in newestQuestion
                   tr
                     td
                       a.dashboard-table__title(href="/admin/questions")
-                        = question.title || "Câu hỏi chưa có tiêu đề"
+                        = question.contentText || "Câu hỏi chưa có tiêu đề"
                       span.dashboard-table__sub
                         if question.type === "mcq"
                           | Trắc nghiệm
@@ -351,7 +350,6 @@ block content
                           | Điền đáp số
                         else
                           | Chưa phân loại
-                    td= question.subjectName || "—"
                     td
                       span.dashboard-badge(
                         class=question.published ? "dashboard-badge--success" : ""
@@ -367,7 +365,7 @@ block content
             p Các đề thi được tạo gần đây.
           a.dashboard-link(href="/admin/exams") Xem tất cả
 
-        if exams.length
+        if newestExam.length
           .table-scroll
             table.dashboard-table
               thead
@@ -375,13 +373,13 @@ block content
                   th ĐỀ THI
                   th SỐ CÂU
               tbody
-                each exam in exams
+                each exam in newestExam
                   tr
                     td
                       a.dashboard-table__title(href="/admin/exams")
                         = exam.title || "Đề thi chưa có tiêu đề"
-                      span.dashboard-table__sub= exam.subjectName || "Chưa có môn học"
-                    td= exam.questionCount || 0
+                      span.dashboard-table__sub= exam.subjectId.name || "Chưa có môn học"
+                    td= exam.questionIds.length || 0
         else
           .dashboard-empty Chưa có đề thi nào trong danh sách.
 

@@ -173,8 +173,9 @@ header.site-header
             small.account-email= account.email
  
             a(href="/my/questions") Câu hỏi của tôi
-            a(href="/my/exams") Đề thi của tôi
-            a(href="/account") Hồ sơ cá nhân
+            a(href="/my/exams") Đề thi của tôi 
+            if account.role === "admin"
+              a(href="/admin/dashboard") Trang quản trị
             a(href="/attempts") Lịch sử làm bài
 
           
