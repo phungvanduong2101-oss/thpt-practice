@@ -1,0 +1,42 @@
+[
+  {
+    "_id": "6ad1f2fd42f84773fa86eade",
+    "name": "Tiếng Anh 12",
+    "code": "TIENG_ANH_12",
+    "description": "",
+    "active": true,
+    "createdAt": "2026-10-16T09:48:45.679Z",
+    "updatedAt": "2026-10-16T09:48:45.679Z",
+    "__v": 0
+  },
+  {
+    "_id": "6ad1f30542f84773fa86eadf",
+    "name": "Toán 12",
+    "code": "TOAN_12",
+    "description": "",
+    "active": true,
+    "createdAt": "2026-10-16T09:48:53.256Z",
+    "updatedAt": "2026-10-16T09:50:53.721Z",
+    "__v": 0
+  },
+  {
+    "_id": "6ad21bbb5c02285d93b778c0",
+    "name": "Vật lý 12",
+    "code": "VAT_LY_12",
+    "description": "",
+    "active": true,
+    "createdAt": "2026-10-16T12:42:35.221Z",
+    "updatedAt": "2026-10-16T12:42:35.221Z",
+    "__v": 0
+  },
+  {
+    "_id": "6ad48a080af919b19ddf69be",
+    "name": "Tin học 12",
+    "code": "TIN_HOC_12",
+    "description": "",
+    "active": true,
+    "createdAt": "2026-10-18T08:57:44.013Z",
+    "updatedAt": "2026-10-18T09:11:17.178Z",
+    "__v": 0
+  }
+]

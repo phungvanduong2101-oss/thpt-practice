@@ -1,0 +1,79 @@
+[
+  {
+    "_id": "6ad1f736675323269dc42a07",
+    "name": "Hàm số cơ bản",
+    "code": "HAM_SO",
+    "subjectId": "6ad1f30542f84773fa86eadf",
+    "description": "",
+    "active": true,
+    "createdAt": "2026-10-16T10:06:46.252Z",
+    "updatedAt": "2026-10-16T10:10:21.541Z",
+    "__v": 0
+  },
+  {
+    "_id": "6ad1f8266a128d983e057634",
+    "name": "Thì tương lai đơn",
+    "code": "THI_TUONG_LAI_DON",
+    "subjectId": "6ad1f2fd42f84773fa86eade",
+    "description": "",
+    "active": true,
+    "createdAt": "2026-10-16T10:10:46.487Z",
+    "updatedAt": "2026-10-16T10:10:46.487Z",
+    "__v": 0
+  },
+  {
+    "_id": "6ad1fc65325cddce4a4077f9",
+    "name": "Tích phân",
+    "code": "TICH_PHAN",
+    "subjectId": "6ad1f30542f84773fa86eadf",
+    "description": "",
+    "active": true,
+    "createdAt": "2026-10-16T10:28:53.693Z",
+    "updatedAt": "2026-10-16T10:28:53.693Z",
+    "__v": 0
+  },
+  {
+    "_id": "6ad7e0dbef19e8b2ce07b7e1",
+    "name": "Dòng điện xoay chiều",
+    "code": "DONG_DIEN_XOAY_CHIEU",
+    "subjectId": "6ad21bbb5c02285d93b778c0",
+    "description": "",
+    "active": true,
+    "createdAt": "2026-10-20T21:44:59.698Z",
+    "updatedAt": "2026-10-20T21:44:59.698Z",
+    "__v": 0
+  },
+  {
+    "_id": "6ad7e0e9ef19e8b2ce07b7e2",
+    "name": "Một số ứng dụng vật lí trong chẩn đoán y học",
+    "code": "MOT_SO_UNG_DUNG_VAT_LI_TRONG_C",
+    "subjectId": "6ad21bbb5c02285d93b778c0",
+    "description": "",
+    "active": true,
+    "createdAt": "2026-10-20T21:45:13.677Z",
+    "updatedAt": "2026-10-20T21:45:13.677Z",
+    "__v": 0
+  },
+  {
+    "_id": "6ad7e0f4ef19e8b2ce07b7e3",
+    "name": "Vật lí lượng tử",
+    "code": "VAT_LI_LUONG_TU",
+    "subjectId": "6ad21bbb5c02285d93b778c0",
+    "description": "",
+    "active": true,
+    "createdAt": "2026-10-20T21:45:24.207Z",
+    "updatedAt": "2026-10-20T21:45:24.207Z",
+    "__v": 0
+  },
+  {
+    "_id": "6ad80cf2ba118895fb3b7bf1",
+    "name": "Hình học không gian",
+    "code": "HINH_HOC_KHONG_GIAN",
+    "subjectId": "6ad1f30542f84773fa86eadf",
+    "description": "",
+    "active": true,
+    "createdAt": "2026-10-21T00:53:06.155Z",
+    "updatedAt": "2026-10-21T00:53:06.155Z",
+    "__v": 0
+  }
+]
