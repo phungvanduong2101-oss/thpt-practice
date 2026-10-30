@@ -33,16 +33,17 @@ Website luyện thi THPT sử dụng Node.js, Express, Pug và MongoDB. Hỗ tr�
 ## 2. Kiến trúc
 
 ```text
-                     Trình duyệt
-                          |
-                   HTTP / HTML / JSON
-                          |
-                Node.js / Express + Pug
-                          |
-            +-------------+-------------+
-            |             |             |
-         MongoDB      Cloudinary     Socket.IO
-       Lưu dữ liệu     Lưu ảnh     Thông báo realtime
+                  Trình duyệt
+                    |      |
+                   HTTP    | Socket.IO
+                    |      | (realtime)
+                    v      v
+             Node.js / Express + Pug
+                        |
+                +-------+-------+
+                |               |
+             MongoDB        Cloudinary
+           Lưu dữ liệu        Lưu ảnh
 ```
 
 Ứng dụng tổ chức theo MVC. Express render Pug và phục vụ frontend. Socket.IO dùng chung HTTP server và duy trì kết nối với trình duyệt để gửi thông báo realtime.
@@ -84,13 +85,13 @@ Tạo file `.env` tại thư mục gốc:
 ```dotenv
 MONGO_URI=mongodb://127.0.0.1:27017/thpt_practice
 JWT_SECRET=replace_with_a_long_random_secret
-NODE_ENV=development
+ 
 CLOUDINARY_CLOUD_NAME=your_cloud_name
 CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_api_secret
 ```
 
-Thay các giá trị mẫu bằng cấu hình của bạn. Không đưa file `.env` chứa khóa thật lên Git.
+Thay các giá trị mẫu bằng cấu hình của bạn. 
 
 ## 6. Database và seed tài khoản
 
@@ -216,7 +217,7 @@ Log: [10 VUs](tests/load/result-10.txt) · [50 VUs](tests/load/result-50.txt) ·
 
 Cả hai check đạt 100%. Khi tăng từ 50 lên 100 VUs, throughput gần như không tăng nhưng p95 tăng từ 886 lên 3060 ms, cho thấy dấu hiệu bão hòa trong môi trường thử nghiệm này.
 
-Kết quả chỉ áp dụng cho HTTP của `/exams`, chưa đánh giá toàn bộ website hoặc Socket.IO. Mỗi mức tải mới chạy một lần; việc chạy công cụ đo và hệ thống trên cùng máy có thể ảnh hưởng đến kết quả.
+
 
 ## 11. Novelty / Contributions
 
@@ -224,18 +225,14 @@ Kết quả chỉ áp dụng cho HTTP của `/exams`, chưa đánh giá toàn b�
 
 Lưu bản sao câu hỏi, đáp án và lời giải khi tạo lượt làm bài. Khi câu hỏi gốc được chỉnh sửa, dữ liệu và kết quả của lượt đã tạo vẫn được giữ nguyên.
 
-### 11.2. Ngăn ghi đè kết quả khi nộp bài trùng
+### 11.2. Thông báo realtime theo tài khoản
 
-Chỉ cập nhật kết quả khi lượt làm bài còn ở trạng thái `in_progress`. Nếu nhận nhiều yêu cầu nộp cho cùng một lượt, kết quả đã lưu không bị ghi đè.
+Kết hợp Socket.IO và MongoDB để gửi thông báo riêng đến đúng người dùng:
 
-### 11.3. Kết hợp thông báo realtime và lưu trữ
-
-Thông báo được lưu vào MongoDB trước khi gửi qua Socket.IO:
-
-- Người dùng online nhận thông báo ngay mà không cần tải lại trang.
-- Người dùng offline có thể xem lại thông báo khi truy cập hệ thống.
-
-Các đóng góp trên được thể hiện trong mã nguồn; chưa đánh giá so sánh với baseline.
+- Xác thực kết nối Socket.IO bằng JWT trong cookie.
+- Đưa các kết nối của cùng tài khoản vào một room để nhận thông báo trên nhiều tab.
+- Lưu thông báo vào MongoDB trước khi gửi, giúp người dùng offline có thể xem lại khi truy cập.
+- Đồng bộ trạng thái đã đọc giữa các tab đang mở. 
 
 ## 12. Hạn chế
 
