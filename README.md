@@ -93,7 +93,7 @@ CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_api_secret
 ```
 
-Thay các giá trị mẫu bằng cấu hình của bạn. Không đưa file `.env` chứa khóa thật lên Git.
+Thay các giá trị mẫu bằng cấu hình của bạn.
 
 ## 6. Database và seed tài khoản
 
