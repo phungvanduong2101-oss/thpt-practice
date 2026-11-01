@@ -12,24 +12,6 @@ Website luyện thi THPT sử dụng Node.js, Express, Pug và MongoDB. Hỗ tr�
 - Nhận thông báo realtime qua Socket.IO.
 - Quản trị môn học, chuyên đề, câu hỏi, đề thi, công thức và người dùng.
 
-## Hình ảnh giao diện
-
-### Trang chủ
-
-![Trang chủ](docs/images/home.png)
-
-### Làm bài
-
-![Giao diện làm bài](docs/images/exam-taking.png)
-
-### Kết quả bài làm
-
-![Kết quả bài làm](docs/images/exam-result.png)
-
-### Soạn câu hỏi
-
-![Soạn câu hỏi](docs/images/question-editor.png)
-
 ## 2. Kiến trúc
 
 ```text
