@@ -1,8 +1,32 @@
 # Hệ thống ôn luyện thi tốt nghiệp THPT
 
 Bài tập lớn môn Lập trình mạng.
-
-## 1. Thông tin dự án
+## Mục lục
+1. [Thông tin dự án](#1-thông-tin-dự-án)
+2. [Tóm tắt dự án](#2-tóm-tắt-dự-án)
+3. [Tổng quan hệ thống](#3-tổng-quan-hệ-thống)
+4. [Kiến trúc hệ thống](#4-kiến-trúc-hệ-thống)
+5. [Thiết kế giao tiếp mạng](#5-thiết-kế-giao-tiếp-mạng)
+6. [Công nghệ sử dụng](#6-công-nghệ-sử-dụng)
+7. [Đóng góp kỹ thuật](#7-đóng-góp-kỹ-thuật)
+8. [Cấu trúc mã nguồn](#8-cấu-trúc-mã-nguồn)
+9. [Yêu cầu môi trường](#9-yêu-cầu-môi-trường)
+10. [Cài đặt và cấu hình](#10-cài-đặt-và-cấu-hình)
+11. [Chạy ứng dụng](#11-chạy-ứng-dụng)
+12. [Các chức năng chính và kiểm thử](#12-các-chức-năng-chính-và-kiểm-thử)
+13. [Thiết lập thực nghiệm](#13-thiết-lập-thực-nghiệm)
+14. [Kết quả thực nghiệm](#14-kết-quả-thực-nghiệm)
+15. [Thảo luận](#15-thảo-luận)
+16. [Hạn chế](#16-hạn-chế)
+17. [Hướng phát triển](#17-hướng-phát-triển)
+18. [Báo cáo](#18-báo-cáo)
+19. [Tài liệu tham khảo](#19-tài-liệu-tham-khảo)
+20. [Phân công và đóng góp](#20-phân-công-và-đóng-góp)
+21. [Demo](#21-demo)
+22. [Nộp bài](#22-nộp-bài)
+23. [Kiểm tra trước khi nộp](#23-kiểm-tra-trước-khi-nộp)
+24. [Liên hệ](#24-liên-hệ)
+# 1. Thông tin dự án
 
 ### 1.1. Tên dự án
 
