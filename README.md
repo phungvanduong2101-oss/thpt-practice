@@ -1,4 +1,4 @@
-# THPT Practice
+# Hệ thống ôn luyện thi tốt nghiệp THPT
 
 Website luyện thi THPT sử dụng Node.js, Express, Pug và MongoDB. Hỗ trợ làm đề, luyện tập theo môn/chuyên đề, soạn đề cá nhân và học tập theo nhóm.
 
