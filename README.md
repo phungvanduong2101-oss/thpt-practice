@@ -238,7 +238,7 @@ Cả hai check đạt 100%. Khi tăng từ 50 lên 100 VUs, throughput gần nh�
 
 
 
-## 11. Novelty / Contributions
+## 11.Contributions
 
 ### 11.1. Bảo toàn dữ liệu bài làm bằng snapshot
 
