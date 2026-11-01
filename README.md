@@ -138,7 +138,6 @@ yarn seed
 
 Mật khẩu được hash bằng bcrypt. Email đã tồn tại sẽ được bỏ qua, không đổi mật khẩu hoặc quyền.
 
-Seed chỉ tạo tài khoản; chưa tạo môn học, câu hỏi và đề thi.
 
 ## 7. Chạy server và client
 
