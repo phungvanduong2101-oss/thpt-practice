@@ -50,7 +50,7 @@ Danh sách dependency đầy đủ nằm trong `package.json`; phiên bản đư
 
 ## 4. Yêu cầu
 
-- Node.js từ 20.19, kèm npm.
+- Node.js từ 20.19.
 - MongoDB local hoặc MongoDB Atlas.
 - Tài khoản Cloudinary để tải ảnh.
 - Yarn nếu muốn sử dụng thay npm.
