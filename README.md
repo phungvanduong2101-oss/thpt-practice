@@ -1,6 +1,4 @@
 # Hệ thống ôn luyện thi tốt nghiệp THPT
-
-Bài tập lớn môn Lập trình mạng.
 ## Mục lục
 1. [Thông tin dự án](#1-thông-tin-dự-án)
 2. [Tóm tắt dự án](#2-tóm-tắt-dự-án)
