@@ -1,0 +1,154 @@
+.hw-columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
+  gap: 24px;
+  align-items: start;
+}
+.hw .hw-fields,
+.hw details form {
+  padding: 22px;
+  display: grid;
+  gap: 16px;
+}
+.hw form label {
+  display: grid;
+  gap: 7px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.hw input:not([type="checkbox"]),
+.hw select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 11px 13px;
+  border: 1px solid #cbd5e1;
+  border-radius: 9px;
+  font: inherit;
+  color: #172b4d;
+  background: white;
+}
+.hw fieldset {
+  min-width: 0;
+  border: 1px solid #dce7f5;
+  border-radius: 10px;
+  padding: 14px;
+  max-height: 270px;
+  overflow: auto;
+}
+.hw fieldset label {
+  display: flex;
+  align-items: center;
+  padding: 6px;
+}
+.hw button,
+.hw summary {
+  cursor: pointer;
+}
+.hw button:not(.gm-button) {
+  padding: 8px 12px;
+  border: 1px solid #cfdef1;
+  background: #edf4ff;
+  color: #175ab7;
+  border-radius: 8px;
+}
+.hw-item,
+.hw-rank {
+  padding: 16px 24px;
+  border-bottom: 1px solid #edf0f5;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.hw-item {
+  align-items: start;
+  flex-direction: column;
+  color: #174c99;
+  text-decoration: none;
+}
+.hw-item:hover {
+  background: #f5f9ff;
+}
+.hw-item small {
+  color: #64748b;
+}
+.hw-rank b {
+  margin-left: auto;
+}
+.hw details {
+  border: 1px solid #e2e8f0;
+  background: white;
+  border-radius: 14px;
+  margin-bottom: 20px;
+}
+.hw summary {
+  padding: 18px;
+  font-weight: 650;
+}
+.hw-stats {
+  grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+}
+.hw progress {
+  display: block;
+  width: 80%;
+  height: 7px;
+  accent-color: #0866ff;
+}
+.hw .gm-table {
+  min-width: 720px;
+}
+.hw img {
+  max-width: 100%;
+}
+
+.hw-pagination{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;padding:18px}
+.hw-pagination a{padding:8px 12px;border:1px solid #dce7f5;border-radius:8px;text-decoration:none;color:#175ab7}
+.hw-pagination a[aria-current=page]{color:white;background:#0866ff;border-color:#0866ff}
+.hw-page-summary{text-align:center;color:#64748b;font-size:13px;padding:14px}
+#hw-progress .gm-table th:nth-child(1){width:22%}
+#hw-progress .gm-table th:nth-child(2){width:16%}
+#hw-progress .gm-table th:nth-child(3){width:14%}
+#hw-progress .gm-table th:nth-child(4){width:20%}
+#hw-progress .gm-table th:nth-child(5){width:20%}
+#hw-progress .gm-table th:nth-child(6){width:8%}
+#hw-progress .gm-table td{width:auto;overflow-wrap:anywhere}
+#hw-progress .gm-table{min-width:900px}
+#hw-progress .gm-table th,#hw-progress .gm-table td{box-sizing:border-box;padding:12px 14px}
+
+.hw-assignment-row{display:flex;align-items:center;gap:16px;padding-right:22px;border-bottom:1px solid #edf0f5}
+.hw-assignment-row .hw-item{flex:1;min-width:0;border-bottom:0;overflow-wrap:anywhere}
+.hw-assignment-row form,.hw-assignment-state{flex-shrink:0}
+.hw-assignment-state{color:#64748b;font-size:13px}
+#work .hw-work-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+#work .hw-work-actions button{display:flex;align-items:center;justify-content:center;width:100%;min-width:0;min-height:46px;margin:0;padding:12px 8px;font-size:14px;border-radius:10px}
+#work .hw-work-actions [data-action=save]{background:#edf4ff;color:#175ab7;border:1px solid #c9dcf7;box-shadow:none}
+#work .hw-work-actions [data-action=save]:hover:not(:disabled){background:#dceaff}
+@media(max-width:480px){.hw-assignment-row{gap:8px;padding-right:12px}.hw-assignment-row .hw-item{padding:16px 12px}.hw-assignment-row .gm-button{padding:10px 12px}}
+/* Student assignment overview and leaderboard */
+.hw-student-overview .gm-card-heading p,.hw-leaderboard .gm-card-heading p{margin:7px 0 0;color:#64748b;font-size:13px;line-height:1.6}
+.hw-student-body{padding:24px}
+.hw-student-metrics{display:grid;grid-template-columns:1fr 1fr 1.4fr;gap:22px;margin-bottom:24px}
+.hw-student-metrics>div{border-right:1px solid #e8eef6;padding-right:20px}
+.hw-student-metrics>div:last-child{border:0}
+.hw-student-metrics span{display:block;color:#64748b;font-size:13px;margin-bottom:10px}
+.hw-student-metrics strong{font-size:28px;color:#175cd3;letter-spacing:-.5px}
+.hw-student-metrics .hw-small-value{font-size:15px;letter-spacing:0;line-height:1.7;color:#334155}
+.hw-state-pill{display:inline-flex;align-items:center;padding:6px 10px;border:1px solid #dbe7f7;border-radius:20px;background:#f1f6fd;color:#285483;font-size:12px;font-weight:600;white-space:nowrap}
+.hw-ranking-table{border-collapse:collapse;width:100%;min-width:600px;text-align:left;font-size:14px}
+.hw-ranking-table th{background:#f8fafd;color:#64748b;font-size:12px;font-weight:650;padding:15px 24px;border-block:1px solid #edf1f7;white-space:nowrap}
+.hw-ranking-table td{padding:18px 24px;border-bottom:1px solid #edf1f7;vertical-align:middle}
+.hw-ranking-table tbody tr:last-child td{border-bottom:0}
+.hw-ranking-table tbody tr:hover{background:#f8fbff}
+.hw-ranking-table th:first-child{width:90px}
+.hw-ranking-table th:nth-child(3){width:130px}
+.hw-ranking-table th:last-child{width:200px}
+.hw-ranking-table .hw-ranking-self{background:#eff6ff}
+.hw-ranking-person{display:flex;align-items:center;gap:12px;min-width:170px}
+.hw-person-avatar{display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:#eaf1fc;color:#175ab7;font-weight:700;flex-shrink:0}
+.hw-you{color:#175cd3;background:#dceaff;border-radius:5px;padding:3px 7px;font-size:11px}
+.hw-rank-number{display:grid;place-items:center;width:32px;height:32px;border-radius:9px;color:#64748b;font-weight:700}
+.hw-rank-1{background:#fff2cb;color:#9a6500}
+.hw-rank-2{background:#eaf0f7;color:#526782}
+.hw-rank-3{background:#fff0e4;color:#ab5e20}
+.hw-ranking-score{font-size:20px;color:#175cd3}
+.hw-ranking-table td small{color:#94a3b8;margin-left:5px;font-size:12px}
+@media(max-width:640px){.hw-student-metrics{grid-template-columns:1fr 1fr;gap:18px}.hw-student-metrics>div:last-child{grid-column:1/-1}.hw-student-metrics>div:nth-child(2){border:0}.hw-student-body{padding:18px}.hw-student-overview .gm-card-heading{align-items:flex-start;flex-wrap:wrap}.hw-ranking-table td,.hw-ranking-table th{padding:14px 16px}}

@@ -1,0 +1,33 @@
+.question-main:has(#questionForm){max-width:1480px;margin-inline:auto}
+.question-main .questions-layout.questions-layout--form.questions-layout--latex{grid-template-columns:minmax(0,1fr) 340px;gap:22px;align-items:start}
+.question-main:has(#questionForm) .question-heading{margin-bottom:24px;gap:18px;align-items:center}
+.question-main:has(#questionForm) .question-heading h1{font-size:28px;letter-spacing:-.6px;line-height:1.4}
+.question-main:has(#questionForm) .question-heading p{font-size:13px;line-height:1.7}
+.question-main .question-editor-panel{border:1px solid #e1e8f2;border-radius:14px;box-shadow:0 4px 16px #243b5304;overflow:hidden}
+.question-main .question-editor-header{padding:22px 26px;background:#fbfcff;border-bottom:1px solid #e8eef6;align-items:center}
+.question-main .question-editor-header h2{font-size:18px;margin:5px 0}
+.question-main .question-editor-header p{font-size:12px;line-height:1.7}
+.question-main #questionForm{padding:24px 26px}
+.question-main #questionForm .editor-section-title{display:flex;align-items:center;gap:10px;margin:26px 0 16px;font-size:14px;line-height:1.5;flex-wrap:wrap}
+.question-main #questionForm .editor-section-title:first-child{margin-top:0}
+.question-main #questionForm .editor-section-title>span{width:28px;height:28px;display:grid;place-items:center;border-radius:7px;background:#edf4ff;color:#175cd3;font-size:11px;flex-shrink:0}
+.question-main #questionForm .question-field-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.question-main #questionForm .field{min-width:0}
+.question-main #questionForm .field>label{display:block;margin-bottom:8px;font-size:12px;font-weight:600;line-height:1.6}
+.question-main #questionForm select,.question-main #questionForm input[type=text]{width:100%;height:42px;box-sizing:border-box;border:1px solid #dbe4f0;border-radius:8px;padding:0 12px;font:inherit;font-size:13px;color:#334155;background:white}
+.question-main #questionForm .field-hint{display:block;margin-top:8px;font-size:11px;line-height:1.7;color:#64748b}
+.question-main #questionForm .ql-toolbar{border-color:#dbe4f0;border-radius:9px 9px 0 0;background:#f8fafd;line-height:1.6;padding:9px}
+.question-main #questionForm .ql-container{border-color:#dbe4f0;border-radius:0 0 9px 9px;font-family:inherit;font-size:14px}
+.question-main #questionForm .ql-editor{line-height:1.8;min-height:130px;padding:16px}
+.question-main #questionForm .option-editor-row{padding:14px;background:#fafcff;border:1px solid #e2eaf5;border-radius:10px;margin-bottom:12px;gap:12px;align-items:flex-start}
+.question-main #questionForm .option-editor-row .ql-editor{min-height:76px;padding:12px}
+.question-main #questionForm .option-editor-row .rich-editor{min-width:0;flex:1}
+.question-main #questionForm .question-form-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:26px;padding-top:20px;border-top:1px solid #e8eef6}
+.question-main #questionForm .question-form-actions .button{min-height:42px;margin:0;padding:10px 16px;display:inline-flex;justify-content:center;align-items:center;font-size:13px;border-radius:8px;box-sizing:border-box}
+.question-main .latex-sidebar{gap:16px;top:20px}
+.question-main .latex-sidebar .panel{border:1px solid #e1e8f2;border-radius:14px;box-shadow:0 4px 16px #243b5304}
+.question-main .latex-library,.question-main .latex-composer{padding:18px}
+.question-main .latex-panel-heading h2{font-size:16px}
+.question-main .latex-hint{font-size:11px;line-height:1.8}
+@media(max-width:1100px){.question-main .questions-layout.questions-layout--form.questions-layout--latex{grid-template-columns:minmax(0,1fr)}.question-main .latex-sidebar{position:static;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}}
+@media(max-width:650px){.question-main .latex-sidebar{grid-template-columns:1fr}.question-main #questionForm{padding:18px}.question-main .question-editor-header{padding:18px}.question-main #questionForm .question-field-grid{grid-template-columns:1fr}.question-main #questionForm .question-form-actions .button{flex:1 1 130px}.question-main:has(#questionForm) .question-heading h1{font-size:24px}.question-main #questionForm .option-editor-row{flex-wrap:wrap}}

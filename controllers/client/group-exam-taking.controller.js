@@ -58,8 +58,8 @@ module.exports.index = async (req, res, next) => {
   } catch (error) { return next(error); }
 };
 
-async function loadExam(req) {
-  const exam = await Exam.findOne({ _id: req.params.examId, groupIds: req.group._id, scope: 'personal', status: "published" })
+async function loadExam(req, access = { groupIds: req.group._id }) {
+  const exam = await Exam.findOne({ _id: req.params.examId, ...access, scope: 'personal', status: "published" })
     .populate("subjectId", "name active").lean();
   if (!exam || !exam.subjectId?.active) return null;
   const records = await Question.find({
@@ -133,3 +133,4 @@ module.exports.start = async (req, res, next) => {
     return next(error);
   }
 };
+module.exports.loadExam = loadExam;

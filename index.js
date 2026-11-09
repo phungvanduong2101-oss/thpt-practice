@@ -58,6 +58,13 @@ async function startServer() {
   try {
     await mongoose.connect(process.env.MONGO_URI);
     console.log("Đã kết nối MongoDB");
+    await require("./models/homework.model").Work.createIndexes();
+    const sweep = async () => {
+      try { await require("./services/homework").closeExpired(); }
+      catch (error) { console.error("Chốt bài tập:", error); }
+      finally { setTimeout(sweep, 30000).unref(); }
+    };
+    void sweep();
 
     server.listen(3000, () => {
       console.log("Server đang chạy tại http://localhost:3000");

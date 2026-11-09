@@ -26,18 +26,24 @@ block content
             button(type="submit" disabled=!subjects.length) Xem
       .history-stats
         .history-stat
-          span Bài đã hoàn thành
+          .history-stat-label
+            i(data-lucide="clipboard-check" aria-hidden="true")
+            span Bài đã hoàn thành
           strong= totalItems
           small= selectedSubject ? selectedSubject.name : "Chưa có môn học"
         .history-stat.history-stat--blue
-          span Điểm trung bình
+          .history-stat-label
+            i(data-lucide="chart-no-axes-column-increasing" aria-hidden="true")
+            span Điểm trung bình
           strong
             = averageScore === null ? "—" : averageScore.toFixed(2)
             if averageScore !== null
               em /10
           small Tính trên tất cả bài đã nộp của môn
         .history-stat
-          span Điểm cao nhất
+          .history-stat-label
+            i(data-lucide="trophy" aria-hidden="true")
+            span Điểm cao nhất
           strong
             = bestScore === null ? "—" : bestScore.toFixed(2)
             if bestScore !== null
@@ -59,14 +65,31 @@ block content
                   th(scope="col") Chi tiết
               tbody
                 each attempt in attempts
+                  - const ratio = attempt.maxScore > 0 ? Math.max(0, Math.min(1, Number(attempt.score) / attempt.maxScore)) : 0;
+                  - const submitted = new Date(attempt.submittedAt);
                   tr
-                    td.history-exam-title= attempt.examTitle
-                    td= attempt.totalQuestions
+                    td.history-exam-title
+                      .history-exam-identity
+                        span.history-exam-icon(aria-hidden="true")
+                          i(data-lucide="file-check-2")
+                        div
+                          a.history-title-link(href="/exams/" + attempt._id + "/result")= attempt.examTitle
+                          small= selectedSubject ? selectedSubject.name : ""
                     td
-                      span.history-score #{Number(attempt.score).toFixed(2)}/#{attempt.maxScore}
-                    td= new Date(attempt.submittedAt).toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh", hour12: false })
+                      span.history-question-count #{attempt.totalQuestions} câu
                     td
-                      a.history-review(href="/exams/" + attempt._id + "/result") Xem lại
+                      .history-score-block
+                        span.history-score
+                          b= Number(attempt.score).toFixed(2)
+                          small /#{attempt.maxScore}
+                        progress(value=ratio max="1" aria-label="Tỷ lệ điểm đạt")
+                    td
+                      .history-date= submitted.toLocaleDateString("vi-VN", {timeZone:"Asia/Ho_Chi_Minh"})
+                      small.history-time= submitted.toLocaleTimeString("vi-VN", {timeZone:"Asia/Ho_Chi_Minh",hour:"2-digit",minute:"2-digit",hour12:false})
+                    td
+                      a.history-review(href="/exams/" + attempt._id + "/result")
+                        | Xem kết quả
+                        i(data-lucide="arrow-up-right" aria-hidden="true")
           .history-pagination-row
             p Hiển thị #{startItem}–#{endItem} trong #{totalItems} bài làm
             if totalPages > 1

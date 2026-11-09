@@ -12,8 +12,8 @@ block content
           span Khám phá nhóm
 
         span.gc-eyebrow KẾT NỐI VÀ CÙNG TIẾN BỘ
-        h1 Tạo nhóm học tập
-        p Xây dựng không gian riêng để cùng ôn luyện và chia sẻ kiến thức.
+        h1 Sửa thông tin nhóm
+        p Cập nhật tên, mô tả và thiết lập tham gia của nhóm.
 
     .container.gc-content
       section.gc-card(aria-labelledby="groupFormTitle")
@@ -23,12 +23,12 @@ block content
 
           div
             h2#groupFormTitle Thông tin nhóm
-            p Bạn sẽ là trưởng nhóm sau khi tạo thành công.
+            p Các thay đổi được áp dụng sau khi lưu.
 
         if error
           .gc-error(role="alert")= error
 
-        form.gc-form(action="/groups/" + groupId + "/edit" method="POST")
+        form#groupEditForm.gc-form(action="/groups/" + groupId + "/edit" method="POST")
           .gc-field
             label(for="groupName")
               | Tên nhóm
@@ -72,12 +72,14 @@ block content
                 small Người dùng có thể gửi yêu cầu và chờ bạn duyệt.
 
           .gc-actions
-            a.gc-button.gc-button--secondary(href="/groups")
+            a.gc-button.gc-button--secondary(href="/groups/" + groupId)
               | Hủy
 
             button.gc-button.gc-button--primary(
               type="submit"
            
             )
-              i(data-lucide="plus" aria-hidden="true")
+              i(data-lucide="save" aria-hidden="true")
               span Cập nhật nhóm
+block scripts
+  script(src="/client/js/group-edit.js" defer)

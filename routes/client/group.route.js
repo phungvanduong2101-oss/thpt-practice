@@ -62,6 +62,9 @@ router.get("/:id/edit",authMiddleware.requireAuth ,groupController.edit);
 router.post("/:id/edit",authMiddleware.requireAuth,groupController.editPatch);
 router.use("/:id/exams", require("./group-exam.route"));
 
+router.post("/:id/leave", authMiddleware.requireAuth, groupController.leave);
+router.post("/:id/delete", authMiddleware.requireAuth, groupController.deleteGroup);
+
 router.get("/:id", groupController.detail);
 
 module.exports = router;

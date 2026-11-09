@@ -1,0 +1,76 @@
+if owner
+  .gm-summary.hw-stats
+    each state in ['Chưa làm','Đang làm','Đã nộp','Chốt do hết hạn']
+      .gm-stat
+        span= state
+        strong= rows.filter(r=>!r.revoked && r.state===state).length
+  each withdrawn in [false,true]
+    - const students=rows.filter(r=>r.revoked===withdrawn)
+    if students.length || !withdrawn
+      section.gm-card
+        .gm-card-heading
+          h2= withdrawn?'Đã thu hồi':'Tiến độ học sinh'
+          span.gm-count= students.length
+        .gm-table-wrap
+          table.gm-table
+            thead
+              tr
+                each label in ['Học sinh','Trạng thái','Đã trả lời','Lưu gần nhất','Nộp / chốt','Điểm']
+                  th= label
+            tbody
+              each r in students
+                - const answered=Object.keys((r.w && r.w.draft)||{}).length
+                tr
+                  td: strong= r.name
+                  td= r.state
+                  td
+                    span #{answered}/#{a.questions.length}
+                    progress(value=answered max=a.questions.length)
+                  td= fmt(r.w && r.w.savedAt)
+                  td= fmt(r.w && r.w.submittedAt)
+                  td
+                    if r.w && r.w.status==='submitted'
+                      a(href=url+'/result/'+r.id)= r.w.score
+                    else
+                      | —
+if visible
+  section.gm-card.hw-leaderboard
+    .gm-card-heading
+      div
+        h2 Bảng xếp hạng
+        p Xếp theo điểm đạt · Các bài bằng điểm được đồng hạng
+      span.gm-count= ranked.length
+    if ranked.length
+      .gm-table-wrap
+        table.hw-ranking-table
+          thead
+            tr
+              th(scope="col") Hạng
+              th(scope="col") Học sinh
+              th(scope="col") Điểm
+              th(scope="col") Trạng thái
+          tbody
+            each r in ranked
+              - const isMe = typeof myRow !== 'undefined' && myRow && String(myRow.id)===String(r.id)
+              tr(class=isMe?'hw-ranking-self':undefined)
+                td
+                  span.hw-rank-number(class=r.rank<=3?'hw-rank-top hw-rank-'+r.rank:undefined)= r.rank
+                td
+                  .hw-ranking-person
+                    span.hw-person-avatar(aria-hidden="true")= (r.name || '?').trim().charAt(0).toUpperCase()
+                    strong= r.name
+                    if isMe
+                      span.hw-you Bạn
+                td
+                  strong.hw-ranking-score= r.w.score
+                  small / #{a.maxScore}
+                td
+                  span.hw-state-pill= r.state
+    else
+      .gm-empty
+        p Chưa có bài đã chấm để xếp hạng.
+else if !owner
+  section.gm-card
+    .gm-card-heading
+      h2 Bảng xếp hạng
+    p.gm-empty Bảng xếp hạng sẽ mở sau hạn nộp.

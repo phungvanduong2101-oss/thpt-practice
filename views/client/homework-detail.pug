@@ -1,0 +1,40 @@
+extends homework-layout
+block homework
+  if owner && available
+    details
+      summary Quản lý người nhận và hạn nộp
+      form(action=url+'/recipients' method="post" data-homework-action)
+        input(type="hidden" name="version" value=a.__v)
+        include homework-people
+        button Cập nhật người nhận
+      form(action=url+'/extend' method="post" data-homework-action)
+        label Hạn mới (giờ Việt Nam)
+          input(type="datetime-local" required name="due")
+        button Gia hạn
+  if myRow && !myRow.revoked
+    section.gm-card.hw-student-overview
+      .gm-card-heading
+        div
+          h2 Bài tập của bạn
+          p= available ? "Hoàn thành và lưu bài trước hạn nộp." : "Bài tập đã kết thúc."
+        span.hw-state-pill= myRow.state
+      .hw-student-body
+        .hw-student-metrics
+          div
+            span Điểm đạt
+            strong= myRow.w && myRow.w.score != null ? myRow.w.score + " / " + a.maxScore : "—"
+          div
+            span Đã trả lời
+            strong #{Object.keys((myRow.w && myRow.w.draft) || {}).length} / #{a.questions.length}
+          div
+            span Lưu gần nhất
+            strong.hw-small-value= fmt(myRow.w && myRow.w.savedAt)
+        if available && (!myRow.w || myRow.w.status==='in_progress')
+          form(action=url+'/start' method="post" data-homework-action)
+            button.gm-button.gm-button--primary= myRow.w ? 'Làm tiếp' : 'Làm bài'
+        if visible && myRow.w && myRow.w.status==='submitted'
+          a.gm-button.gm-button--primary(href=url+'/result/'+myRow.id) Xem chi tiết bài làm
+        else if !available && myRow.w && myRow.w.status==='in_progress'
+          p.hw-page-summary Hệ thống đang chốt kết quả. Vui lòng tải lại sau ít giây.
+  #hw-progress(data-assignment=owner?a._id:undefined)
+    include partials/homework-progress

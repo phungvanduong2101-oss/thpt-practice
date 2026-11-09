@@ -9,8 +9,6 @@ mixin adminNavItem(url, label, icon, key)
     svg.icon(aria-hidden="true")
       use(href="#" + icon)
     |  #{label}
-    if currentNav === key
-      span.sidebar-link__pill Đang mở
 
 aside#sidebar.sidebar(aria-label="Điều hướng quản trị")
   a.sidebar-brand(

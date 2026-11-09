@@ -268,3 +268,8 @@
 .gd-join-card > .gd-button {
   margin-top: 12px;
 }
+.gd-button--danger{background:#fff1f2;color:#be123c;border:1px solid #fecdd3}
+.gd-button--danger:hover{background:#ffe4e6;border-color:#fda4af}
+
+.gd-join-card form:has(.gd-button--danger){margin-top:20px;padding-top:16px;border-top:1px solid #edf0f5}
+.gd-join-card .gd-button--danger{width:100%;justify-content:center}

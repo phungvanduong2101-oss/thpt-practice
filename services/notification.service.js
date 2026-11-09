@@ -16,7 +16,7 @@ module.exports.send = async (io, {
     link,
   });
 
-  io.to(`account:${String(recipientId)}`).emit(
+  io?.to(`account:${String(recipientId)}`).emit(
     "notification:new",
     {
       _id: notification._id,

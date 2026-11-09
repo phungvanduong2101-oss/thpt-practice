@@ -4,6 +4,7 @@ const { Schema } = mongoose;
 
 const groupSchema = new Schema(
   {
+    deletedAt: { type: Date, default: null },
     name: {
       type: String,
       required: true,
@@ -60,5 +61,10 @@ const groupSchema = new Schema(
   },
   { timestamps: true }
 );
+
+// Include older documents without deletedAt while hiding deleted groups from all queries.
+groupSchema.pre(/^(find|count|update)/, function () {
+  this.where({ deletedAt: null });
+});
 
 module.exports = mongoose.model("Group", groupSchema, "groups");

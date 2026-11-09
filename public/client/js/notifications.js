@@ -189,7 +189,7 @@
     return;
   }
 
-  const socket = window.io();
+  const socket = window.notificationSocket = window.io();
 
   socket.on('connect', () => {
     connection.textContent = 'Đã kết nối';

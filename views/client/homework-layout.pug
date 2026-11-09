@@ -1,0 +1,18 @@
+extends layouts/default
+block styles
+  link(rel="stylesheet" href="/client/css/group-manage.css")
+  link(rel="stylesheet" href="/client/css/homework.css")
+  link(rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css")
+block content
+  .gm-page.hw
+    section.gm-hero
+      .container
+        a.gm-back(href=typeof url!=='undefined'?base:base.replace('/homework','')) ← Quay lại
+        h1= typeof a!=='undefined'?a.title:(typeof attempt!=='undefined'?attempt.examTitle:'Bài tập về nhà')
+        if typeof a!=='undefined'
+          p.gm-group-name Hạn nộp #{fmt(a.due)} · Giờ Việt Nam
+    .container.gm-content
+      block homework
+block scripts
+  script(src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" defer)
+  script(src="/client/js/homework.js" defer)

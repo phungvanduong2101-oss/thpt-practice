@@ -4,6 +4,7 @@ block styles
   link(rel="stylesheet" href="/client/css/exam-taking.css")
   link(rel="stylesheet" href="/client/css/exam-taking-extra.css")
   link(rel="stylesheet" href="/client/css/exam-result.css")
+  link(rel="stylesheet" href="/client/css/homework-result.css")
   link(
     rel="stylesheet"
     href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css"
@@ -14,6 +15,7 @@ block styles
   )
 
 block content
+  - const isHomework = typeof homeworkResult !== "undefined" && homeworkResult;
   - const questions = attempt.questions || [];
   - const answers = attempt.answers || [];
   - const count = questions.length;
@@ -63,7 +65,7 @@ block content
   - const incorrectCount = rows.filter(row => row.answered && !row.correct).length;
   - const unansweredCount = count - answeredCount;
 
-  .exam-result-main
+  .exam-result-main(class=isHomework ? "homework-result" : undefined)
     section.et-hero(aria-labelledby="resultTitle")
       .container
         .er-heading
@@ -71,14 +73,18 @@ block content
             span.et-hero__badge KẾT QUẢ BÀI LÀM
             h1#resultTitle.et-hero__title= attempt.examTitle
             p.et-hero__desc
-              | Xem lại câu trả lời, đáp án đúng và lời giải.
+              if isHomework
+                | Học sinh: #{studentName}
+              else
+                | Xem lại câu trả lời, đáp án đúng và lời giải.
 
           .er-heading-actions
             a.er-button.er-button--secondary(href=listUrl)
-              | Danh sách đề
-            a.er-button.er-button--primary(
-              href=retryUrl
-            ) Làm lại
+              = isHomework ? "Quay lại bài tập" : "Danh sách đề"
+            if !isHomework
+              a.er-button.er-button--primary(
+                href=retryUrl
+              ) Làm lại
 
         section.er-stats(aria-label="Thống kê kết quả")
           .er-stat.er-stat--score
@@ -105,7 +111,7 @@ block content
 
         if attempt.submittedAt
           p.er-submitted
-            | Nộp lúc: 
+            = isHomework && attempt.expired ? "Chốt do hết hạn lúc: " : "Nộp lúc: "
             = new Date(attempt.submittedAt).toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" })
 
     .et-body.container
@@ -130,6 +136,11 @@ block content
                 span.et-q-num-badge Câu #{index + 1}
                 span.et-type-badge= typeNames[question.type] || question.type
 
+              .hw-result-question-meta
+                if isHomework
+                  - const grade = answers.find(item => String(item.questionId) === row.qid)
+                  if grade
+                    span.hw-result-points #{Number(grade.score.toFixed(2))}/#{Number(grade.maxScore.toFixed(2))} điểm
               span.er-status(class="er-status--" + row.state)
                 if row.correct
                   | Đúng
@@ -162,13 +173,13 @@ block content
 
                       .er-option-tags
                         if selected
-                          span.er-tag Bạn chọn
+                          span.er-tag= isHomework ? "Học sinh chọn" : "Bạn chọn"
                         if right
                           span.er-tag.er-tag--correct Đáp án đúng
 
               .er-answer-summary
                 p
-                  strong Bạn chọn: 
+                  strong= isHomework ? "Học sinh chọn: " : "Bạn chọn: "
                   = row.answered ? answer : "Chưa trả lời"
                 p
                   strong Đáp án đúng: 
@@ -195,7 +206,7 @@ block content
 
                     .er-statement-answers
                       span
-                        strong Bạn chọn: 
+                        strong= isHomework ? "Học sinh chọn: " : "Bạn chọn: "
                         = hasAnswer ? (selected ? "Đúng" : "Sai") : "Chưa trả lời"
 
                       span
@@ -207,7 +218,7 @@ block content
                 .er-fill-answer(
                   class=row.correct ? "er-fill-answer--correct" : row.answered ? "er-fill-answer--incorrect" : ""
                 )
-                  span Đáp án của bạn
+                  span= isHomework ? "Học sinh trả lời" : "Đáp án của bạn"
                   strong= row.answered ? answer : "Chưa trả lời"
 
                 .er-fill-answer.er-fill-answer--correct
@@ -245,18 +256,19 @@ block content
               )= index + 1
 
         .et-sidebar-card
-          h2.et-sidebar-title Bài làm của bạn
+          h2.et-sidebar-title= isHomework ? "Bài làm của " + studentName : "Bài làm của bạn"
           p.er-sidebar-summary Đã trả lời #{answeredCount}/#{count} câu.
           p.er-sidebar-note
             | Câu Đúng/Sai được tính đúng cả câu khi trả lời đúng tất cả mệnh đề.
 
-          a.er-button.er-button--primary.er-button--full(
-            href=retryUrl
-          ) Làm lại đề này
+          if !isHomework
+            a.er-button.er-button--primary.er-button--full(
+              href=retryUrl
+            ) Làm lại đề này
 
           a.er-button.er-button--secondary.er-button--full(
             href=listUrl
-          ) Quay lại danh sách đề
+          )= isHomework ? "Quay lại bài tập" : "Quay lại danh sách đề"
 
 block scripts
   script(

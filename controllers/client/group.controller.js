@@ -205,7 +205,7 @@ module.exports.edit = async (req, res, next) => {
 
 
     return res.render("client/group-edit", {
-      title: "Tạo nhóm học tập",
+      title: "Sửa thông tin nhóm",
       activePage: "groups",
       error: "",
       formData: {
@@ -220,29 +220,42 @@ module.exports.edit = async (req, res, next) => {
   }
 };
 
-module.exports.editPatch = async (req, res, next) => {  
-  try {
-    const { id } = req.params;
-    const existingGroup = await Group.findById(id).lean();
-    if (!existingGroup) {
-      return res.status(404).send("Không tìm thấy nhóm.");
-    }
-    if (String(existingGroup.ownerId) !== String(req.account._id)) {
-      return res.status(403).send("Bạn không có quyền quản lý nhóm.");
-    }
-
-    existingGroup.name = req.body.name;
-    existingGroup.description = req.body.description;
-    existingGroup.acceptingMembers = req.body.acceptingMembers;
-
-    await Group.findByIdAndUpdate(existingGroup._id, existingGroup);
-    return res.redirect(
-      `/groups/${req.params.id}?message=${encodeURIComponent("Cập nhật nhóm thành công!")}`
-    );
-  } catch (error) {
-    return next(error);
+module.exports.editPatch = async (req, res, next) => {
+  const json = req.get("Accept")?.includes("application/json");
+  const formData = {
+    name: typeof req.body.name === "string" ? req.body.name.trim() : "",
+    description: typeof req.body.description === "string" ? req.body.description.trim() : "",
+    acceptingMembers: req.body.acceptingMembers === "true" || req.body.acceptingMembers === true,
+  };
+  function failure(status, message) {
+    if (json) return res.status(status).json({ message });
+    return res.status(status).render("client/group-edit", {
+      title: "Sửa thông tin nhóm", activePage: "groups", error: message,
+      formData, groupId: req.params.id,
+    });
   }
-}
+  try {
+    const group = await Group.findById(req.params.id).lean();
+    if (!group) return failure(404, "Không tìm thấy nhóm.");
+    if (String(group.ownerId) !== String(req.account._id))
+      return failure(403, "Bạn không có quyền sửa nhóm.");
+    if (!formData.name || formData.name.length > 100 || formData.description.length > 1000)
+      return failure(400, "Tên nhóm cần từ 1–100 ký tự, mô tả tối đa 1.000 ký tự.");
+    const updated = await Group.findOneAndUpdate(
+      { _id: group._id, ownerId: req.account._id },
+      { $set: formData }, { new: true, runValidators: true }
+    );
+    if (!updated) return failure(409, "Nhóm không còn khả dụng.");
+    const redirectUrl = "/groups/" + group._id;
+    if (json) return res.json({ message: "Cập nhật nhóm thành công!", redirectUrl });
+    return res.redirect(303, redirectUrl + "?message=" + encodeURIComponent("Cập nhật nhóm thành công!"));
+  } catch (error) {
+    if (error.name === "CastError") return failure(400, "ID nhóm không hợp lệ.");
+    if (error.name === "ValidationError") return failure(400, "Thông tin nhóm không hợp lệ.");
+    console.error("Không cập nhật được nhóm:", error);
+    return failure(500, "Cập nhật thất bại. Vui lòng thử lại.");
+  }
+};
 module.exports.detail = async (req, res, next) => {
   try {
     const group = await Group.findById(req.params.id)
@@ -667,5 +680,30 @@ module.exports.myGroups = async (req, res, next) => {
     });
   } catch (error) {
     next(error);
+  }
+};
+module.exports.leave = async (req, res, next) => {
+  try {
+    const group = await Group.findOneAndUpdate({
+      _id: req.params.id, ownerId: { $ne: req.account._id }, memberIds: req.account._id
+    }, { $pull: { memberIds: req.account._id, pendingMemberIds: req.account._id } });
+    if (!group) return res.status(403).send("Bạn không phải thành viên hoặc đang là chủ nhóm.");
+    return res.redirect(303, "/groups/my");
+  } catch (error) {
+    if (error.name === "CastError") return res.status(400).send("ID nhóm không hợp lệ.");
+    return next(error);
+  }
+};
+
+module.exports.deleteGroup = async (req, res, next) => {
+  try {
+    const group = await Group.findOneAndUpdate({
+      _id: req.params.id, ownerId: req.account._id
+    }, { $set: { deletedAt: new Date(), status: "inactive", acceptingMembers: false } });
+    if (!group) return res.status(403).send("Chỉ chủ nhóm được xóa nhóm.");
+    return res.redirect(303, "/groups/my");
+  } catch (error) {
+    if (error.name === "CastError") return res.status(400).send("ID nhóm không hợp lệ.");
+    return next(error);
   }
 };

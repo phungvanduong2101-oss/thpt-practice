@@ -19,6 +19,10 @@ block content
       if message
         .gm-message(role="status")= message
 
+      if group.status === "active"
+        .gm-actions
+          a.gm-button.gm-button--primary(href="/groups/" + group._id + "/homework") Giao bài tập về nhà
+
       .gm-summary
         .gm-stat
           span Thành viên

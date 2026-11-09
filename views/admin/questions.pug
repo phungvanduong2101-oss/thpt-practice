@@ -152,9 +152,9 @@ block content
                       selected=String(level) === bloomLevel
                     )= level + " · " + bloomLabel
 
-          .form-actions
-            button.button.button--primary(type="submit") Tìm kiếm
-            a.button.button--secondary(href="/admin/questions") Đặt lại
+            .form-actions.question-filter-actions
+              button.button.button--primary(type="submit") Tìm kiếm
+              a.button.button--secondary(href="/admin/questions") Đặt lại
 
         #questionList.question-list(aria-live="polite")
           each question, index in questions

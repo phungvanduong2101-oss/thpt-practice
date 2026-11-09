@@ -425,3 +425,68 @@
 .group-question-page .questions-layout.questions-layout--list,.group-question-page .questions-layout.questions-layout--form{grid-template-columns:minmax(0,1fr)}
 .group-question-page .questions-layout--list .question-list-panel{position:static}
 .group-question-page .questions-layout--form{max-width:1100px;margin:0 auto}
+
+/* Matched search and reset controls in the question list toolbar. */
+.question-toolbar .question-filter-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 14px 0 0;
+  padding: 0;
+  width: 100%;
+}
+.question-toolbar .question-filter-actions .button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  height: 40px;
+  margin: 0;
+  padding: 0 16px;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+/* Dropdowns and actions share one row on desktop. */
+.question-toolbar .question-filters {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) auto;
+  align-items: center;
+}
+.question-toolbar .question-filters .question-filter-actions {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+  width: auto;
+}
+.question-toolbar .question-filter-actions .button {
+  width: auto;
+  min-width: 90px;
+  height: 40px;
+  min-height: 40px;
+  padding-inline: 14px;
+}
+.question-toolbar .question-filters select {
+  height: 40px;
+}
+@media (max-width: 900px) {
+  .question-toolbar .question-filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .question-toolbar .question-filters .question-filter-actions {
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+  }
+}
+@media (max-width: 480px) {
+  .question-toolbar .question-filter-actions .button {
+    flex: 1;
+  }
+}

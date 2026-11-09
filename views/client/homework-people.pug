@@ -1,0 +1,8 @@
+fieldset
+  legend Học sinh nhận bài
+  button(type="button" data-select="all") Chọn tất cả
+  button(type="button" data-select="none") Bỏ chọn tất cả
+  each p in people
+    label
+      input(type="checkbox" name="students" value=p._id checked=(typeof a !== 'undefined' && a.recipients.some(id=>String(id)===String(p._id))))
+      |  #{p.fullName}

@@ -1,0 +1,35 @@
+extends exam-taking
+append styles
+  link(rel="stylesheet" href="/client/css/homework.css")
+block content
+  - const questions=w.questions, homeworkDraft=w.draft || {}, typeNames={mcq:'Trắc nghiệm ABCD',truefalse:'Đúng / Sai',fill:'Điền đáp số'}
+  .exam-taking-main#work(data-url=url data-version=w.__v data-due=due.toISOString())
+    section.et-hero
+      .container.et-hero__inner
+        .et-hero__info
+          a.et-hero__badge(href=url) Bài tập về nhà
+          h1.et-hero__title= w.examTitle
+          p.et-hero__desc #{questions.length} câu · Hạn nộp #{fmt(due)}
+          strong#clock.et-timer-digits
+    .et-body.container
+      section.et-questions
+        include partials/exam-questions
+      aside.et-sidebar
+        .et-sidebar-card
+          h2.et-sidebar-title Danh sách câu hỏi
+          .et-nav-grid
+            each q,i in questions
+              a.et-nav-btn(href='#question-'+q.questionId data-jump=q.questionId)= i+1
+        .et-sidebar-card
+          h2.et-sidebar-title Tiến độ
+          p#workCount.et-progress-count
+          p#notice.et-save-status(role="status")
+          .hw-work-actions
+            button.et-btn-start(type="button" data-action="save") Lưu bài
+            button.et-btn-submit(type="button" data-action="submit") Nộp bài
+        .et-sidebar-card.et-tips-card
+          strong Lưu ý
+          p Chỉ phần đã lưu hoặc nộp trước hạn mới được chấm.
+block scripts
+  script(src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" defer)
+  script(src="/client/js/homework.js" defer)

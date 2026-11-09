@@ -3,6 +3,7 @@ extends layouts/default.pug
 block styles
   link(rel="stylesheet" href="/client/css/groups.css")
   link(rel="stylesheet" href="/client/css/groups-extra.css")
+  link(rel="stylesheet" href="/client/css/group-browse.css")
 
 block content
   -
@@ -56,22 +57,6 @@ block content
         )
 
       .group-filter-selects
-        .group-select-wrap
-          i.group-select-icon(
-            data-lucide="book-open"
-            aria-hidden="true"
-          )
-
-          label.sr-only(for="filterGroupSubject")
-            | Lọc theo môn học
-
-          
-
-          i.group-select-chevron(
-            data-lucide="chevron-down"
-            aria-hidden="true"
-          )
-
         .group-select-wrap
           i.group-select-icon(
             data-lucide="activity"
@@ -143,109 +128,36 @@ block content
 
   section.group-list-section(aria-label="Danh sách nhóm học tập")
     .container.group-list-inner
-      .group-table-card
-        h2.group-table-title Danh sách nhóm
-
-        if groups.length
-          .group-table-wrap(
-            role="region"
-            aria-label="Bảng danh sách nhóm"
-            tabindex="0"
-          )
-            table.group-table
-              thead
-                tr
-                  th.group-th.group-th--name(scope="col")
-                    | Tên nhóm
-
-                  th.group-th(scope="col")
-                    | Trưởng nhóm
-
-                  th.group-th.group-th--desc(scope="col")
-                    | Mô tả
-
-                  th.group-th.group-th--members(scope="col")
-                    | Thành viên
-
-                  th.group-th.group-th--status(scope="col")
-                    | Trạng thái
-
-                  th.group-th.group-th--action(scope="col")
-                    | Hành động
-
-              tbody
-                each group in groups
-                  tr
-                    td
-                      .group-cell-scroll(
-                        tabindex="0"
-                        role="region"
-                        aria-label="Tên nhóm"
-                      )
-                        strong= group.name
-
-
-                    td
-                      .group-cell-scroll(
-                        tabindex="0"
-                        role="region"
-                        aria-label="Trưởng nhóm"
-                      )
-                        if group.ownerId
-                          = group.ownerId.fullName
-                        else
-                          | Tài khoản không còn tồn tại
-
-                    td
-                      .group-cell-scroll.group-cell-scroll--description(
-                        tabindex="0"
-                        role="region"
-                        aria-label="Mô tả nhóm"
-                      )
-                        if group.description
-                          = group.description
-                        else
-                          | Chưa có mô tả
-
-                    td
-                      .group-cell-scroll
-                        if group.memberIds
-                          = group.memberIds.length
-                        else
-                          | 0
-
-                    td
-                      .group-cell-scroll(
-                        tabindex="0"
-                        role="region"
-                        aria-label="Trạng thái nhóm"
-                      )
-                        if group.status === "active"
-                          div Đang hoạt động
-
-                          if group.acceptingMembers
-                            small Đang nhận thành viên
-                          else
-                            small Đã đóng đăng ký
-                        else
-                          div Ngừng hoạt động
-
-                    td
-                      a.group-detail-link(
-                        href="/groups/" + group._id
-                      ) Xem nhóm
-        else
-          .group-empty
-            i.group-empty__icon(
-              data-lucide="users-round"
-              aria-hidden="true"
-            )
-
-            p.group-empty__title
-              | Không tìm thấy nhóm học tập
-
-            p.group-empty__desc
-              | Thử thay đổi từ khóa hoặc bộ lọc để tìm nhóm phù hợp.
+      .discover-results-heading
+        h2 Nhóm học tập
+        span #{totalItems} nhóm
+      if groups.length
+        .discover-grid
+          each group in groups
+            article.discover-card
+              .discover-card-top
+                span.discover-avatar(aria-hidden="true")
+                  i(data-lucide="users")
+                span.discover-status(class=group.status==='active'?'is-active':'')
+                  = group.status==='active' ? (group.acceptingMembers?'Đang nhận thành viên':'Đã đóng đăng ký') : 'Ngừng hoạt động'
+              h2
+                a(href="/groups/"+group._id)= group.name
+              p.discover-description= group.description || "Nhóm chưa có mô tả."
+              .discover-meta
+                span
+                  i(data-lucide="user-round" aria-hidden="true")
+                  = group.ownerId ? group.ownerId.fullName : "Tài khoản không còn tồn tại"
+                span
+                  i(data-lucide="users-round" aria-hidden="true")
+                  | #{(group.memberIds || []).length} thành viên
+              a.discover-open(href="/groups/"+group._id)
+                | Xem nhóm
+                i(data-lucide="arrow-right" aria-hidden="true")
+      else
+        .group-empty
+          i.group-empty__icon(data-lucide="users-round" aria-hidden="true")
+          p.group-empty__title Không tìm thấy nhóm học tập
+          p.group-empty__desc Thử thay đổi từ khóa hoặc bộ lọc để tìm nhóm phù hợp.
 
       if totalItems > 0
         p.group-list-summary

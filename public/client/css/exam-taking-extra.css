@@ -174,3 +174,25 @@
 .et-save-status[data-state="error"] {
   color: #b45309;
 }
+/* True/false statements in the shared question component */
+.exam-taking-main .et-tf-list{gap:18px;margin-top:18px}
+.exam-taking-main .et-tf-row{position:relative;padding:18px;border:1px solid #dce5f1;border-radius:12px;background:#fff;transition:border-color .15s}
+.exam-taking-main .et-tf-legend{padding:0 8px;color:#526783;font-size:12px;font-weight:650}
+.exam-taking-main .et-tf-content{display:flex;gap:12px;margin-bottom:18px;align-items:flex-start}
+.exam-taking-main .et-tf-content>.et-option-key{display:grid;place-items:center;min-width:28px;height:28px;border-radius:7px;background:#edf4ff;color:#175cd3;font-size:13px}
+.exam-taking-main .et-tf-content .et-rich{min-width:0;flex:1;line-height:1.8;padding:0;overflow-wrap:anywhere}
+.exam-taking-main .et-tf-content .et-rich p:last-child{margin-bottom:0}
+.exam-taking-main .et-tf-content .et-rich img{max-width:100%;height:auto}
+.exam-taking-main .et-tf-row .et-options-tf{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));max-width:none;width:100%;gap:10px;margin:0;padding-top:14px;border-top:1px solid #edf1f7}
+.exam-taking-main .et-options-tf .et-option-label{display:flex;align-items:center;justify-content:center;gap:9px;min-height:44px;padding:10px 14px;border:1px solid #dce5f1;background:#f9fbfe;border-radius:9px;margin:0;font-size:13px;font-weight:600;box-sizing:border-box;transition:background .15s,border-color .15s}
+.exam-taking-main .et-options-tf .et-option-label:has(input:checked){background:#edf4ff;border-color:#76a9fa;color:#175cd3;box-shadow:0 0 0 1px #76a9fa}
+.exam-taking-main .et-options-tf .et-option-label:has(input:focus-visible){outline:3px solid #b6d4fe;outline-offset:3px}
+.exam-taking-main .et-options-tf .et-option-label:has(input:checked) .et-radio-circle{border-color:#175cd3;background:#175cd3}
+.exam-taking-main .et-options-tf .et-option-label:has(input:checked) .et-radio-circle::after{transform:scale(1);background:#fff}
+.exam-taking-main .et-tf-row:has(input:checked){border-color:#b5cff4}
+.exam-taking-main .et-options-tf .et-option-label--disabled{opacity:.6}
+@media(max-width:600px){
+.exam-taking-main .et-tf-row{padding:12px}
+.exam-taking-main .et-tf-content{gap:9px;margin-bottom:14px}
+.exam-taking-main .et-options-tf .et-option-label{min-height:46px;padding:10px}
+}

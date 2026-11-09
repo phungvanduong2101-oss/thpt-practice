@@ -87,6 +87,9 @@ block content
               href="/groups/" + group._id + "/exams/manage"
             ) Chia sẻ đề thi vào nhóm
 
+            if group.status === "active"
+              a.gd-button.gd-button--primary(href="/groups/" + group._id + "/homework") Giao bài tập về nhà
+
           else
             h2#groupJoinTitle Tham gia nhóm
 
@@ -96,6 +99,8 @@ block content
                 strong Bạn đã là thành viên
 
               p.gd-muted Bạn đã tham gia nhóm học tập này.
+              if group.status === "active"
+                a.gd-button.gd-button--primary(href="/groups/" + group._id + "/homework") Bài tập được giao
 
             else if isPending
               .gd-role
@@ -148,3 +153,9 @@ block content
             a.gd-button.gd-button--primary(
               href="/groups/" + group._id + "/exams"
             ) Xem đề thi của nhóm
+          if isOwner
+            form(action="/groups/" + group._id + "/delete" method="POST" onsubmit="return confirm('Xóa nhóm này? Thành viên sẽ không còn truy cập được nhóm và các bài tập.');")
+              button.gd-button.gd-button--danger(type="submit") Xóa nhóm
+          else if isMember
+            form(action="/groups/" + group._id + "/leave" method="POST" onsubmit="return confirm('Rời nhóm này? Bạn sẽ mất quyền truy cập bài tập của nhóm.');")
+              button.gd-button.gd-button--danger(type="submit") Rời nhóm

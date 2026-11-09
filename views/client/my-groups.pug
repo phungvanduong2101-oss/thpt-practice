@@ -2,6 +2,7 @@ extends layouts/default.pug
 
 block styles
   link(rel="stylesheet" href="/client/css/my-groups.css")
+  link(rel="stylesheet" href="/client/css/group-browse.css")
 
 block content
   .container.mg-page
@@ -39,6 +40,9 @@ block content
     .mg-grid
       each group in groups
         article.mg-card
+          .mg-card-heading
+            span.discover-avatar(aria-hidden="true")
+              i(data-lucide="users")
           .mg-tags
             span.mg-role= group.isOwner ? "Trưởng nhóm" : "Thành viên"
 
@@ -52,7 +56,9 @@ block content
 
           p.mg-description= group.description || "Nhóm chưa có mô tả."
 
-          p.mg-members #{group.memberCount} thành viên
+          p.mg-members
+            i(data-lucide="users-round" aria-hidden="true")
+            | #{group.memberCount} thành viên
 
           .mg-card-actions
             a.mg-button.mg-button--secondary(

@@ -1,0 +1,50 @@
+extends homework-layout
+block homework
+  .hw-columns
+    if owner
+      section.gm-card
+        .gm-card-heading
+          h2 Giao bài tập
+        form.hw-fields(method="post" data-homework-action)
+          label Tên bài tập
+            input(name="title" required placeholder="Nhập tên bài tập")
+          label Đề của tôi
+            select(name="examId" required)
+              each e in exams
+                option(value=e._id)= e.title
+          label Hạn nộp (giờ Việt Nam)
+            input(type="datetime-local" name="due" required)
+          include homework-people
+          button.gm-button.gm-button--primary Giao bài
+    section.gm-card
+      .gm-card-heading
+        h2= owner?'Bài đã giao':'Bài được giao'
+        span.gm-count= totalItems
+      each item in assignments
+        .hw-assignment-row
+          a.hw-item(href=base+'/'+item._id)
+            strong= item.title
+            small Hạn nộp #{fmt(item.due)}
+          if !owner
+            if item.available
+              form(action=base+'/'+item._id+'/start' method="post" data-homework-action)
+                button.gm-button.gm-button--primary(type="submit")= item.workStatus==='in_progress'?'Làm tiếp':'Làm bài'
+            else
+              span.hw-assignment-state= item.workStatus==='submitted'?'Đã nộp':'Đã hết hạn'
+
+      else
+        p.gm-empty Chưa có bài tập.
+
+      if totalItems
+        p.hw-page-summary Hiển thị #{startItem}–#{endItem} / #{totalItems} bài tập
+      if totalPages > 1
+        nav.hw-pagination(aria-label="Phân trang bài tập")
+          if currentPage > 1
+            a(href=pageUrl(currentPage-1)) Trước
+          each page in Array.from({length:totalPages},(_,i)=>i+1)
+            if page===1 || page===totalPages || Math.abs(page-currentPage)<=1
+              a(href=pageUrl(page) aria-current=page===currentPage?'page':undefined)= page
+            else if page===currentPage-2 || page===currentPage+2
+              span …
+          if currentPage < totalPages
+            a(href=pageUrl(currentPage+1)) Sau

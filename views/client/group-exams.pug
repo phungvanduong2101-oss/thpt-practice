@@ -5,16 +5,15 @@ block styles
   link(rel="stylesheet" href="/client/css/group-exam-list.css")
 
 block content
-  a.group-exam-list-back.container(href="/groups/" + group._id) ← Chi tiết nhóm
-
   section.exam-page-hero(aria-labelledby="examPageTitle")
     .container.exam-page-hero__inner
-      span.exam-page-hero__badge ĐỀ THI THPT
+      a.group-exam-list-back(href="/groups/" + group._id) ← Chi tiết nhóm
+      span.exam-page-hero__badge ĐỀ THI CỦA NHÓM
 
       h1#examPageTitle.exam-page-hero__title= "Đề thi · " + group.name
 
       p.exam-page-hero__desc
-        | Khám phá các đề thi theo môn học, luyện tập và củng cố kiến thức.
+        | Các đề được chia sẻ trong nhóm để bạn chủ động ôn luyện.
 
   section.exam-filter-section(aria-label="Tìm kiếm và lọc đề thi")
     form#clientExamFilterForm.container.exam-filter-bar(
@@ -70,8 +69,12 @@ block content
 
   section.exam-list-section(aria-label="Danh sách đề thi")
     .container
-      p.client-exam-summary
-        | Hiển thị #{startItem}–#{endItem} / #{totalItems} đề thi
+      .exam-results-heading
+        div
+          h2= keyword ? "Kết quả tìm kiếm" : "Đề thi được chia sẻ"
+          p.client-exam-summary Hiển thị #{startItem}–#{endItem} / #{totalItems} đề thi
+        if keyword
+          span.exam-keyword Từ khóa: #{keyword}
 
       #examGrid.exam-grid(
         role="list"
@@ -89,12 +92,18 @@ block content
               p.client-exam-card__description= exam.description
 
             .client-exam-card__meta
-              span #{exam.questionCount} câu hỏi
-              span #{exam.duration} phút
+              span
+                i(data-lucide="list-checks" aria-hidden="true")
+                | #{exam.questionCount} câu hỏi
+              span
+                i(data-lucide="clock-3" aria-hidden="true")
+                | #{exam.duration} phút
 
             a.client-exam-card__start(
               href="/groups/" + group._id + "/exams/" + exam._id + "/take"
-            ) Làm ngay
+            )
+              | Bắt đầu làm bài
+              i(data-lucide="arrow-right" aria-hidden="true")
 
       #examEmpty.exam-empty(hidden=totalItems > 0)
         i.exam-empty__icon(

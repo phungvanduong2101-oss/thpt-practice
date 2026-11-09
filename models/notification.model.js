@@ -23,6 +23,7 @@ const notificationSchema = new Schema(
         "group_join_approved",
         "group_join_rejected",
         "group_exam_published",
+        "homework_assigned",
       ],
       required: true,
     },

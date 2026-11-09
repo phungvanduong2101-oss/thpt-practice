@@ -1,0 +1,21 @@
+extends homework-layout
+block homework
+  a(href=url) Quay lại bài tập
+  h1= attempt.examTitle
+  p Điểm #{attempt.score}/#{attempt.maxScore}
+  each q,i in attempt.questions
+    - const entry=attempt.answers.find(x=>String(x.questionId)===String(q.questionId)), answer=entry?.answer
+    article
+      h2 Câu #{i+1} · #{Number(((entry && entry.score) || 0).toFixed(2))} điểm
+      div!= q.content.html
+      if q.type==='truefalse'
+        each o in q.options
+          div!= o.content.html
+          p #{o.key}. Đã chọn #{(answer || {})[o.key]===undefined?'—':answer[o.key]?'Đúng':'Sai'} · Đáp án #{o.isCorrect?'Đúng':'Sai'}
+      else
+        each o in q.options
+          div #{o.key}. !{o.content.html}
+        p Đã trả lời #{answer || '—'}
+        p Đáp án #{q.type==='fill'?q.acceptedAnswers.join(' hoặc '):q.correctAnswer}
+      if q.explanation && q.explanation.html
+        div!= q.explanation.html
