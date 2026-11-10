@@ -19,17 +19,22 @@ document.addEventListener("submit", async event => {
     const result = await response.json();
     if (!response.ok) throw new Error(result.message || "Thao tác thất bại.");
     saved = true;
-    // New comments appear first. Keep the current page for edits and deletions.
-    const url = new URL(location.href);
-    if (new URL(form.action).pathname.endsWith("/comments")) url.searchParams.delete("page");
+    // Resolve the new comment's page so it stays visible with oldest-first ordering.
+    const created = new URL(form.action).pathname.endsWith("/comments");
+    let url = new URL(created ? result.redirectUrl : location.href, location.origin);
     const fresh = await fetch(url.pathname + url.search, { cache: "no-store" });
-    if (!fresh.ok || fresh.redirected) throw new Error("Không thể cập nhật danh sách bình luận.");
+    if (!fresh.ok) throw new Error("Không thể cập nhật danh sách bình luận.");
     const doc = new DOMParser().parseFromString(await fresh.text(), "text/html");
     const section = doc.querySelector("#discussion");
     if (!section) throw new Error("Không thể cập nhật danh sách bình luận.");
     document.querySelector("#discussion").replaceWith(section);
+    if (created) {
+      url = new URL(fresh.url);
+      url.hash = "exam-comment-" + result.commentId;
+    }
     history.replaceState(null, "", url.pathname + url.search + url.hash);
     if (window.lucide) window.lucide.createIcons();
+    if (created) document.getElementById("exam-comment-" + result.commentId)?.scrollIntoView({ block: "center", behavior: "smooth" });
   } catch (error) {
     alert(saved
       ? "Thao tác đã được lưu nhưng chưa tải được danh sách mới. Hãy tải lại trang để xem."

@@ -19,7 +19,7 @@ exports.load=async(req,res,next)=>{
 exports.page=async(req,res)=>{
   const total=await Comment.countDocuments(req.commentFilter),pages=Math.max(1,Math.ceil(total/15));
   const requested=Number(req.query.page),page=Math.min(pages,Number.isSafeInteger(requested)&&requested>0?requested:1);
-  const comments=await Comment.find(req.commentFilter).sort({createdAt:-1,_id:-1}).skip((page-1)*15).limit(15).populate("authorId","fullName avatarUrl").lean();
+  const comments=await Comment.find(req.commentFilter).sort({createdAt:1,_id:1}).skip((page-1)*15).limit(15).populate("authorId","fullName avatarUrl").lean();
   for(const c of comments){
     c.canEdit=Boolean(req.account&&String(c.authorId?._id)===String(req.account._id));
     c.canDelete=c.canEdit||req.account?.role==="admin";
@@ -61,7 +61,7 @@ exports.create=async(req,res)=>{
       }catch(error){console.error("Không gửi được thông báo trích dẫn đề thi:",error);}
     }
   }
-  res.json({message:"Đã đăng bình luận!",redirectUrl:req.discussionUrl+"#discussion"});
+  res.json({message:"Đã đăng bình luận!",commentId:String(comment._id),redirectUrl:req.discussionUrl+"/comments/"+comment._id});
 };
 exports.change=async(req,res)=>{
   if(!valid(req.params.commentId))return fail(res,404,"Không tìm thấy bình luận.");
@@ -84,8 +84,8 @@ exports.locate=async(req,res)=>{
   const comment=await Comment.findOne({...req.commentFilter,_id:req.params.commentId}).lean();
   if(!comment)return fail(res,404,"Bình luận đã bị xóa.");
   const before=await Comment.countDocuments({...req.commentFilter,$or:[
-    {createdAt:{$gt:comment.createdAt}},
-    {createdAt:comment.createdAt,_id:{$gt:comment._id}}
+    {createdAt:{$lt:comment.createdAt}},
+    {createdAt:comment.createdAt,_id:{$lt:comment._id}}
   ]});
   res.redirect(req.discussionUrl+"?page="+(Math.floor(before/15)+1)+"#exam-comment-"+comment._id);
 };
