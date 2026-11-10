@@ -1,2 +1,50 @@
-.admin-header .notification-wrap{position:relative}.admin-header .notification-button{position:relative;display:grid;place-items:center;width:40px;height:40px;border:1px solid #dce6f3;border-radius:10px;background:#fff;color:#285383;cursor:pointer}.admin-header .notification-button svg{width:22px;height:22px}.admin-header #notificationPanel{position:absolute;z-index:60;right:0;top:calc(100% + 12px);background:#fff;border:1px solid #dbe5f2;border-radius:12px;box-shadow:0 12px 35px #17315b22;color:#172b4d}.admin-header .notification-error{font-size:12px;color:#b44242;padding:10px}.admin-header .notification-empty{font-size:13px;padding:20px;color:#64748b}
-@media(max-width:600px){.admin-header #notificationPanel{position:fixed;top:76px;right:12px;left:auto}}
+.admin-header .notification-wrap {
+  position: relative;
+}
+.admin-header .notification-button {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid #dce6f3;
+  border-radius: 10px;
+  background: #fff;
+  color: #285383;
+  cursor: pointer;
+}
+.admin-header .notification-button svg {
+  width: 22px;
+  height: 22px;
+}
+.admin-header #notificationPanel {
+  position: absolute;
+  z-index: 60;
+  right: 0;
+  top: calc(100% + 12px);
+  width: min(380px, calc(100vw - 32px));
+  max-width: calc(100vw - 32px);
+  background: #fff;
+  border: 1px solid #dbe5f2;
+  border-radius: 12px;
+  box-shadow: 0 12px 35px #17315b22;
+  color: #172b4d;
+}
+.admin-header .notification-error {
+  font-size: 12px;
+  color: #b44242;
+  padding: 10px;
+}
+.admin-header .notification-empty {
+  font-size: 13px;
+  padding: 20px;
+  color: #64748b;
+}
+@media (max-width: 600px) {
+  .admin-header #notificationPanel {
+    position: fixed;
+    top: 76px;
+    right: 12px;
+    left: auto;
+  }
+}

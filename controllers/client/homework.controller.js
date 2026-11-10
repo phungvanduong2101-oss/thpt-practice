@@ -1,3 +1,4 @@
+const { listExams } = require("../../services/homework-exams");
 const { Assignment, Work } = require("../../models/homework.model");
 const Account = require("../../models/account.model");
 const notifications = require("../../services/notification.service");
@@ -75,25 +76,21 @@ exports.list = async (req, res) => {
       item.available = canWork(item, work);
     });
   }
-  const exams = owner
-    ? await Exam.find({
-        createdBy: req.account._id,
-        scope: "personal",
-        status: "published",
-      })
-        .select("title questionIds")
-        .sort({ updatedAt: -1, _id: -1 })
-        .lean()
-    : [];
+  const examChoices = owner ? await listExams(req.account._id) : null;
   res.render("client/homework", {
     assignments,
     totalItems, totalPages, currentPage,
     startItem: totalItems ? (currentPage - 1) * pageSize + 1 : 0,
     endItem: (currentPage - 1) * pageSize + assignments.length,
     pageUrl: page => res.locals.base + "?page=" + page,
-    exams,
+    exams: examChoices?.items || [],
+    examChoices,
     people: owner ? await members(req) : [],
   });
+};
+// Registered before /:aid so "exams" cannot be treated as an assignment id.
+exports.examChoices = async (req, res) => {
+  res.json(await listExams(req.account._id, req.query));
 };
 exports.create = async (req, res) => {
   const ids = selection(req),

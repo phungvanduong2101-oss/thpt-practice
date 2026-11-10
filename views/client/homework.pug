@@ -18,21 +18,26 @@ block homework
             h3.hw-step-title
               span 1
               | Chọn đề thi
-            if exams.length
-              label(for="hw-exam-search") Tìm đề của tôi
-              input#hw-exam-search(type="search" placeholder="Nhập tên đề thi…" autocomplete="off" aria-controls="hw-exam-list")
-              p.hw-search-status(role="status")
-                span(data-exam-count)= exams.length
-                |  đề thi
-              #hw-exam-list.hw-exam-list
-                each e in exams
-                  label.hw-exam-option(data-exam-title=e.title)
-                    input(type="radio" name="examId" value=e._id required)
-                    span
-                      strong= e.title
-                      small #{(e.questionIds || []).length} câu hỏi
-              p.hw-search-empty(hidden) Không tìm thấy đề phù hợp. Hãy thử tên khác.
-              p.hw-selected(role="status" data-exam-selected) Chưa chọn đề thi.
+            if examChoices.totalItems
+              #hw-exam-picker(data-endpoint=base+'/exams' data-page=examChoices.currentPage data-pages=examChoices.totalPages)
+                input#hw-exam-id(type="hidden" name="examId")
+                label(for="hw-exam-search") Tìm đề của tôi
+                input#hw-exam-search(type="search" maxlength="120" placeholder="Nhập tên đề thi…" autocomplete="off" aria-controls="hw-exam-list")
+                p.hw-search-status(role="status" data-exam-status) Hiển thị #{examChoices.startItem}–#{examChoices.endItem} / #{examChoices.totalItems} đề thi
+                #hw-exam-list.hw-exam-list
+                  each e in exams
+                    label.hw-exam-option(data-exam-title=e.title)
+                      input(type="radio" name="examChoice" value=e._id)
+                      span
+                        strong= e.title
+                        small #{e.questionCount} câu hỏi
+                button.gm-button(type="button" data-exam-retry hidden) Thử tải lại
+                p.hw-search-empty(hidden) Không tìm thấy đề phù hợp. Hãy thử tên khác.
+                nav.hw-exam-pagination(aria-label="Phân trang chọn đề")
+                  button.gm-button(type="button" data-exam-prev disabled) Trước
+                  span(data-exam-page) Trang 1 / #{examChoices.totalPages}
+                  button.gm-button(type="button" data-exam-next disabled=examChoices.totalPages<=1) Sau
+                p.hw-selected(role="status" data-exam-selected) Chưa chọn đề thi.
             else
               .hw-empty-note Bạn chưa có đề cá nhân đã xuất bản. Hãy xuất bản đề trước khi giao bài.
           section.hw-form-section

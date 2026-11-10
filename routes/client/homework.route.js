@@ -5,6 +5,7 @@ const c = require("../../controllers/client/homework.controller");
 router.use(auth.requireAuth, taking.requireMember, c.context);
 router.get("/", c.list);
 router.post("/", c.owner, c.create);
+router.get("/exams", c.owner, c.examChoices);
 router.use("/:aid", c.load);
 router.get("/:aid", c.detail);
 router.post("/:aid/recipients", c.owner, c.recipients);

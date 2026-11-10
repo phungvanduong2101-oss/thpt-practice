@@ -1,0 +1,30 @@
+✔ Menu state matches responsive breakpoint at 1440px (4.321682ms)
+✔ Menu state matches responsive breakpoint at 1280px (1.017079ms)
+✔ Menu state matches responsive breakpoint at 1024px (1.034542ms)
+✔ Menu state matches responsive breakpoint at 768px (1.277578ms)
+✔ Menu state matches responsive breakpoint at 390px (3.051591ms)
+✔ Escape and backdrop close the drawer and restore focus (3.365377ms)
+✔ Focus stays inside the open drawer in both directions (3.009681ms)
+✔ Changing to desktop clears modal state; returning to mobile closes access (1.425956ms)
+✔ Selecting a navigation link closes the mobile drawer (2.280139ms)
+✔ Tự lưu debounce 800 ms; không báo đã lưu trước xác nhận (3.08454ms)
+✔ Thay đổi trong lúc đang lưu được giữ lại và lưu tiếp tuần tự (11.662239ms)
+✔ Lỗi kết nối giữ dirty và retry sau phục hồi (0.861347ms)
+✔ Xung đột version khóa hàng đợi, không tự ghi đè hoặc nâng version (5.180235ms)
+✔ Nộp thủ công chờ lần tự lưu đang chạy và dùng version mới (0.781386ms)
+✔ Hết giờ không gửi thêm request, kể cả khi có debounce hoặc retry (1.376474ms)
+✔ Đồng bộ status/reconnect không bỏ qua debounce của thay đổi mới (0.432883ms)
+✔ Loads only 10 owned published personal exams, with a stable order and safe projection (2.578961ms)
+✔ Clamps pages and handles empty or partial final pages (0.535826ms)
+✔ Search escapes regex syntax, supports Vietnamese accents, and rejects structured keywords (1.100697ms)
+✔ Only the owner can access picker endpoint; route precedes assignment id lookup (177.602051ms)
+✔ Selection survives pagination and is restored when its page is loaded again (2.576446ms)
+✔ Ignores stale responses and exposes retry after a failed fetch (1.490788ms)
+ℹ tests 22
+ℹ suites 0
+ℹ pass 22
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 698.761494

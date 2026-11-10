@@ -180,3 +180,10 @@ img.hw-person-avatar{object-fit:cover;border:1px solid #dbe5f3}
 #notice[data-state=saving],#notice[data-state=pending]{color:#956700}
 #notice[data-state=saved]{color:#25734b}
 #work .hw-work-actions button:disabled{opacity:.55;cursor:not-allowed}
+
+/* The exam picker fetches one page while the assignment form stays intact. */
+#hw-exam-picker{display:grid;gap:12px;min-width:0}
+.hw-exam-pagination{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.hw-exam-pagination>span{font-size:13px;color:#64748b}
+.hw-exam-pagination .gm-button{min-height:38px;padding:8px 14px}
+.hw-exam-list[aria-busy=true]{opacity:.6}

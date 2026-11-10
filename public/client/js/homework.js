@@ -227,6 +227,12 @@ if (panel && window.io) {
 document.querySelectorAll("form[data-homework-action]").forEach(actionForm => {
   actionForm.addEventListener("submit", async event => {
     event.preventDefault();
+    const examId = actionForm.querySelector("#hw-exam-id");
+    if (examId && !examId.value) {
+      alert("Hãy chọn đề thi trước khi giao bài.");
+      actionForm.querySelector("#hw-exam-search").focus();
+      return;
+    }
     if (actionForm.dataset.startWarning === "true" && !confirm("Bắt đầu tính thời gian ngay khi mở bài lần đầu. Thời gian vẫn trôi khi thoát trang, mất kết nối hoặc đổi thiết bị. Bài sẽ tự nộp khi hết thời lượng hoặc đến hạn nộp chung, tùy mốc nào tới trước. Bạn muốn bắt đầu?")) return;
     const button = actionForm.querySelector('button[type="submit"],button:not([type])');
     if (actionForm.dataset.busy === "true") return;
@@ -261,33 +267,6 @@ document.querySelectorAll("form[data-homework-action]").forEach(actionForm => {
   });
 });
 
-// Filter the complete list of published personal exams without submitting the form.
-const examSearch = document.querySelector("#hw-exam-search");
-if (examSearch) {
-  const normalize = value => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/g, "d").replace(/Đ/g, "D").toLowerCase().trim();
-  const options = [...document.querySelectorAll(".hw-exam-option")];
-  examSearch.addEventListener("input", () => {
-    const query = normalize(examSearch.value);
-    let count = 0;
-    options.forEach(option => {
-      option.hidden = !normalize(option.dataset.examTitle).includes(query);
-      if (!option.hidden) count++;
-    });
-    document.querySelector("[data-exam-count]").textContent = count;
-    document.querySelector(".hw-search-empty").hidden = count > 0;
-  });
-  const createForm = examSearch.closest("form");
-  createForm.addEventListener("change", event => {
-    if (event.target.name === "examId") {
-      document.querySelector("[data-exam-selected]").textContent = "Đã chọn: " + event.target.closest("[data-exam-title]").dataset.examTitle;
-    }
-  });
-  // Reveal the required radios if a search hides every result before submission.
-  options.forEach(option => option.querySelector("input").addEventListener("invalid", () => {
-    examSearch.value = "";
-    examSearch.dispatchEvent(new Event("input"));
-  }));
-}
 const createHomework = document.querySelector(".hw-create form");
 if (createHomework) {
   const students = [...createHomework.querySelectorAll('input[name="students"]')];

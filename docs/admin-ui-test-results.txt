@@ -1,0 +1,24 @@
+✔ Menu state matches responsive breakpoint at 1440px (7.570125ms)
+✔ Menu state matches responsive breakpoint at 1280px (0.955414ms)
+✔ Menu state matches responsive breakpoint at 1024px (1.054611ms)
+✔ Menu state matches responsive breakpoint at 768px (1.163785ms)
+✔ Menu state matches responsive breakpoint at 390px (0.903427ms)
+✔ Escape and backdrop close the drawer and restore focus (2.196684ms)
+✔ Focus stays inside the open drawer in both directions (2.168541ms)
+✔ Changing to desktop clears modal state; returning to mobile closes access (3.61628ms)
+✔ Selecting a navigation link closes the mobile drawer (0.915008ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 217.578337
+
+Node syntax check: PASS
+Pug compilation: 18 templates PASS
+Fixture rendering: 10 pages PASS
+Prettier check: PASS
+git diff --check: PASS
+Browser visual verification / screenshots: BLOCKED (see admin-ui-review.md)
