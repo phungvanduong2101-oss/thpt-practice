@@ -1,6 +1,6 @@
 if owner
   .gm-summary.hw-stats
-    each state in ['Chưa làm','Đang làm','Đã nộp','Chốt do hết hạn']
+    each state in ['Chưa làm','Đang làm','Đang chốt hết giờ','Đã nộp','Chốt do hết hạn']
       .gm-stat
         span= state
         strong= rows.filter(r=>!r.revoked && r.state===state).length

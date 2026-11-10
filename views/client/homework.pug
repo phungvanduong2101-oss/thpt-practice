@@ -1,21 +1,60 @@
 extends homework-layout
 block homework
-  .hw-columns
+  if owner
+    .hw-intro
+      div
+        h2 Giao bài cho nhóm
+        p Chọn đề, đặt hạn nộp và chọn học sinh nhận bài.
+      span.hw-state-pill= group.name
+  .hw-columns(class=owner ? 'hw-columns--owner' : '')
     if owner
-      section.gm-card
+      section.gm-card.hw-create
         .gm-card-heading
-          h2 Giao bài tập
+          div
+            h2 Tạo bài tập mới
+            p Chỉ các đề cá nhân đã xuất bản được hiển thị.
         form.hw-fields(method="post" data-homework-action)
-          label Tên bài tập
-            input(name="title" required placeholder="Nhập tên bài tập")
-          label Đề của tôi
-            select(name="examId" required)
-              each e in exams
-                option(value=e._id)= e.title
-          label Hạn nộp (giờ Việt Nam)
-            input(type="datetime-local" name="due" required)
-          include homework-people
-          button.gm-button.gm-button--primary Giao bài
+          section.hw-form-section
+            h3.hw-step-title
+              span 1
+              | Chọn đề thi
+            if exams.length
+              label(for="hw-exam-search") Tìm đề của tôi
+              input#hw-exam-search(type="search" placeholder="Nhập tên đề thi…" autocomplete="off" aria-controls="hw-exam-list")
+              p.hw-search-status(role="status")
+                span(data-exam-count)= exams.length
+                |  đề thi
+              #hw-exam-list.hw-exam-list
+                each e in exams
+                  label.hw-exam-option(data-exam-title=e.title)
+                    input(type="radio" name="examId" value=e._id required)
+                    span
+                      strong= e.title
+                      small #{(e.questionIds || []).length} câu hỏi
+              p.hw-search-empty(hidden) Không tìm thấy đề phù hợp. Hãy thử tên khác.
+              p.hw-selected(role="status" data-exam-selected) Chưa chọn đề thi.
+            else
+              .hw-empty-note Bạn chưa có đề cá nhân đã xuất bản. Hãy xuất bản đề trước khi giao bài.
+          section.hw-form-section
+            h3.hw-step-title
+              span 2
+              | Thông tin bài tập
+            label Tên bài tập
+              input(name="title" required maxlength="120" placeholder="Ví dụ: Ôn tập chương 1 – tuần 3")
+            label Thời lượng làm bài (phút)
+              input(type="number" name="durationMinutes" min="1" step="1" placeholder="Ví dụ: 45")
+            p.hw-help Để trống nếu chỉ giới hạn theo hạn nộp chung. Khi có thời lượng, đồng hồ bắt đầu ở lần mở bài đầu tiên.
+            label Hạn nộp (giờ Việt Nam)
+              input(type="datetime-local" name="due" required)
+            p.hw-help Học sinh cần lưu hoặc nộp bài trước thời điểm này.
+          section.hw-form-section
+            h3.hw-step-title
+              span 3
+              | Người nhận
+            include homework-people
+          .hw-create-footer
+            p.hw-recipient-count(role="status")
+            button.gm-button.gm-button--primary(type="submit" disabled=!exams.length || !people.length) Giao bài tập
     section.gm-card
       .gm-card-heading
         h2= owner?'Bài đã giao':'Bài được giao'
@@ -25,12 +64,13 @@ block homework
           a.hw-item(href=base+'/'+item._id)
             strong= item.title
             small Hạn nộp #{fmt(item.due)}
+            small= item.durationMinutes ? "Thời lượng: " + item.durationMinutes + " phút / học sinh" : "Không giới hạn riêng · Theo hạn nộp chung"
           if !owner
             if item.available
-              form(action=base+'/'+item._id+'/start' method="post" data-homework-action)
+              form(action=base+'/'+item._id+'/start' method="post" data-homework-action data-start-warning=(!item.workStatus && item.durationMinutes) ? 'true' : undefined)
                 button.gm-button.gm-button--primary(type="submit")= item.workStatus==='in_progress'?'Làm tiếp':'Làm bài'
             else
-              span.hw-assignment-state= item.workStatus==='submitted'?'Đã nộp':'Đã hết hạn'
+              span.hw-assignment-state= item.expired?'Đã hết thời gian':item.workStatus==='submitted'?'Đã nộp':'Đã hết hạn'
 
       else
         p.gm-empty Chưa có bài tập.

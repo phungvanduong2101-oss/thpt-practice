@@ -1,0 +1,49 @@
+Temporary MongoDB ready
+✔ Tự lưu debounce 800 ms; không báo đã lưu trước xác nhận (1.180496ms)
+✔ Thay đổi trong lúc đang lưu được giữ lại và lưu tiếp tuần tự (3.821975ms)
+✔ Lỗi kết nối giữ dirty và retry sau phục hồi (0.436549ms)
+✔ Xung đột version khóa hàng đợi, không tự ghi đè hoặc nâng version (0.24186ms)
+✔ Nộp thủ công chờ lần tự lưu đang chạy và dùng version mới (0.235891ms)
+✔ Hết giờ không gửi thêm request, kể cả khi có debounce hoặc retry (0.343922ms)
+✔ Đồng bộ status/reconnect không bỏ qua debounce của thay đổi mới (0.144966ms)
+(node:70) [MONGOOSE] Warning: mongoose: the `new` option for `findOneAndUpdate()` and `findOneAndReplace()` is deprecated. Use `returnDocument: 'after'` instead.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:70) [MONGOOSE] Warning: mongoose: the `new` option for `findOneAndUpdate()` and `findOneAndReplace()` is deprecated. Use `returnDocument: 'after'` instead.
+✔ Giao, lưu, thu hồi, gia hạn, chấm và khôi phục bài tập (2136.394865ms)
+✔ Đảo câu giữ nguyên lựa chọn và quy tắc chấm của ba dạng câu (1.317068ms)
+▶ Bài giao có thời lượng: đồng thời, offline, restart, gia hạn và tự chốt
+  ✔ Bắt đầu đồng thời chỉ có một bài và một mốc thời gian; client không tự đặt đồng hồ (162.199097ms)
+  ✔ Thoát/vào, đổi thiết bị và gia hạn chung không reset giờ (82.638518ms)
+  ✔ Tự lưu, version và phục hồi draft đã xác nhận (79.769551ms)
+  ✔ Ngăn save quá giờ ở điều kiện DB kể cả API đã đọc trước đó (91.241188ms)
+  ✔ Offline tự chốt, chốt trùng và thông báo/tiến độ chỉ phát sau CAS thành công (107.769811ms)
+  ✔ Hạn chung sớm hơn thời lượng, gia hạn không kéo dài expiresAt hay mở lại bài chốt (24.659772ms)
+  ✔ Chốt sau restart sử dụng MongoDB, không dựa vào timer hoặc socket cũ (228.606446ms)
+  ✔ Tương thích bài cũ không thời lượng và gia hạn trước khi hết hạn (27.56118ms)
+  ✔ Tác vụ chốt đọc lại draft mới nhất khi snapshot ban đầu đã cũ (14.979103ms)
+  ✔ Thành viên bị thu hồi không dùng được start/work/status/save/submit (18.814055ms)
+  ✔ Tranh chấp submit / save / tự chốt không ghi đè bài đã nộp (17.353513ms)
+✔ Bài giao có thời lượng: đồng thời, offline, restart, gia hạn và tự chốt (977.949417ms)
+✔ Báo cáo cả nhóm luôn gửi admin, kể cả khi client giả scope/recipient (1.356809ms)
+✔ Báo cáo đề hệ thống và đề trong nhóm định tuyến đúng (0.408227ms)
+✔ Bài viết và bình luận bài viết lấy nhóm từ DB, không tin dữ liệu client (0.695634ms)
+✔ Bình luận đề lấy phạm vi từ bình luận gốc (0.365584ms)
+✔ Người ngoài không báo cáo được nội dung riêng trong nhóm (0.347176ms)
+✔ ID sai, nội dung bị xóa và đề không khả dụng bị từ chối (0.33588ms)
+✔ Chỉ chủ nhóm và người gửi xem được chi tiết báo cáo nhóm; admin dùng inbox hệ thống không vượt phạm vi (0.710266ms)
+✔ Báo cáo hệ thống chỉ admin xử lý; người báo cáo chỉ đọc (0.190483ms)
+✔ Đóng báo cáo cần ghi chú, không cho người gửi hoặc người khác sửa trạng thái (0.338273ms)
+✔ Đóng báo cáo gỡ khóa chống trùng và thông báo kết quả cho người gửi (6.953124ms)
+✔ Cập nhật cạnh tranh trả 409, không gửi thông báo kết quả sai (0.244023ms)
+✔ Tạo báo cáo gửi đúng thông báo lưu DB + socket cho mọi admin hoạt động (1.112335ms)
+✔ Báo cáo nhóm thông báo riêng chủ nhóm; chống gửi trùng, spam và lý do sai (0.345805ms)
+✔ Các route nhận báo cáo bắt buộc đăng nhập và quyền admin (48.948536ms)
+✔ Index unique báo cáo mở và validation schema đúng (5.106547ms)
+ℹ tests 36
+ℹ suites 0
+ℹ pass 36
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3451.494014

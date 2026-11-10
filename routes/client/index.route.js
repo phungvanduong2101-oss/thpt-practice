@@ -12,6 +12,7 @@ const groupRoutes = require("./group.route");
 const notificationRoutes = require("./notification.route"); 
 
 router.get("/", homeController.index);
+router.use("/reports", require("./report.route"));
 
 router.get(
   "/attempts",

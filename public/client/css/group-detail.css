@@ -309,3 +309,9 @@
 .gd-join-card form:has(.gd-button--danger){margin-top:24px;padding-top:18px}
 @media(max-width:1000px){.gd-shortcuts{grid-template-columns:1fr;gap:12px}.gd-shortcut{padding:16px}.gd-grid{grid-template-columns:minmax(0,1fr) minmax(270px,.8fr)}}
 @media(max-width:700px){.gd-grid{grid-template-columns:1fr}.gd-card{padding:20px}.gd-hero-content{align-items:flex-start;gap:14px}.gd-avatar{width:52px;height:52px;border-radius:13px}.gd-avatar svg{width:25px;height:25px}.gd-heading h1{font-size:24px}.gd-info-row{grid-template-columns:110px minmax(0,1fr)}}
+
+/* Keep reporting actions within their related cards. */
+.gd-about-actions{display:flex;justify-content:flex-end;margin-top:22px;padding-top:18px;border-top:1px solid #e8eef7}
+.gd-about-actions .gd-button--report{width:auto;min-height:40px;margin:0;padding:10px 16px;border:1px solid #d7e1ee;border-radius:9px;background:#fff;color:#66768c;font-size:13px;font-weight:600;line-height:1.5;box-sizing:border-box}
+.gd-about-actions .gd-button--report:hover{background:#fff5f4;border-color:#edc3bd;color:#af4239}
+@media(max-width:540px){.gd-about-actions .gd-button--report{width:100%;justify-content:center}}

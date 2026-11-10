@@ -26,6 +26,8 @@ const notificationSchema = new Schema(
         "homework_assigned",
         "group_post_comment",
         "exam_comment_quoted",
+        "report_received",
+        "report_updated",
       ],
       required: true,
     },

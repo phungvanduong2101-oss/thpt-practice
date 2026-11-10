@@ -3,9 +3,9 @@ const Account = require("../../models/account.model");
 const notifications = require("../../services/notification.service");
 const Exam = require("../../models/exam.model");
 const taking = require("./group-exam-taking.controller");
-const { shuffle, finish } = require("../../services/homework");
+const { shuffle, finish, deadline, canWork, liveWriteFilter, settleExpired } = require("../../services/homework");
 const includes = (ids, id) => ids.some((item) => String(item) === String(id));
-const fail = (res, code, message) => res.status(code).send(message);
+const fail = (res, status, message, code = "HOMEWORK_ERROR") => res.status(status).json({ message, code });
 function success(req, res, message, redirectUrl) {
   if (req.get("Accept")?.includes("application/json"))
     return res.json({ message, redirectUrl });
@@ -22,6 +22,7 @@ const date = (raw) =>
     : new Date(NaN);
 exports.context = (req, res, next) => {
   Object.assign(res.locals, {
+    group: req.group,
     owner: String(req.group.ownerId) === String(req.account._id),
     base: "/groups/" + req.group._id + "/homework",
     fmt,
@@ -56,7 +57,7 @@ exports.list = async (req, res) => {
   const requestedPage = Number(req.query.page);
   const currentPage = Math.min(totalPages, Number.isSafeInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1);
   const assignments = await Assignment.find(filter)
-    .select("title due")
+    .select("title due durationMinutes")
     .sort({ createdAt: -1, _id: -1 })
     .skip((currentPage - 1) * pageSize)
     .limit(pageSize)
@@ -65,11 +66,13 @@ exports.list = async (req, res) => {
     const works = await Work.find({
       assignmentId: { $in: assignments.map(item => item._id) },
       accountId: req.account._id
-    }).select("assignmentId status").lean();
-    const states = new Map(works.map(work => [String(work.assignmentId), work.status]));
+    }).select("assignmentId status expiresAt expired").lean();
+    const states = new Map(works.map(work => [String(work.assignmentId), work]));
     assignments.forEach(item => {
-      item.workStatus = states.get(String(item._id));
-      item.available = open(item) && item.workStatus !== "submitted";
+      const work = states.get(String(item._id));
+      item.workStatus = work?.status;
+      item.expired = work?.expired || Boolean(work && work.status === "in_progress" && deadline(item, work).getTime() <= Date.now());
+      item.available = canWork(item, work);
     });
   }
   const exams = owner
@@ -78,7 +81,8 @@ exports.list = async (req, res) => {
         scope: "personal",
         status: "published",
       })
-        .select("title")
+        .select("title questionIds")
+        .sort({ updatedAt: -1, _id: -1 })
         .lean()
     : [];
   res.render("client/homework", {
@@ -95,6 +99,12 @@ exports.create = async (req, res) => {
   const ids = selection(req),
     due = date(req.body.due),
     title = String(req.body.title || "").trim();
+  const rawDuration = req.body.durationMinutes;
+  const durationMinutes = rawDuration === "" || rawDuration == null ? undefined : Number(rawDuration);
+  if (durationMinutes !== undefined &&
+    (!["string", "number"].includes(typeof rawDuration) || !Number.isSafeInteger(durationMinutes) || durationMinutes < 1 ||
+      !Number.isFinite(new Date(due.getTime() + durationMinutes * 60000).getTime())))
+    return fail(res, 400, "Thời lượng phải là số nguyên dương theo phút.");
   if (!ids?.length || !(due > new Date()) || !title)
     return fail(res, 400, "Kiểm tra tên, người nhận và hạn nộp.");
   if (typeof req.body.examId !== "string" || !/^[a-f0-9]{24}$/i.test(req.body.examId))
@@ -106,6 +116,7 @@ exports.create = async (req, res) => {
     groupId: req.group._id,
     title,
     due,
+    durationMinutes,
     recipients: ids,
     examId: data.exam._id,
     subjectId: data.exam.subjectId._id,
@@ -146,7 +157,7 @@ exports.extend = async (req, res) => {
   if (!(due > req.assignment.due))
     return fail(res, 400, "Hạn mới phải muộn hơn.");
   const r = await Assignment.updateOne(
-    { _id: req.assignment._id, due: { $gt: new Date(), $lt: due } },
+    { _id: req.assignment._id, due: { $lt: due }, $expr: { $gt: ["$due", "$$NOW"] } },
     { $set: { due }, $inc: { __v: 1 } },
   );
   if (!r.modifiedCount) return fail(res, 409, "Không thể gia hạn.");
@@ -156,43 +167,60 @@ const mine = (req) => ({
   assignmentId: req.assignment._id,
   accountId: req.account._id,
 });
+function timing(assignment, work) {
+  const now = Date.now();
+  return {
+    due: assignment.due, serverNow: now, now,
+    expiresAt: deadline(assignment, work),
+    startedAt: work?.startedAt || null,
+    durationMinutes: work?.expiresAt ? work.duration : (work ? null : assignment.durationMinutes || null),
+    status: work?.status || "not_started", expired: Boolean(work?.expired),
+    version: work?.__v ?? null, savedAt: work?.savedAt || null,
+  };
+}
+async function myWork(req) {
+  const work = await Work.findOne(mine(req)).lean();
+  return settleExpired(req.assignment, work, req.app.get("io"));
+}
 exports.start = async (req, res) => {
   const a = req.assignment;
-  if (!includes(a.recipients, req.account._id) || !open(a))
-    return fail(res, 403, "Không thể bắt đầu.");
+  if (!includes(a.recipients, req.account._id))
+    return fail(res, 403, "Quyền truy cập đã bị thu hồi.", "HOMEWORK_REVOKED");
+  let w = await myWork(req);
+  if (!canWork(a, w))
+    return fail(res, 403, "Bài làm đã nộp hoặc hết thời gian.", "HOMEWORK_CLOSED");
+  const startedAt = new Date();
+  const expiresAt = a.durationMinutes
+    ? new Date(Math.min(startedAt.getTime() + a.durationMinutes * 60000, a.due.getTime())) : undefined;
   try {
-    await Work.updateOne(
-      mine(req),
-      {
-        $setOnInsert: {
-          ...mine(req),
-          groupId: a.groupId,
-          examId: a.examId,
-          subjectId: a.subjectId,
-          examTitle: a.title,
-          duration: 1,
-          questions: shuffle(a.questions),
-          totalQuestions: a.questions.length,
-          maxScore: a.maxScore,
-          status: "in_progress",
-          __v: 0,
-        },
+    await Work.updateOne(mine(req), {
+      $setOnInsert: {
+        ...mine(req), groupId: a.groupId, examId: a.examId, subjectId: a.subjectId,
+        examTitle: a.title, duration: a.durationMinutes || 1, startedAt,
+        ...(expiresAt ? { expiresAt } : {}),
+        questions: shuffle(a.questions), totalQuestions: a.questions.length,
+        maxScore: a.maxScore, draft: {}, status: "in_progress", __v: 0,
       },
-      { upsert: true },
-    );
-  } catch (e) {
-    if (e.code !== 11000) throw e;
-  }
+    }, { upsert: true });
+  } catch (error) { if (error.code !== 11000) throw error; }
+  w = await myWork(req);
+  if (!w || !canWork(a, w))
+    return fail(res, 403, "Bài làm đã nộp hoặc hết thời gian.", "HOMEWORK_CLOSED");
   notifyOwner(req);
   success(req, res, "Mở bài làm thành công!", res.locals.url + "/work");
 };
-exports.status = (req, res) =>
-  res.json({ due: req.assignment.due, now: Date.now() });
+exports.status = async (req, res) => {
+  if (!includes(req.assignment.recipients, req.account._id))
+    return fail(res, 403, "Quyền truy cập đã bị thu hồi.", "HOMEWORK_REVOKED");
+  const w = await myWork(req);
+  res.json({ ...timing(req.assignment, w), available: canWork(req.assignment, w) });
+};
 exports.work = async (req, res) => {
-  const w = await Work.findOne(mine(req)).lean();
-  if (!w || !open(req.assignment) || w.status !== "in_progress")
-    return res.redirect(res.locals.url);
-  res.render("client/homework-work", { w, due: req.assignment.due });
+  if (!includes(req.assignment.recipients, req.account._id))
+    return fail(res, 403, "Quyền truy cập đã bị thu hồi.", "HOMEWORK_REVOKED");
+  const w = await myWork(req);
+  if (!w || !canWork(req.assignment, w)) return res.redirect(res.locals.url);
+  res.render("client/homework-work", { w, due: req.assignment.due, ...timing(req.assignment, w) });
 };
 function clean(questions, raw) {
   const draft = {};
@@ -215,31 +243,30 @@ function clean(questions, raw) {
   return draft;
 }
 exports.write = async (req, res) => {
-  const w = await Work.findOne(mine(req)).lean();
-  if (
-    !w ||
-    !open(req.assignment) ||
-    !includes(req.assignment.recipients, req.account._id)
-  )
-    return fail(res, 403, "Đã hết hạn hoặc bị thu hồi.");
-  if (
-    !req.body.answers ||
-    typeof req.body.answers !== "object" ||
-    !Number.isInteger(req.body.version)
-  )
+  if (!includes(req.assignment.recipients, req.account._id))
+    return fail(res, 403, "Quyền truy cập đã bị thu hồi.", "HOMEWORK_REVOKED");
+  const w = await myWork(req);
+  if (!w || !canWork(req.assignment, w))
+    return fail(res, 403, "Bài làm đã nộp hoặc hết thời gian. Hệ thống chấm phần đã lưu.", "HOMEWORK_CLOSED");
+  if (!req.body.answers || typeof req.body.answers !== "object" || Array.isArray(req.body.answers) ||
+    !Number.isSafeInteger(req.body.version) || req.body.version < 0)
     return fail(res, 400, "Dữ liệu không hợp lệ.");
   const draft = clean(w.questions, req.body.answers);
-  const changes = req.path.endsWith("/submit")
-    ? finish(w, draft, false)
-    : { draft };
-  const r = await Work.updateOne(
-    { _id: w._id, status: "in_progress", __v: req.body.version },
-    { $set: { ...changes, savedAt: new Date() }, $inc: { __v: 1 } },
-  );
-  if (!r.modifiedCount)
-    return fail(res, 409, "Bài đã thay đổi. Hãy tải lại trước khi tiếp tục.");
+  const submitting = req.path.endsWith("/submit");
+  const changes = submitting ? finish(w, draft, false) : { draft };
+  const savedAt = new Date();
+  const r = await Work.updateOne(liveWriteFilter(req.assignment, w, req.body.version), {
+    $set: { ...changes, savedAt }, $inc: { __v: 1 },
+  });
+  if (!r.modifiedCount) {
+    const current = await myWork(req);
+    if (!current || !canWork(req.assignment, current))
+      return fail(res, 403, "Bài làm đã nộp hoặc hết thời gian.", "HOMEWORK_CLOSED");
+    return fail(res, 409, "Bài đã thay đổi ở tab hoặc thiết bị khác. Hãy tải lại trang; đáp án chưa lưu sẽ không được ghi đè.", "HOMEWORK_VERSION_CONFLICT");
+  }
   notifyOwner(req);
-  res.json({ version: req.body.version + 1 });
+  res.json({ version: req.body.version + 1, status: submitting ? "submitted" : "in_progress", savedAt,
+    serverNow: Date.now(), expiresAt: deadline(req.assignment, w) });
 };
 function notifyOwner(req) {
   req.app.get("io")?.to("account:" + req.group.ownerId).emit("homework:progress", String(req.assignment._id));
@@ -249,7 +276,7 @@ exports.detail = async (req, res) => {
     owner = res.locals.owner,
     visible = owner || !open(a);
   const works = await Work.find({ assignmentId: a._id })
-    .select("accountId status expired savedAt submittedAt score draft")
+    .select("accountId status expired savedAt submittedAt score draft expiresAt startedAt duration")
     .lean();
   const accounts = await Account.find({
     _id: { $in: [...a.recipients, ...a.revoked] },
@@ -264,10 +291,11 @@ exports.detail = async (req, res) => {
       avatarUrl: p.avatarUrl || "",
       revoked: !includes(a.recipients, p._id),
       w,
+      available: canWork(a, w),
       state: !w
         ? "Chưa làm"
         : w.status === "in_progress"
-          ? "Đang làm"
+          ? (canWork(a, w) ? "Đang làm" : "Đang chốt hết giờ")
           : w.expired
             ? "Chốt do hết hạn"
             : "Đã nộp",

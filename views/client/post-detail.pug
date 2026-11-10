@@ -19,6 +19,7 @@ block content
           a(href=image target="_blank" rel="noopener")
             img(src=image alt="Ảnh trong bài viết" loading="lazy")
       .post-actions
+        +reportButton("post", post._id, group._id)
         if canEdit
           details
             summary Sửa bài viết
@@ -45,7 +46,7 @@ block content
           if comment.quotedCommentId
             blockquote.post-quote
               if comment.quoteDeleted
-                p Bình luận được trích dẫn đã bị xóa.
+                p Bình luận được trả lời đã bị xóa.
               else
                 a(href=comment.quoteUrl)= comment.quoteSnapshot.authorName+' viết:'
                 p.post-text= comment.quoteSnapshot.contentText
@@ -55,7 +56,8 @@ block content
               a(href=image target="_blank" rel="noopener")
                 img(src=image alt="Ảnh bình luận" loading="lazy")
           .post-actions
-            button.post-secondary(type="button" data-quote=comment._id data-author=comment.authorId?comment.authorId.fullName:'Tài khoản đã xóa' data-content=comment.content.slice(0,2000)) Trích dẫn
+            +reportButton("post_comment", comment._id, group._id)
+            button.post-secondary(type="button" data-quote=comment._id data-author=comment.authorId?comment.authorId.fullName:'Tài khoản đã xóa' data-content=comment.content.slice(0,2000)) Trả lời
             if comment.canEdit
               details
                 summary Sửa
@@ -81,7 +83,7 @@ block content
         blockquote#quotePreview.post-quote(hidden)
           strong#quoteAuthor
           p#quoteText.post-text
-          button#cancelQuote.post-secondary(type="button") Bỏ trích dẫn
+          button#cancelQuote.post-secondary(type="button") Hủy trả lời
         textarea#commentContent(name="content" rows="4" maxlength="5000" placeholder="Nhập bình luận…" aria-label="Nội dung bình luận")
         button Đăng bình luận
 block scripts

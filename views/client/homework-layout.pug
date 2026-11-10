@@ -11,6 +11,7 @@ block content
         h1= typeof a!=='undefined'?a.title:(typeof attempt!=='undefined'?attempt.examTitle:'Bài tập về nhà')
         if typeof a!=='undefined'
           p.gm-group-name Hạn nộp #{fmt(a.due)} · Giờ Việt Nam
+          p.gm-group-name= a.durationMinutes ? "Thời lượng: " + a.durationMinutes + " phút từ lần bắt đầu đầu tiên" : "Không giới hạn thời lượng riêng · Theo hạn nộp chung"
     .container.gm-content
       block homework
 block scripts

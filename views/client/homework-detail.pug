@@ -10,6 +10,7 @@ block homework
       form(action=url+'/extend' method="post" data-homework-action)
         label Hạn mới (giờ Việt Nam)
           input(type="datetime-local" required name="due")
+        p.hw-help Gia hạn chung không tăng thời gian riêng hoặc mở lại bài đã nộp.
         button Gia hạn
   if myRow && !myRow.revoked
     section.gm-card.hw-student-overview
@@ -29,12 +30,14 @@ block homework
           div
             span Lưu gần nhất
             strong.hw-small-value= fmt(myRow.w && myRow.w.savedAt)
-        if available && (!myRow.w || myRow.w.status==='in_progress')
-          form(action=url+'/start' method="post" data-homework-action)
+        if myRow.w && myRow.w.expiresAt
+          p.hw-personal-deadline Bài của bạn kết thúc lúc #{fmt(myRow.w.expiresAt)}. Thời gian vẫn trôi khi thoát trang.
+        if myRow.available
+          form(action=url+'/start' method="post" data-homework-action data-start-warning=(!myRow.w && a.durationMinutes) ? 'true' : undefined)
             button.gm-button.gm-button--primary= myRow.w ? 'Làm tiếp' : 'Làm bài'
         if visible && myRow.w && myRow.w.status==='submitted'
           a.gm-button.gm-button--primary(href=url+'/result/'+myRow.id) Xem chi tiết bài làm
-        else if !available && myRow.w && myRow.w.status==='in_progress'
+        else if !myRow.available && myRow.w && myRow.w.status==='in_progress'
           p.hw-page-summary Hệ thống đang chốt kết quả. Vui lòng tải lại sau ít giây.
   #hw-progress(data-assignment=owner?a._id:undefined)
     include partials/homework-progress

@@ -88,6 +88,10 @@ block content
                 else
                   | Đã đóng
 
+          if currentAccount
+            .gd-about-actions
+              button.gd-button.gd-button--report(type="button" data-report-type="group" data-report-id=group._id) Báo cáo nhóm
+
         aside.gd-card.gd-join-card(aria-labelledby="groupJoinTitle")
           if isOwner
             h2#groupJoinTitle Quản trị nhóm
@@ -110,6 +114,8 @@ block content
             a.gd-button.gd-button--secondary(
               href="/groups/" + group._id + "/exams/manage"
             ) Chia sẻ đề thi vào nhóm
+
+            a.gd-button.gd-button--secondary(href="/reports?group="+group._id) Xem báo cáo trong nhóm
 
 
           else

@@ -1,0 +1,26 @@
+if typeof currentAccount !== 'undefined' && currentAccount
+  dialog#reportDialog.rp-dialog(aria-labelledby="reportDialogTitle")
+    form#reportForm
+      .rp-dialog-heading
+        h2#reportDialogTitle Báo cáo nội dung
+        button.rp-close(type="button" data-report-close aria-label="Đóng") ×
+      p#reportRecipient.rp-muted
+      input(type="hidden" name="targetType")
+      input(type="hidden" name="targetId")
+      input(type="hidden" name="groupId")
+      label(for="reportReason") Lý do báo cáo
+      select#reportReason(name="reason" required)
+        option(value="") Chọn lý do
+        option(value="spam") Spam / quảng cáo
+        option(value="inappropriate") Nội dung không phù hợp
+        option(value="incorrect") Nội dung sai / lỗi đề
+        option(value="copyright") Vi phạm bản quyền
+        option(value="other") Lý do khác
+      label(for="reportDescription") Mô tả thêm
+      textarea#reportDescription(name="description" rows="5" maxlength="2000" placeholder="Nêu rõ nội dung cần xem xét…")
+      p.rp-muted Không đưa mật khẩu hoặc thông tin nhạy cảm vào báo cáo.
+      p#reportFeedback(role="status")
+      a#reportResultLink(hidden) Xem báo cáo đã gửi →
+      .rp-dialog-actions
+        button.rp-button.rp-button--secondary(type="button" data-report-close) Đóng
+        button.rp-button(type="submit") Gửi báo cáo

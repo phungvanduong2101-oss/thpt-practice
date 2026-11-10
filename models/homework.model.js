@@ -8,8 +8,11 @@ schema.add({
   draft: Schema.Types.Mixed,
   savedAt: Date,
   expired: Boolean,
+  // Present only for timed homework; immutable after the first start.
+  expiresAt: Date,
 });
 schema.index({ assignmentId: 1, accountId: 1 }, { unique: true });
+schema.index({ status: 1, expiresAt: 1 });
 const Work = mongoose.model("HomeworkAttempt", schema, "homework_attempts");
 const Assignment = mongoose.model(
   "Assignment",
@@ -18,6 +21,10 @@ const Assignment = mongoose.model(
       groupId: { type: id, index: true },
       title: String,
       due: { type: Date, index: true },
+      durationMinutes: {
+        type: Number, min: 1,
+        validate: { validator: Number.isSafeInteger, message: "Thời lượng phải là số nguyên dương." },
+      },
       recipients: [id],
       revoked: [id],
       examId: id,

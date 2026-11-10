@@ -35,6 +35,7 @@ block content
           each image in post.images || []
             a(href=image target="_blank" rel="noopener")
               img(src=image alt="Ảnh trong bài viết" loading="lazy")
+        +reportButton("post", post._id, group._id)
         a.post-link(href=base+'/'+post._id+(tab==='mine'?'?tab=mine':'')) Xem và thảo luận →
     else
       p.posts-empty= tab==='mine'?'Bạn chưa đăng bài viết nào trong nhóm này.':'Chưa có bài viết. Hãy bắt đầu cuộc thảo luận đầu tiên.'

@@ -1214,3 +1214,11 @@ của học phần.
 - Nhóm bài tập: 14.
 - Lớp học phần: Lập trình mạng
 
+
+## Bài tập nhóm có thời lượng và tự lưu
+
+Luồng giao bài hỗ trợ thời lượng riêng theo phút, tự lưu sau 800 ms, khôi phục
+bài làm theo thời gian máy chủ và tự chốt bài hết giờ. Bài cũ không có thời lượng
+vẫn theo hạn nộp chung. Không cần dependency/biến môi trường production mới;
+khởi động ứng dụng sẽ tạo thêm index `(status, expiresAt)` trong `homework_attempts`.
+Chi tiết sử dụng, dữ liệu, API, kiểm thử và giới hạn: [docs/homework.md](docs/homework.md).

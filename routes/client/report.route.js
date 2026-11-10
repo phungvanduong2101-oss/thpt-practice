@@ -1,0 +1,10 @@
+const router = require("express").Router();
+const auth = require("../../middlewares/auth.middleware");
+const c = require("../../controllers/client/report.controller");
+router.use(auth.requireAuth);
+router.get("/", c.list);
+router.post("/", c.create);
+router.get("/:reportId", c.load, c.detail);
+router.post("/:reportId", c.load, c.update);
+router.use(c.error);
+module.exports = router;

@@ -3,14 +3,16 @@ append styles
   link(rel="stylesheet" href="/client/css/homework.css")
 block content
   - const questions=w.questions, homeworkDraft=w.draft || {}, typeNames={mcq:'Trắc nghiệm ABCD',truefalse:'Đúng / Sai',fill:'Điền đáp số'}
-  .exam-taking-main#work(data-url=url data-version=w.__v data-due=due.toISOString())
+  .exam-taking-main#work(data-url=url data-version=w.__v data-due=due.toISOString() data-expires=expiresAt.toISOString() data-server-now=serverNow data-assignment=w.assignmentId)
     section.et-hero
       .container.et-hero__inner
         .et-hero__info
           a.et-hero__badge(href=url) Bài tập về nhà
           h1.et-hero__title= w.examTitle
           p.et-hero__desc #{questions.length} câu · Hạn nộp #{fmt(due)}
+          p.et-hero__desc= w.expiresAt ? "Thời lượng: " + w.duration + " phút · Kết thúc lúc " + fmt(expiresAt) : "Theo hạn nộp chung"
           strong#clock.et-timer-digits
+          p#hw-time-status.hw-time-status(role="status") Đang đồng bộ thời gian với máy chủ…
     .et-body.container
       section.et-questions
         include partials/exam-questions
@@ -23,13 +25,14 @@ block content
         .et-sidebar-card
           h2.et-sidebar-title Tiến độ
           p#workCount.et-progress-count
-          p#notice.et-save-status(role="status")
+          p#notice.et-save-status(role="status")= w.savedAt ? "Đã lưu lúc " + fmt(w.savedAt) : "Chưa có thay đổi cần lưu."
           .hw-work-actions
             button.et-btn-start(type="button" data-action="save") Lưu bài
             button.et-btn-submit(type="button" data-action="submit") Nộp bài
         .et-sidebar-card.et-tips-card
           strong Lưu ý
-          p Chỉ phần đã lưu hoặc nộp trước hạn mới được chấm.
+          p Tự lưu sau khoảng 800 ms khi đổi đáp án. Chỉ phần đã được máy chủ xác nhận trước khi hết giờ mới được chấm.
+          p Thoát trang, đổi thiết bị hoặc mất kết nối không dừng đồng hồ.
 block scripts
   script(src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" defer)
   script(src="/client/js/homework.js" defer)

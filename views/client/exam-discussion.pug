@@ -21,6 +21,7 @@ block content
           small Thời lượng
           strong #{exam.duration} phút
       a.discussion-start(href=takeUrl) Làm bài →
+      +reportButton("exam", exam._id, group && group._id)
     section#discussion
       .posts-list-heading
         h2 Thảo luận về đề thi
@@ -32,7 +33,7 @@ block content
           blockquote#examQuotePreview.post-quote(hidden)
             strong#examQuoteAuthor
             p#examQuoteText.post-text
-            button#examCancelQuote.post-secondary(type="button") Bỏ trích dẫn
+            button#examCancelQuote.post-secondary(type="button") Hủy trả lời
           textarea#examComment(name="content" rows="4" maxlength="5000" required placeholder="Trao đổi cách giải, đặt câu hỏi về đề…")
           button Đăng bình luận
       else
@@ -51,14 +52,15 @@ block content
           if comment.quotedCommentId
             blockquote.post-quote
               if comment.quoteDeleted
-                p Bình luận được trích dẫn đã bị xóa.
+                p Bình luận được trả lời đã bị xóa.
               else
                 strong= comment.quoteSnapshot.authorName+" viết:"
                 p.post-text= comment.quoteSnapshot.contentText
           p.post-text= comment.content
           .post-actions
+            +reportButton("exam_comment", comment._id, group && group._id)
             if currentAccount
-              button.post-secondary(type="button" data-exam-quote=comment._id data-author=comment.authorId?comment.authorId.fullName:"Tài khoản đã xóa" data-content=comment.content.slice(0,2000)) Trích dẫn
+              button.post-secondary(type="button" data-exam-quote=comment._id data-author=comment.authorId?comment.authorId.fullName:"Tài khoản đã xóa" data-content=comment.content.slice(0,2000)) Trả lời
             if comment.canEdit
               details
                 summary Sửa bình luận

@@ -261,7 +261,7 @@ test(
     const second=await Post.findOne({_id:{$ne:post._id}});
     await postCall(other,"/"+second.id+"/comments",{content:"Quote khác bài",quotedCommentId:original.id},409);
     await postCall(owner,postPath+"/comments/"+original.id+"/delete",{},200);
-    assert.match(await postCall(other,postPath,undefined,200),/Bình luận được trích dẫn đã bị xóa/);
+    assert.match(await postCall(other,postPath,undefined,200),/Bình luận được trả lời đã bị xóa/);
     await postCall(owner,postPath+"/delete",{},200);
     await postCall(other,postPath,undefined,404);
 
@@ -369,4 +369,164 @@ test("Đảo câu giữ nguyên lựa chọn và quy tắc chấm của ba dạn
     false,
   );
   assert.equal(result.score, 2.5);
+});
+
+test("Bài giao có thời lượng: đồng thời, offline, restart, gia hạn và tự chốt", { skip: !process.env.TEST_MONGO_URI }, async t => {
+  await mongoose.connect(process.env.TEST_MONGO_URI, { dbName: "hw_timed_test_" + new mongoose.Types.ObjectId() });
+  t.after(async () => { await mongoose.connection.dropDatabase(); await mongoose.disconnect(); });
+  await Work.createIndexes();
+  const oid = () => new mongoose.Types.ObjectId();
+  const [owner, student, other, group, subject, exam, q] = Array.from({ length: 7 }, oid);
+  await Account.collection.insertMany([owner, student, other].map((_id, i) => ({ _id, fullName: "Timed " + i, status: "active", email: i + "@timed.test" })));
+  await Group.collection.insertOne({ _id: group, ownerId: owner, memberIds: [student, other], status: "active" });
+  await Subject.collection.insertOne({ _id: subject, name: "Toán", active: true });
+  await Question.collection.insertOne({ _id: q, subjectId: subject, scope: "system", published: true, type: "fill", content: { html: "Tính" }, acceptedAnswers: ["2"], explanation: { html: "TIMED_SECRET" }, options: [] });
+  await Exam.collection.insertOne({ _id: exam, createdBy: owner, scope: "personal", groupIds: [], status: "published", title: "Đề timed", duration: 30, subjectId: subject, questionIds: [q] });
+  const events = [], io = { to: room => ({ emit: (event, data) => events.push({ room, event, data }) }) };
+  const app = express(); app.set("io", io); app.set("view engine", "pug"); app.use(express.json());
+  app.use((req, res, next) => { req.account = { _id: req.get("user"), fullName: "Student", email: "student@test" }; res.locals.currentAccount = req.account; next(); });
+  app.use("/groups/:id/homework", require("../routes/client/homework.route"));
+  const server = app.listen(0, "127.0.0.1"); await new Promise(resolve => server.once("listening", resolve));
+  t.after(() => new Promise(resolve => server.close(resolve)));
+  const root = "http://127.0.0.1:" + server.address().port + "/groups/" + group + "/homework";
+  async function call(user, path, body, status = 200) {
+    const r = await fetch(root + path, { method: body === undefined ? "GET" : "POST", redirect: "manual", headers: { user: String(user), Accept: "application/json", "Content-Type": "application/json" }, body: body === undefined ? undefined : JSON.stringify(body) });
+    const text = await r.text(); assert.equal(r.status, status, text.slice(0, 700));
+    return (r.headers.get("content-type") || "").includes("application/json") ? JSON.parse(text) : text;
+  }
+  const tomorrow = new Date(Date.now() + 24 * 3600000);
+  const dueInput = new Date(tomorrow.getTime() + 7 * 3600000).toISOString().slice(0, 16);
+  const body = { students: [String(student)], title: "Timed HW", examId: String(exam), due: dueInput };
+  for (const durationMinutes of [0, -1, 1.5, "abc", true, [], Number.MAX_SAFE_INTEGER])
+    await call(owner, "", { ...body, durationMinutes }, 400);
+  const created = await call(owner, "", { ...body, durationMinutes: "5" });
+  const aid = created.redirectUrl.split("/").pop(), path = "/" + aid;
+  let a = await Assignment.findById(aid).lean(); assert.equal(a.durationMinutes, 5);
+
+  await t.test("Bắt đầu đồng thời chỉ có một bài và một mốc thời gian; client không tự đặt đồng hồ", async () => {
+    assert.match(await call(student, path), /data-start-warning="true"/);
+    assert.match(await call(student, ""), /data-start-warning="true"/);
+    await Promise.all(Array.from({ length: 8 }, () => call(student, path + "/start", { startedAt: "2099-01-01", duration: 999, expiresAt: "2099-01-01" })));
+    assert.equal(await Work.countDocuments({ assignmentId: aid }), 1);
+    const w = await Work.findOne({ assignmentId: aid }).lean();
+    assert.equal(w.duration, 5); assert.equal(w.expiresAt.getTime() - w.startedAt.getTime(), 5 * 60000);
+    assert.ok(w.startedAt < tomorrow);
+  });
+  const original = await Work.findOne({ assignmentId: aid }).lean();
+  await t.test("Thoát/vào, đổi thiết bị và gia hạn chung không reset giờ", async () => {
+    await call(student, path + "/start", {});
+    const status = await call(student, path + "/status");
+    assert.equal(status.startedAt, original.startedAt.toISOString()); assert.equal(status.expiresAt, original.expiresAt.toISOString());
+    assert.equal(typeof status.serverNow, "number");
+    const extended = new Date(tomorrow.getTime() + 24 * 3600000 + 7 * 3600000).toISOString().slice(0, 16);
+    await call(owner, path + "/extend", { due: extended });
+    const w = await Work.findById(original._id).lean();
+    assert.equal(+w.startedAt, +original.startedAt); assert.equal(+w.expiresAt, +original.expiresAt);
+    const html = await call(student, path + "/work"); assert.ok(!html.includes("TIMED_SECRET"));
+    assert.match(html, /data-expires=/);
+  });
+  await t.test("Tự lưu, version và phục hồi draft đã xác nhận", async () => {
+    const saved = await call(student, path + "/save", { answers: { [q]: "2" }, version: 0 });
+    assert.equal(saved.version, 1); assert.ok(saved.savedAt);
+    await call(student, path + "/save", { answers: { [q]: "wrong" }, version: 0 }, 409);
+    const w = await Work.findById(original._id).lean(); assert.equal(w.draft[String(q)], "2"); assert.equal(w.__v, 1);
+    assert.match(await call(student, path + "/work"), /value="2"/);
+  });
+  await t.test("Ngăn save quá giờ ở điều kiện DB kể cả API đã đọc trước đó", async () => {
+    const { liveWriteFilter } = require("../services/homework");
+    a = await Assignment.findById(aid).lean();
+    await Work.updateOne({ _id: original._id }, { $set: { expiresAt: new Date(Date.now() - 1000) } });
+    const r = await Work.updateOne(liveWriteFilter(a, original, 1), { $set: { draft: { [q]: "late" } }, $inc: { __v: 1 } });
+    assert.equal(r.modifiedCount, 0);
+    await Work.updateOne({ _id: original._id }, { $set: { expiresAt: new Date(Date.now() + 50) } });
+    const preparedBeforeDeadline = liveWriteFilter(a, original, 1);
+    await new Promise(resolve => setTimeout(resolve, 80));
+    const delayed = await Work.updateOne(preparedBeforeDeadline, { $set: { draft: { [q]: "late" } }, $inc: { __v: 1 } });
+    assert.equal(delayed.modifiedCount, 0);
+    assert.equal((await Work.findById(original._id).lean()).draft[String(q)], "2");
+  });
+  await t.test("Offline tự chốt, chốt trùng và thông báo/tiến độ chỉ phát sau CAS thành công", async () => {
+    const before = events.length;
+    await Promise.all([closeExpired(io), closeExpired(io), closeExpired(io)]);
+    const w = await Work.findById(original._id).lean();
+    assert.equal(w.status, "submitted"); assert.equal(w.expired, true); assert.equal(w.score, 10); assert.equal(w.__v, 2);
+    const expiry = events.slice(before).filter(e => e.event === "homework:expired");
+    assert.equal(expiry.length, 1); assert.equal(expiry[0].room, "account:" + student);
+    assert.ok(events.slice(before).some(e => e.event === "homework:progress" && e.room === "account:" + owner));
+    await closeExpired(io); assert.equal((await Work.findById(w._id).lean()).__v, 2);
+    const status = await call(student, path + "/status"); assert.equal(status.status, "submitted"); assert.equal(status.expired, true);
+    await call(student, path + "/save", { answers: {}, version: 2 }, 403);
+    await call(student, path + "/submit", { answers: {}, version: 2 }, 403);
+    await call(student, path + "/start", {}, 403);
+    await call(student, path + "/work", undefined, 302);
+    await call(student, path + "/result/" + student, undefined, 403);
+    const html = await call(student, ""); assert.ok(!html.includes('action="' + root + path + '/start"'));
+    const detail = await call(student, path); assert.ok(!detail.includes("Làm tiếp"));
+  });
+  await t.test("Hạn chung sớm hơn thời lượng, gia hạn không kéo dài expiresAt hay mở lại bài chốt", async () => {
+    const cap = new Date(Date.now() + 30000);
+    const capped = await Assignment.create({ ...a, _id: oid(), title: "Capped", due: cap, durationMinutes: 60 });
+    const p = "/" + capped.id;
+    await call(student, p + "/start", {});
+    const w = await Work.findOne({ assignmentId: capped._id }).lean(); assert.equal(+w.expiresAt, +cap);
+    await call(owner, p + "/extend", { due: dueInput });
+    assert.equal(+(await Work.findById(w._id).lean()).expiresAt, +cap);
+    await Work.updateOne({ _id: w._id }, { $set: { expiresAt: new Date(0) } });
+    await call(student, p + "/status");
+    await call(owner, p + "/extend", { due: new Date(tomorrow.getTime() + 2 * 86400000 + 7 * 3600000).toISOString().slice(0, 16) });
+    await call(student, p + "/start", {}, 403);
+  });
+  await t.test("Chốt sau restart sử dụng MongoDB, không dựa vào timer hoặc socket cũ", async () => {
+    const restart = await Assignment.create({ ...a, _id: oid(), title: "Restart", due: tomorrow, durationMinutes: 5 });
+    const p = "/" + restart.id;
+    await call(student, p + "/start", {}); await call(student, p + "/save", { answers: { [q]: "2" }, version: 0 });
+    await Work.updateOne({ assignmentId: restart._id }, { $set: { expiresAt: new Date(0) } });
+    const { execFile } = require("node:child_process"), { promisify } = require("node:util");
+    await promisify(execFile)(process.execPath, ["-e", `const m=require('mongoose');(async()=>{await m.connect(process.env.TEST_MONGO_URI,{dbName:process.env.HW_DB});await require('./services/homework').closeExpired();await m.disconnect()})().catch(e=>{console.error(e);process.exit(1)})`], { cwd: process.cwd(), env: { ...process.env, HW_DB: mongoose.connection.name }, timeout: 15000 });
+    const w = await Work.findOne({ assignmentId: restart._id }).lean(); assert.equal(w.score, 10); assert.equal(w.status, "submitted"); assert.equal(w.expired, true);
+  });
+  await t.test("Tương thích bài cũ không thời lượng và gia hạn trước khi hết hạn", async () => {
+    const old = await Assignment.create({ ...a, _id: oid(), title: "Legacy", due: tomorrow, durationMinutes: undefined });
+    const p = "/" + old.id;
+    await call(student, p + "/start", {});
+    let w = await Work.findOne({ assignmentId: old._id }).lean(); assert.equal(w.expiresAt, undefined);
+    const oldStarted = +w.startedAt;
+    await call(owner, p + "/extend", { due: new Date(tomorrow.getTime() + 2 * 86400000 + 7 * 3600000).toISOString().slice(0, 16) });
+    const status = await call(student, p + "/status"); assert.equal(status.durationMinutes, null); assert.ok(new Date(status.expiresAt) > tomorrow);
+    await call(student, p + "/start", {}); assert.equal(+(await Work.findById(w._id).lean()).startedAt, oldStarted);
+    await call(student, p + "/save", { answers: { [q]: "2" }, version: 0 });
+    await Assignment.updateOne({ _id: old._id }, { $set: { due: new Date(0) } });
+    await closeExpired(io); w = await Work.findById(w._id).lean(); assert.equal(w.status, "submitted"); assert.equal(w.score, 10);
+  });
+  await t.test("Tác vụ chốt đọc lại draft mới nhất khi snapshot ban đầu đã cũ", async () => {
+    const r = await Assignment.create({ ...a, _id: oid(), title: "Stale worker", due: tomorrow, durationMinutes: 1 });
+    const p = "/" + r.id; await call(student, p + "/start", {});
+    const old = await Work.findOne({ assignmentId: r._id }).lean();
+    await call(student, p + "/save", { answers: { [q]: "2" }, version: 0 });
+    await Work.updateOne({ _id: old._id }, { $set: { expiresAt: new Date(0) } });
+    old.expiresAt = new Date(0);
+    await require("../services/homework").settleExpired(r.toObject(), old, io);
+    const done = await Work.findById(old._id).lean();
+    assert.equal(done.__v, 2); assert.equal(done.draft[String(q)], "2"); assert.equal(done.score, 10);
+  });
+  await t.test("Thành viên bị thu hồi không dùng được start/work/status/save/submit", async () => {
+    const r = await Assignment.create({ ...a, _id: oid(), title: "Revoke", due: tomorrow, durationMinutes: 1 });
+    const p = "/" + r.id; await call(student, p + "/start", {});
+    await call(owner, p + "/recipients", { students: [String(other)], version: r.__v });
+    for (const endpoint of ["start", "save", "submit"]) await call(student, p + "/" + endpoint, endpoint === "start" ? {} : { answers: {}, version: 0 }, 404);
+    for (const endpoint of ["work", "status"]) await call(student, p + "/" + endpoint, undefined, 404);
+  });
+  await t.test("Tranh chấp submit / save / tự chốt không ghi đè bài đã nộp", async () => {
+    const race = await Assignment.create({ ...a, _id: oid(), title: "Race", due: tomorrow, durationMinutes: 1 });
+    const p = "/" + race.id; await call(student, p + "/start", {});
+    const responses = await Promise.all(["save", "submit"].map(action => fetch(root + p + "/" + action, { method: "POST", headers: { user: String(student), Accept: "application/json", "Content-Type": "application/json" }, body: JSON.stringify({ answers: { [q]: "2" }, version: 0 }) })));
+    assert.equal(responses.filter(r => r.status === 200).length, 1);
+    let w = await Work.findOne({ assignmentId: race._id }).lean();
+    if (w.status === "in_progress") {
+      await Work.updateOne({ _id: w._id }, { $set: { expiresAt: new Date(0) } });
+      await Promise.all([closeExpired(io), fetch(root + p + "/submit", { method: "POST", headers: { user: String(student), Accept: "application/json", "Content-Type": "application/json" }, body: JSON.stringify({ answers: {}, version: w.__v }) })]);
+    }
+    w = await Work.findById(w._id).lean(); assert.equal(w.status, "submitted"); assert.equal(w.score, 10);
+    const version = w.__v; await closeExpired(io); assert.equal((await Work.findById(w._id).lean()).__v, version);
+  });
 });

@@ -1,0 +1,3 @@
+mixin reportButton(type, id, groupId)
+  if typeof currentAccount !== 'undefined' && currentAccount
+    button.report-trigger(type="button" data-report-type=type data-report-id=id data-report-group=groupId || undefined) Báo cáo

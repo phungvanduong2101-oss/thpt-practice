@@ -16,6 +16,7 @@ router.use(authMiddleware.requireAuth);
 router.use(authMiddleware.requireAdmin);
 
 router.get("/dashboard", dashboardController.dashboard);
+router.use("/reports", require("./report.route"));
 
 router.use("/subjects", subjectRoutes);
 router.use("/topics", topicRoutes);

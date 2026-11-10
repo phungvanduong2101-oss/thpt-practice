@@ -1,0 +1,67 @@
+.rp-page
+  .rp-heading
+    div
+      span.rp-eyebrow= adminView ? 'QUẢN TRỊ HỆ THỐNG' : 'TRUNG TÂM BÁO CÁO'
+      h1= sent ? 'Báo cáo đã gửi' : 'Báo cáo cần xử lý'
+      p.rp-muted= adminView ? 'Báo cáo nhóm và nội dung trong phạm vi toàn hệ thống.' : (sent ? 'Theo dõi trạng thái và kết quả phản hồi.' : 'Nội dung trong những nhóm do bạn làm chủ nhóm.')
+    if group
+      a.rp-button.rp-button--secondary(href='/groups/'+group._id) ← #{group.name}
+  if !adminView
+    nav.rp-tabs(aria-label="Hộp báo cáo")
+      a(href='/reports' aria-current=!sent?'page':undefined) Báo cáo nhận được
+      a(href='/reports?box=sent' aria-current=sent?'page':undefined) Báo cáo đã gửi
+  form.rp-filters(method="get" action=reportBase)
+    input(type="hidden" name="box" value=sent?'sent':'received')
+    if group
+      input(type="hidden" name="group" value=group._id)
+    label Trạng thái
+      select(name="status")
+        option(value="") Tất cả trạng thái
+        each label, key in statuses
+          option(value=key selected=status===key)= label
+    label Loại nội dung
+      select(name="type")
+        option(value="") Tất cả nội dung
+        each label, key in types
+          option(value=key selected=type===key)= label
+    button.rp-button(type="submit") Lọc báo cáo
+    a.rp-reset(href=reportBase+(sent?'?box=sent':group?'?group='+group._id:'')) Xóa bộ lọc
+  .rp-card
+    .rp-card-heading
+      h2 Danh sách báo cáo
+      span.rp-count #{total} báo cáo
+    if reports.length
+      .rp-table-wrap
+        table.rp-table
+          thead
+            tr
+              th Nội dung
+              th Lý do
+              th Người gửi
+              th Thời gian
+              th Trạng thái
+              th
+          tbody
+            each report in reports
+              tr
+                td
+                  strong= report.snapshot.title
+                  small #{types[report.targetType]} · #{report.scope==='system'?'Toàn hệ thống':report.snapshot.groupName}
+                td= reasons[report.reason]
+                td= report.reporterId ? report.reporterId.fullName : 'Tài khoản đã xóa'
+                td= new Date(report.createdAt).toLocaleString('vi-VN',{timeZone:'Asia/Ho_Chi_Minh'})
+                td
+                  span.rp-status(class='rp-status--'+report.status)= statuses[report.status]
+                td
+                  a.rp-text-link(href=reportBase+'/'+report._id) Chi tiết →
+    else
+      .rp-empty
+        h3 Chưa có báo cáo phù hợp
+        p= sent ? 'Bạn có thể gửi báo cáo từ nhóm, đề thi, bài viết hoặc bình luận.' : 'Báo cáo mới sẽ hiển thị ở đây. Bạn cũng sẽ nhận được thông báo khi có báo cáo gửi tới.'
+    if pages>1
+      nav.rp-pagination(aria-label="Phân trang báo cáo")
+        if page>1
+          a(href=pageUrl(page-1)) ← Trước
+        span Trang #{page} / #{pages}
+        if page<pages
+          a(href=pageUrl(page+1)) Sau →

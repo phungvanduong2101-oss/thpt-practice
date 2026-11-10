@@ -1,0 +1,53 @@
+.rp-page
+  a.rp-text-link(href=canManage?reportBase:'/reports?box=sent') ← Danh sách báo cáo
+  .rp-heading
+    div
+      span.rp-eyebrow CHI TIẾT BÁO CÁO
+      h1= report.snapshot.title
+      p.rp-muted Mã báo cáo: #{report._id}
+    span.rp-status(class='rp-status--'+report.status)= statuses[report.status]
+  .rp-detail-grid
+    section.rp-card.rp-card-body
+      h2 Thông tin báo cáo
+      dl.rp-meta
+        div
+          dt Loại nội dung
+          dd= types[report.targetType]
+        div
+          dt Phạm vi / người tiếp nhận
+          dd= report.scope==='system'?'Toàn hệ thống · Admin':report.snapshot.groupName+' · Chủ nhóm'
+        div
+          dt Người gửi
+          dd= report.reporterId?report.reporterId.fullName:'Tài khoản đã xóa'
+        div
+          dt Gửi lúc
+          dd= new Date(report.createdAt).toLocaleString('vi-VN',{timeZone:'Asia/Ho_Chi_Minh'})
+        div
+          dt Lý do
+          dd= reasons[report.reason]
+      h3 Mô tả của người báo cáo
+      p.rp-content= report.description || 'Không có mô tả thêm.'
+      h3 Nội dung tại thời điểm báo cáo
+      p.rp-content.rp-snapshot= report.snapshot.content || 'Không có nội dung văn bản.'
+      p.rp-muted Nội dung gốc có thể đã được chỉnh sửa hoặc xóa sau khi báo cáo.
+      a.rp-button.rp-button--secondary(href=report.snapshot.url target="_blank" rel="noopener") Mở nội dung gốc →
+    aside.rp-card.rp-card-body
+      h2 Kết quả xử lý
+      if report.handledAt
+        p.rp-muted Cập nhật bởi #{report.handledBy?report.handledBy.fullName:'Tài khoản đã xóa'} · #{new Date(report.handledAt).toLocaleString('vi-VN',{timeZone:'Asia/Ho_Chi_Minh'})}
+      if canManage && ['pending','reviewing'].includes(report.status)
+        form.rp-handle(data-report-update action=reportBase+'/'+report._id method="post")
+          label Trạng thái
+            select(name="status" required)
+              option(value="reviewing" selected=report.status==='reviewing') Đang xem xét
+              option(value="resolved") Đã xử lý
+              option(value="rejected") Từ chối
+          label Ghi chú xử lý
+            textarea(name="resolution" rows="6" maxlength="2000" placeholder="Nêu kết quả hoặc lý do từ chối…")= report.resolution
+          p.rp-muted Ghi chú bắt buộc khi đóng báo cáo và sẽ hiển thị cho người gửi. Việc cập nhật trạng thái không tự động xóa nội dung.
+          p.rp-feedback(role="status")
+          button.rp-button(type="submit") Lưu kết quả
+      else
+        p.rp-content= report.resolution || 'Báo cáo đang chờ người tiếp nhận xem xét.'
+        if ['resolved','rejected'].includes(report.status)
+          p.rp-muted Báo cáo đã được đóng.
