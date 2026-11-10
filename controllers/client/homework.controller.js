@@ -34,7 +34,7 @@ exports.owner = (req, res, next) =>
   res.locals.owner ? next() : fail(res, 403, "Chỉ chủ nhóm được quản lý.");
 const members = (req) =>
   Account.find({ _id: { $in: req.group.memberIds, $ne: req.group.ownerId } })
-    .select("fullName")
+    .select("fullName avatarUrl")
     .lean();
 function selection(req) {
   const raw = req.body.students || [];
@@ -254,13 +254,14 @@ exports.detail = async (req, res) => {
   const accounts = await Account.find({
     _id: { $in: [...a.recipients, ...a.revoked] },
   })
-    .select("fullName")
+    .select("fullName avatarUrl")
     .lean();
   const rows = accounts.map((p) => {
     const w = works.find((w) => String(w.accountId) === String(p._id));
     return {
       id: p._id,
       name: p.fullName,
+      avatarUrl: p.avatarUrl || "",
       revoked: !includes(a.recipients, p._id),
       w,
       state: !w
@@ -303,7 +304,7 @@ exports.result = async (req, res) => {
     status: "submitted",
   }).lean();
   if (!attempt) return fail(res, 404, "Chưa có kết quả.");
-  const student = await Account.findById(attempt.accountId).select("fullName").lean();
+  const student = await Account.findById(attempt.accountId).select("fullName avatarUrl").lean();
   res.render("client/exam-result", {
     attempt, homeworkResult: true,
     studentName: student ? student.fullName : "Học sinh",

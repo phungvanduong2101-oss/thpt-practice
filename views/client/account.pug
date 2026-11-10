@@ -1,0 +1,44 @@
+extends layouts/default
+block styles
+  link(rel="stylesheet" href="/client/css/account.css")
+block content
+  main.container.account-page
+    h1 Quản lý thông tin tài khoản
+    p.account-subtitle Cập nhật hồ sơ và thông tin đăng nhập của bạn.
+    .account-grid
+      section.account-card
+        h2 Ảnh đại diện
+        if account.avatarUrl
+          img.account-avatar#avatarPreview(src=account.avatarUrl alt="Ảnh đại diện")
+        else
+          img.account-avatar#avatarPreview(hidden alt="Xem trước ảnh đại diện")
+        form(data-account-form action="/account/avatar" method="post" enctype="multipart/form-data")
+          label(for="avatarInput") Chọn ảnh JPG, PNG, WebP hoặc GIF, tối đa 3 MB
+          input#avatarInput(type="file" name="image" accept="image/jpeg,image/png,image/webp,image/gif" required)
+          button Cập nhật ảnh
+      section.account-card
+        h2 Thông tin cá nhân
+        form(data-account-form action="/account/profile" method="post")
+          label(for="fullName") Họ và tên
+          input#fullName(name="fullName" value=account.fullName minlength="2" maxlength="80" required autocomplete="name")
+          button Lưu thông tin
+      section.account-card
+        h2 Đổi email
+        form(data-account-form action="/account/email" method="post")
+          label(for="email") Email
+          input#email(type="email" name="email" value=account.email maxlength="254" required autocomplete="email")
+          label(for="emailPassword") Mật khẩu hiện tại
+          input#emailPassword(type="password" name="currentPassword" required autocomplete="current-password")
+          button Đổi email
+      section.account-card
+        h2 Đổi mật khẩu
+        form(data-account-form action="/account/password" method="post")
+          label(for="currentPassword") Mật khẩu hiện tại
+          input#currentPassword(type="password" name="currentPassword" required autocomplete="current-password")
+          label(for="newPassword") Mật khẩu mới (ít nhất 8 ký tự)
+          input#newPassword(type="password" name="newPassword" minlength="8" required autocomplete="new-password")
+          label(for="confirmPassword") Nhập lại mật khẩu mới
+          input#confirmPassword(type="password" name="confirmPassword" minlength="8" required autocomplete="new-password")
+          button Đổi mật khẩu
+block scripts
+  script(src="/client/js/account.js" defer)

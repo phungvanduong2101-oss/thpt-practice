@@ -152,3 +152,4 @@
 .hw-ranking-score{font-size:20px;color:#175cd3}
 .hw-ranking-table td small{color:#94a3b8;margin-left:5px;font-size:12px}
 @media(max-width:640px){.hw-student-metrics{grid-template-columns:1fr 1fr;gap:18px}.hw-student-metrics>div:last-child{grid-column:1/-1}.hw-student-metrics>div:nth-child(2){border:0}.hw-student-body{padding:18px}.hw-student-overview .gm-card-heading{align-items:flex-start;flex-wrap:wrap}.hw-ranking-table td,.hw-ranking-table th{padding:14px 16px}}
+img.hw-person-avatar{object-fit:cover;border:1px solid #dbe5f3}

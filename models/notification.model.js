@@ -24,6 +24,8 @@ const notificationSchema = new Schema(
         "group_join_rejected",
         "group_exam_published",
         "homework_assigned",
+        "group_post_comment",
+        "exam_comment_quoted",
       ],
       required: true,
     },

@@ -1,0 +1,88 @@
+extends layouts/default
+block styles
+  link(rel="stylesheet" href="/client/css/posts.css")
+block content
+  main.container.posts-page(data-image-upload=base+"/images")
+    a.posts-back(href=base+tabQuery) ← Bài viết trong nhóm
+    article.post-card
+      .post-author
+        .post-author-identity
+          if post.authorId && post.authorId.avatarUrl
+            img.post-avatar(src=post.authorId.avatarUrl alt="" loading="lazy")
+          else
+            span.post-avatar.post-avatar-letter(aria-hidden="true")= (post.authorId ? post.authorId.fullName : "?").trim().charAt(0).toUpperCase()
+          strong= post.authorId ? post.authorId.fullName : "Tài khoản đã xóa"
+        time= new Date(post.createdAt).toLocaleString('vi-VN',{timeZone:'Asia/Ho_Chi_Minh'})
+      p.post-text= post.content
+      .post-images
+        each image in post.images || []
+          a(href=image target="_blank" rel="noopener")
+            img(src=image alt="Ảnh trong bài viết" loading="lazy")
+      .post-actions
+        if canEdit
+          details
+            summary Sửa bài viết
+            form(data-post-form method="post" action=base+'/'+post._id+'/edit'+tabQuery data-images=JSON.stringify(post.images||[]))
+              textarea(name="content" rows="6" maxlength="20000" aria-label="Nội dung chỉnh sửa")= post.content
+              button Lưu thay đổi
+        if canDelete
+          form(data-post-form data-confirm="Xóa bài viết và ẩn toàn bộ thảo luận?" method="post" action=base+'/'+post._id+'/delete'+tabQuery)
+            button.post-danger Xóa bài
+    h2 Thảo luận
+    each comment in comments
+      article.post-card.post-comment(id='comment-'+comment._id)
+        if comment.deletedAt
+          p.post-muted Bình luận đã bị xóa.
+        else
+          .post-author
+            .post-author-identity
+              if comment.authorId && comment.authorId.avatarUrl
+                img.post-avatar(src=comment.authorId.avatarUrl alt="" loading="lazy")
+              else
+                span.post-avatar.post-avatar-letter(aria-hidden="true")= (comment.authorId ? comment.authorId.fullName : "?").trim().charAt(0).toUpperCase()
+              strong= comment.authorId ? comment.authorId.fullName : "Tài khoản đã xóa"
+            time= new Date(comment.createdAt).toLocaleString('vi-VN',{timeZone:'Asia/Ho_Chi_Minh'})
+          if comment.quotedCommentId
+            blockquote.post-quote
+              if comment.quoteDeleted
+                p Bình luận được trích dẫn đã bị xóa.
+              else
+                a(href=comment.quoteUrl)= comment.quoteSnapshot.authorName+' viết:'
+                p.post-text= comment.quoteSnapshot.contentText
+          p.post-text= comment.content
+          .post-images
+            each image in comment.images || []
+              a(href=image target="_blank" rel="noopener")
+                img(src=image alt="Ảnh bình luận" loading="lazy")
+          .post-actions
+            button.post-secondary(type="button" data-quote=comment._id data-author=comment.authorId?comment.authorId.fullName:'Tài khoản đã xóa' data-content=comment.content.slice(0,2000)) Trích dẫn
+            if comment.canEdit
+              details
+                summary Sửa
+                form(data-post-form method="post" action=base+'/'+post._id+'/comments/'+comment._id+'/edit' data-images=JSON.stringify(comment.images||[]))
+                  textarea(name="content" rows="3" maxlength="5000" aria-label="Sửa bình luận")= comment.content
+                  button Lưu
+            if comment.canDelete
+              form(data-post-form data-confirm="Xóa bình luận này?" method="post" action=base+'/'+post._id+'/comments/'+comment._id+'/delete')
+                button.post-danger Xóa
+    else
+      p.posts-empty Chưa có bình luận.
+    if paging.pages>1
+      nav.posts-pagination(aria-label="Phân trang bình luận")
+        if paging.current>1
+          a(href=base+'/'+post._id+'?page='+(paging.current-1)) Trước
+        span #{paging.current} / #{paging.pages}
+        if paging.current<paging.pages
+          a(href=base+'/'+post._id+'?page='+(paging.current+1)) Sau
+    section.post-card
+      h2 Viết bình luận
+      form#commentComposer(data-post-form method="post" action=base+'/'+post._id+'/comments')
+        input#quotedCommentId(type="hidden" name="quotedCommentId")
+        blockquote#quotePreview.post-quote(hidden)
+          strong#quoteAuthor
+          p#quoteText.post-text
+          button#cancelQuote.post-secondary(type="button") Bỏ trích dẫn
+        textarea#commentContent(name="content" rows="4" maxlength="5000" placeholder="Nhập bình luận…" aria-label="Nội dung bình luận")
+        button Đăng bình luận
+block scripts
+  script(src="/client/js/posts.js" defer)

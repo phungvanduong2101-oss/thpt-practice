@@ -75,7 +75,10 @@ test(
       next();
     });
     app.use("/groups/:id/homework", require("../routes/client/homework.route"));
+    app.use("/groups/:id/posts", require("../routes/client/post.route"));
     app.use("/groups", require("../routes/client/group.route"));
+    app.use("/account", require("../routes/client/account.route"));
+    app.use("/exams", require("../routes/client/exam.route"));
     const server = await new Promise((resolve) => {
       const s = app.listen(0, () => resolve(s));
     });
@@ -233,6 +236,74 @@ test(
     assert.match(await call(student, path, undefined, 200), /hw-rank-1/ );
     await call(student, path + "/result/" + other, undefined, 403);
 
+
+    const postRoot = new URL("/groups/"+group+"/posts",root);
+    async function postCall(user,path,body,status) {
+      const response=await fetch(String(postRoot)+path,{method:body?"POST":"GET",headers:{user:String(user),"Content-Type":"application/json"},body:body?JSON.stringify(body):undefined,redirect:"manual"});
+      const value=await response.text();assert.equal(response.status,status,value.slice(0,500));return value;
+    }
+    await postCall(other,"",{content:"Bài viết thử <script>alert(1)</script>"},200);
+    const {Post,Comment}=require("../models/post.model");
+    const post=await Post.findOne();
+    const postPath="/"+post.id;
+    const rendered=await postCall(owner,postPath,undefined,200);
+    assert.ok(rendered.includes("&lt;script&gt;"));
+    await postCall(owner,postPath+"/edit",{content:"Sửa trái quyền"},403);
+    await postCall(other,postPath+"/edit",{content:"Nội dung mới"},200);
+    await postCall(owner,postPath+"/comments",{content:"Bình luận gốc"},200);
+    const original=await Comment.findOne();
+    await postCall(other,postPath+"/comments",{content:"Trả lời",quotedCommentId:original.id,quoteSnapshot:{authorName:"Giả mạo"}},200);
+    const reply=await Comment.findOne({_id:{$ne:original._id}});
+    assert.equal(reply.quoteSnapshot.authorName,"User 0");
+    assert.equal(reply.quoteSnapshot.contentText,"Bình luận gốc");
+    await postCall(owner,postPath+"/comments/"+reply.id+"/edit",{content:"Sửa trái quyền"},403);
+    await postCall(other,"",{content:"Bài khác"},200);
+    const second=await Post.findOne({_id:{$ne:post._id}});
+    await postCall(other,"/"+second.id+"/comments",{content:"Quote khác bài",quotedCommentId:original.id},409);
+    await postCall(owner,postPath+"/comments/"+original.id+"/delete",{},200);
+    assert.match(await postCall(other,postPath,undefined,200),/Bình luận được trích dẫn đã bị xóa/);
+    await postCall(owner,postPath+"/delete",{},200);
+    await postCall(other,postPath,undefined,404);
+
+    const bcrypt=require("bcryptjs");
+    await Account.updateOne({_id:other},{$set:{password:await bcrypt.hash("OldPassword123",4)}});
+    async function accountCall(path,body,expected){
+      const response=await fetch(new URL("/account"+path,root),{method:"POST",headers:{user:String(other),Accept:"application/json","Content-Type":"application/json"},body:JSON.stringify(body)});
+      const data=await response.json();assert.equal(response.status,expected,JSON.stringify(data));
+    }
+    await accountCall("/profile",{fullName:"Tên mới"},200);
+    await accountCall("/profile",{fullName:" "},400);
+    await accountCall("/email",{email:"new@test.invalid",currentPassword:"wrong"},400);
+    await accountCall("/email",{email:"new@test.invalid",currentPassword:"OldPassword123"},200);
+    await accountCall("/email",{email:"0@test.invalid",currentPassword:"OldPassword123"},409);
+    await accountCall("/password",{currentPassword:"OldPassword123",newPassword:"NewPassword123",confirmPassword:"different"},400);
+    await accountCall("/password",{currentPassword:"OldPassword123",newPassword:"NewPassword123",confirmPassword:"NewPassword123"},200);
+    assert.ok(await bcrypt.compare("NewPassword123",(await Account.findById(other).select("+password")).password));
+
+    // Public exam landing has discussion but does not create an Attempt.
+    const publicExam=await Exam.collection.insertOne({
+      title:"Đề công khai",scope:"system",status:"published",subjectId:subject,
+      questionIds:[q],duration:30
+    });
+    async function discussionCall(user,path,body,expected){
+      const response=await fetch(new URL(path,root),{method:body?"POST":"GET",headers:{user:String(user),"Content-Type":"application/json"},body:body?JSON.stringify(body):undefined,redirect:"manual"});
+      const value=await response.text();assert.equal(response.status,expected,value.slice(0,500));return value;
+    }
+    const landing="/exams/"+publicExam.insertedId;
+    const htmlLanding=await discussionCall(other,landing,undefined,200);
+    assert.ok(htmlLanding.includes(landing+"/take"));
+    assert.ok(!htmlLanding.includes("SECRET123"));
+    await discussionCall(other,landing+"/comments",{content:"Câu này giải thế nào?"},200);
+    const ExamComment=require("../models/exam-comment.model");
+    const examComment=await ExamComment.findOne();
+    await discussionCall(owner,landing+"/comments/"+examComment.id+"/edit",{content:"Sửa trái quyền"},403);
+    await discussionCall(other,landing+"/comments/"+examComment.id+"/edit",{content:"Đã hiểu cách giải"},200);
+    await Exam.updateOne({_id:exam},{$set:{groupIds:[group],duration:30}});
+    const groupLanding="/groups/"+group+"/exams/"+exam;
+    assert.ok((await discussionCall(other,groupLanding,undefined,200)).includes(groupLanding+"/take"));
+    await discussionCall(other,groupLanding+"/comments",{content:"Thảo luận riêng"},200);
+    assert.ok(!(await discussionCall(other,landing,undefined,200)).includes("Thảo luận riêng"));
+    await discussionCall(other,groupLanding+"/comments/"+examComment.id+"/delete",{},403);
     const editUrl = new URL("/groups/"+group+"/edit",root);
     async function edit(user,body,expected) {
       const response=await fetch(editUrl,{method:"POST",headers:{user:String(user),Accept:"application/json","Content-Type":"application/json"},body:JSON.stringify(body)});

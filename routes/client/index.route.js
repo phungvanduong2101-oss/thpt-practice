@@ -22,6 +22,8 @@ router.get(
 router.use("/auth", authRoutes);
 router.use("/exams", examRoute);
 router.use("/groups/:id/homework", require("./homework.route"));
+router.use("/groups/:id/posts", require("./post.route"));
+router.use("/account", require("./account.route"));
 router.use("/groups", groupRoutes);  
 router.use("/notifications", notificationRoutes);    
 router.use('/my/questions', require('./personal-question.route'));

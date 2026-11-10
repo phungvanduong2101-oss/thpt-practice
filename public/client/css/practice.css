@@ -1,17 +1,28 @@
-.pr-page { padding-top: 40px; padding-bottom: 60px; max-width: 900px; }
-.pr-heading { margin-bottom: 28px; }
-.pr-heading>span { font-size: 12px; font-weight: 700; color: #2563eb; letter-spacing: 1px; }
-.pr-heading h1 { font-size: clamp(26px,4vw,34px); margin: 12px 0; }
-.pr-heading p, .pr-field small { color: #64748b; line-height: 1.7; }
-.pr-card { padding: 28px; background: #fff; border: 1px solid #e2e8f0; border-radius: 18px; }
-.pr-card h2 { margin: 0 0 24px; font-size: 22px; }
-.pr-field { display: grid; gap: 9px; margin-bottom: 22px; }
-.pr-field label { font-weight: 600; }
-.pr-field input,.pr-field select { width: 100%; min-width: 0; box-sizing: border-box; padding: 12px 14px; font: inherit; border: 1px solid #cbd5e1; border-radius: 10px; background: #fff; }
-.pr-field select:disabled { background: #f1f5f9; }
-.pr-button { padding: 13px 22px; border: 0; border-radius: 10px; background: #2563eb; color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
-.pr-button:hover:not(:disabled) { background: #1d4ed8; }
-.pr-button:disabled { opacity: .6; cursor: not-allowed; }
-.pr-error { padding: 12px; background: #fff1f2; color: #b91c1c; border-radius: 8px; line-height: 1.6; }
-.pr-field input:focus-visible,.pr-field select:focus-visible,.pr-button:focus-visible { outline: 3px solid #93c5fd; outline-offset: 3px; }
-@media(max-width:600px) { .pr-card { padding: 20px; } .pr-button { width:100%; } }
+.pr-page{max-width:1100px;padding-block:36px 64px;color:#203653}
+.pr-heading{padding:28px;border:1px solid #cfdef3;border-radius:16px;background:linear-gradient(115deg,#e3edff,#f0f5ff 65%,#eeebfc);margin-bottom:26px}
+.pr-heading>span{font-size:10px;letter-spacing:1.3px;font-weight:700;color:#245eb2}
+.pr-heading h1{font-size:clamp(24px,3vw,32px);line-height:1.4;letter-spacing:-.7px;margin:10px 0}
+.pr-heading p{font-size:14px;line-height:1.8;color:#617793;margin:0;max-width:680px}
+.pr-layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:22px;align-items:start}
+.pr-card{background:#fff;border:1px solid #dce5f1;border-radius:14px;padding:26px;box-shadow:0 4px 16px #243b5304;min-width:0}
+.pr-card h2{font-size:18px;margin:0 0 22px}
+#practiceForm{display:grid;gap:20px}
+.pr-field{min-width:0;display:grid;gap:8px}
+.pr-field label{font-size:13px;font-weight:600;color:#334e70}
+.pr-field select,.pr-field input{width:100%;min-width:0;height:46px;box-sizing:border-box;padding:0 13px;border:1px solid #cad8ea;border-radius:9px;background:#fbfdff;color:#203653;font:inherit;font-size:14px;outline:none}
+.pr-field select:focus,.pr-field input:focus{border-color:#76a9fa;box-shadow:0 0 0 3px #e4edfc}
+.pr-field select:disabled{background:#f1f5fa;color:#94a3b8;cursor:not-allowed}
+.pr-field small{font-size:12px;line-height:1.7;color:#71829a}
+.pr-button{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:46px;margin-top:4px;padding:12px 18px;border:0;border-radius:9px;background:#245eb2;color:white;font:inherit;font-size:14px;font-weight:600;cursor:pointer}
+.pr-button:hover:not(:disabled){background:#194f9f}
+.pr-button:disabled{opacity:.5;cursor:not-allowed}
+.pr-error{margin:0;padding:12px 14px;border:1px solid #f1cdd2;border-radius:8px;background:#fff3f4;color:#ac4452;font-size:13px;line-height:1.6}
+.pr-error[hidden]{display:none}
+.pr-help{background:#f4f8ff;border:1px solid #d6e3f6;border-radius:14px;padding:22px}
+.pr-help h2{font-size:16px;margin:0 0 18px;color:#244b7c}
+.pr-help-item{padding:14px 0;border-top:1px solid #dfe8f5}
+.pr-help-item strong{font-size:13px;color:#334e70}
+.pr-help-item p{font-size:12px;color:#64748b;line-height:1.8;margin:7px 0 0}
+.pr-help-link{display:inline-block;color:#245eb2;font-size:13px;margin-top:12px;text-decoration:none}
+@media(max-width:800px){.pr-layout{grid-template-columns:1fr}.pr-help{display:grid;grid-template-columns:1fr 1fr;gap:0 20px}.pr-help h2,.pr-help-link{grid-column:1/-1}}
+@media(max-width:500px){.pr-heading{padding:22px}.pr-card{padding:20px}.pr-help{display:block}.pr-page{padding-top:24px}.pr-heading h1{font-size:25px}}

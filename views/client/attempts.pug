@@ -49,6 +49,15 @@ block content
             if bestScore !== null
               em /10
           small Kết quả tốt nhất của bạn
+      section.history-chart-card(aria-labelledby="historyChartTitle")
+        .history-chart-heading
+          div
+            h2#historyChartTitle Tiến bộ qua các lần làm bài
+            p Tối đa 20 bài gần nhất của môn đang chọn · Điểm quy đổi về thang 10
+          span.history-chart-key Điểm đạt
+        #historyChart(data-attempts=JSON.stringify(chartAttempts))
+        noscript
+          p.history-chart-empty Bật JavaScript để xem biểu đồ. Kết quả chi tiết nằm trong bảng bên dưới.
       section.history-list(aria-labelledby="historyListTitle")
         .history-list-heading
           h2#historyListTitle Danh sách bài làm
@@ -114,3 +123,6 @@ block content
             else
               p Hệ thống chưa có môn học để hiển thị.
             a(href="/exams") Khám phá đề thi
+
+block scripts
+  script(src="/client/js/attempts-chart.js" defer)

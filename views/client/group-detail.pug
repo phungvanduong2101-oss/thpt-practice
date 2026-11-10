@@ -31,6 +31,30 @@ block content
       if message
         .gd-message(role="status")= message
 
+      if (isOwner || isMember) && group.status === "active"
+        nav.gd-shortcuts(aria-label="Hoạt động trong nhóm")
+          a.gd-shortcut(href="/groups/" + group._id + "/posts")
+            span.gd-shortcut-icon
+              i(data-lucide="messages-square" aria-hidden="true")
+            div
+              strong Bài viết và thảo luận
+              small Đọc bản tin, đăng bài và trao đổi
+            i(data-lucide="arrow-up-right" aria-hidden="true")
+          a.gd-shortcut(href="/groups/" + group._id + "/exams")
+            span.gd-shortcut-icon.gd-shortcut-icon--teal
+              i(data-lucide="files" aria-hidden="true")
+            div
+              strong Đề thi của nhóm
+              small Luyện tập với các đề được chia sẻ
+            i(data-lucide="arrow-up-right" aria-hidden="true")
+          a.gd-shortcut(href="/groups/" + group._id + "/homework")
+            span.gd-shortcut-icon.gd-shortcut-icon--purple
+              i(data-lucide="clipboard-check" aria-hidden="true")
+            div
+              strong= isOwner ? "Giao bài tập về nhà" : "Bài tập được giao"
+              small= isOwner ? "Giao bài và theo dõi tiến độ" : "Làm bài, xem kết quả và bảng xếp hạng"
+            i(data-lucide="arrow-up-right" aria-hidden="true")
+
       .gd-grid
         section.gd-card(aria-labelledby="groupAboutTitle")
           h2#groupAboutTitle Giới thiệu nhóm
@@ -87,11 +111,9 @@ block content
               href="/groups/" + group._id + "/exams/manage"
             ) Chia sẻ đề thi vào nhóm
 
-            if group.status === "active"
-              a.gd-button.gd-button--primary(href="/groups/" + group._id + "/homework") Giao bài tập về nhà
 
           else
-            h2#groupJoinTitle Tham gia nhóm
+            h2#groupJoinTitle= isMember ? "Tư cách thành viên" : "Tham gia nhóm"
 
             if isMember
               .gd-role
@@ -99,8 +121,7 @@ block content
                 strong Bạn đã là thành viên
 
               p.gd-muted Bạn đã tham gia nhóm học tập này.
-              if group.status === "active"
-                a.gd-button.gd-button--primary(href="/groups/" + group._id + "/homework") Bài tập được giao
+
 
             else if isPending
               .gd-role
@@ -149,10 +170,6 @@ block content
                 button.gd-button.gd-button--primary(type="submit")
                   | Xin tham gia
 
-          if isOwner || isMember
-            a.gd-button.gd-button--primary(
-              href="/groups/" + group._id + "/exams"
-            ) Xem đề thi của nhóm
           if isOwner
             form(action="/groups/" + group._id + "/delete" method="POST" onsubmit="return confirm('Xóa nhóm này? Thành viên sẽ không còn truy cập được nhóm và các bài tập.');")
               button.gd-button.gd-button--danger(type="submit") Xóa nhóm

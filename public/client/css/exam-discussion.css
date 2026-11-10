@@ -1,0 +1,11 @@
+.discussion-exam{padding:28px;border:1px solid #cbdcf3;border-radius:16px;background:linear-gradient(120deg,#e2edff,#f5f8ff);margin:20px 0 34px}
+.discussion-badges{display:flex;flex-wrap:wrap;gap:8px}
+.discussion-badges span{font-size:12px;color:#245393;background:#f8fbff;border:1px solid #d4e1f5;padding:5px 10px;border-radius:6px}
+.discussion-exam h1{font-size:28px;line-height:1.5;letter-spacing:-.5px;overflow-wrap:anywhere;color:#173c70}
+.discussion-description{white-space:pre-wrap;line-height:1.8;color:#526987;font-size:14px}
+.discussion-metrics{display:flex;gap:40px;margin:22px 0}
+.discussion-metrics small{display:block;color:#64748b;margin-bottom:8px;font-size:12px}
+.discussion-metrics strong{font-size:20px;color:#244b7c}
+.discussion-start{display:inline-flex;padding:12px 22px;border-radius:9px;background:#245eb2;color:white;text-decoration:none;font-size:14px;font-weight:600}
+#discussion{scroll-margin-top:90px}.exam-discussion .post-card label{font-size:13px;color:#526987}
+@media(max-width:600px){.discussion-exam{padding:20px}.discussion-exam h1{font-size:23px}}

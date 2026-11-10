@@ -1,0 +1,49 @@
+extends layouts/default
+block styles
+  link(rel="stylesheet" href="/client/css/posts.css")
+block content
+  main.container.posts-page(data-image-upload=base+"/images")
+    a.posts-back(href="/groups/"+group._id) ← Chi tiết nhóm
+    .posts-heading
+      div
+        h1 Bài viết trong nhóm
+        p= group.name
+    section.post-card
+      h2 Chia sẻ với nhóm
+      form(data-post-form method="post" action=base+(tab==='mine'?'?tab=mine':''))
+        label(for="postContent") Nội dung bài viết
+        textarea#postContent(name="content" rows="5" maxlength="20000" placeholder="Đặt câu hỏi hoặc chia sẻ kiến thức…")
+        button(type="submit") Đăng bài
+    nav.posts-tabs(aria-label="Danh sách bài viết")
+      a(href=base aria-current=tab==='feed'?'page':undefined) Bản tin
+      a(href=base+'?tab=mine' aria-current=tab==='mine'?'page':undefined) Bài viết của tôi
+    .posts-list-heading
+      h2= tab==='mine'?'Bài viết của tôi':'Bài viết mới nhất'
+      span #{total} bài viết
+    each post in posts
+      article.post-card
+        .post-author
+          .post-author-identity
+            if post.authorId && post.authorId.avatarUrl
+              img.post-avatar(src=post.authorId.avatarUrl alt="" loading="lazy")
+            else
+              span.post-avatar.post-avatar-letter(aria-hidden="true")= (post.authorId ? post.authorId.fullName : "?").trim().charAt(0).toUpperCase()
+            strong= post.authorId ? post.authorId.fullName : "Tài khoản đã xóa"
+          time= new Date(post.createdAt).toLocaleString('vi-VN',{timeZone:'Asia/Ho_Chi_Minh'})
+        p.post-text= post.content.length>500?post.content.slice(0,500)+'…':post.content
+        .post-images
+          each image in post.images || []
+            a(href=image target="_blank" rel="noopener")
+              img(src=image alt="Ảnh trong bài viết" loading="lazy")
+        a.post-link(href=base+'/'+post._id+(tab==='mine'?'?tab=mine':'')) Xem và thảo luận →
+    else
+      p.posts-empty= tab==='mine'?'Bạn chưa đăng bài viết nào trong nhóm này.':'Chưa có bài viết. Hãy bắt đầu cuộc thảo luận đầu tiên.'
+    if paging.pages>1
+      nav.posts-pagination(aria-label="Phân trang bài viết")
+        if paging.current>1
+          a(href=base+'?tab='+tab+'&page='+(paging.current-1)) Trước
+        span #{paging.current} / #{paging.pages}
+        if paging.current<paging.pages
+          a(href=base+'?tab='+tab+'&page='+(paging.current+1)) Sau
+block scripts
+  script(src="/client/js/posts.js" defer)

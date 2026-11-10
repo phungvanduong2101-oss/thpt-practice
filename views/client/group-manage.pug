@@ -4,7 +4,7 @@ block styles
   link(rel="stylesheet" href="/client/css/group-manage.css")
 
 block content
-  .gm-page
+  .gm-page.member-manage
     section.gm-hero
       .container
         a.gm-back(href="/groups/" + group._id)
@@ -125,6 +125,7 @@ block content
                         form(
                           action="/groups/" + group._id + "/members/" + account._id + "/remove"
                           method="POST"
+                          onsubmit="return confirm('Xóa thành viên này khỏi nhóm?');"
                         )
                           button.gm-button.gm-button--danger(type="submit")
                             | Xóa khỏi nhóm

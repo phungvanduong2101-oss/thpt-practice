@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 
 const accountSchema = new mongoose.Schema(
   {
+    avatarUrl: { type: String, default: "" },
     fullName: {
       type: String,
       required: true,

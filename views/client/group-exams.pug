@@ -100,9 +100,9 @@ block content
                 | #{exam.duration} phút
 
             a.client-exam-card__start(
-              href="/groups/" + group._id + "/exams/" + exam._id + "/take"
+              href="/groups/" + group._id + "/exams/" + exam._id
             )
-              | Bắt đầu làm bài
+              | Xem đề và thảo luận
               i(data-lucide="arrow-right" aria-hidden="true")
 
       #examEmpty.exam-empty(hidden=totalItems > 0)

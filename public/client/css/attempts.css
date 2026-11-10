@@ -43,3 +43,14 @@
 .history-review:hover{background:#edf4ff;text-decoration:none;border-color:#aecbfa}
 .history-pagination-row{background:#fbfcfe;border-top:1px solid #edf0f5}
 @media(max-width:700px){.history-toolbar{padding:18px}.history-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.history-stat:first-child{grid-column:1/-1}.history-stat{padding:18px;gap:12px}.history-stat strong{font-size:30px}.history-stat-label{font-size:12px;gap:7px}.history-stat small{line-height:1.5}.history-table td,.history-table th{padding-inline:16px}.history-pagination-row{justify-content:center}.history-pagination-row p{width:100%;text-align:center}}
+.history-chart-card{background:#fff;border:1px solid #dce5f1;border-radius:15px;padding:24px;margin-bottom:26px;box-shadow:0 4px 16px #243b5304}
+.history-chart-heading{display:flex;justify-content:space-between;align-items:start;gap:16px;margin-bottom:20px}
+.history-chart-heading h2{font-size:17px;margin:0 0 7px;color:#203653}
+.history-chart-heading p{margin:0;font-size:12px;color:#71829a;line-height:1.7}
+.history-chart-key{display:flex;align-items:center;gap:7px;font-size:12px;color:#526987;white-space:nowrap}
+.history-chart-key::before{content:"";width:9px;height:9px;background:#245eb2;border-radius:50%}
+#historyChart{overflow-x:auto}
+#historyChart svg{display:block;width:100%;min-width:540px;height:auto;max-height:320px;font-family:inherit}
+#historyChart circle:focus{outline:none;stroke:#f0b951;stroke-width:4}
+.history-chart-empty{padding:40px 12px;text-align:center;font-size:13px;color:#71829a}
+@media(max-width:600px){.history-chart-card{padding:18px}.history-chart-heading{flex-direction:column;gap:10px}}

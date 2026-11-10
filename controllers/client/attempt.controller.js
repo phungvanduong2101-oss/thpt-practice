@@ -27,6 +27,7 @@ module.exports.index = async (req, res, next) => {
     let averageScore = null;
     let bestScore = null;
     let attempts = [];
+    let chartAttempts = [];
     let totalPages = 1;
 
     if (selectedSubject) {
@@ -40,6 +41,14 @@ module.exports.index = async (req, res, next) => {
         { $set: { historySubjectId: { $ifNull: ["$subjectId", { $arrayElemAt: ["$examInfo.subjectId", 0] }] } } },
         { $match: { historySubjectId: selectedSubject._id } },
       ];
+      chartAttempts = await Attempt.aggregate([
+        ...pipeline,
+        { $match: { score: { $type: "number" }, maxScore: { $gt: 0 }, submittedAt: { $type: "date" } } },
+        { $sort: { submittedAt: -1, _id: -1 } },
+        { $limit: 20 },
+        { $project: { examTitle: 1, score: 1, maxScore: 1, submittedAt: 1 } }
+      ]);
+      chartAttempts.reverse();
       const [stats] = await Attempt.aggregate([
         ...pipeline,
         { $group: { _id: null, total: { $sum: 1 }, average: { $avg: "$score" }, best: { $max: "$score" } } },
@@ -74,7 +83,7 @@ module.exports.index = async (req, res, next) => {
 
     return res.render("client/attempts", {
       title: "Lịch sử làm bài", activePage: "attempts",
-      subjects, selectedSubject, attempts, averageScore, bestScore,
+      subjects, selectedSubject, attempts, chartAttempts, averageScore, bestScore,
       totalItems, totalPages, currentPage, pageNumbers, pageUrl,
       startItem: totalItems ? (currentPage - 1) * limit + 1 : 0,
       endItem: Math.min(currentPage * limit, totalItems),

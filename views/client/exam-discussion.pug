@@ -1,0 +1,81 @@
+extends layouts/default
+block styles
+  link(rel="stylesheet" href="/client/css/posts.css")
+  link(rel="stylesheet" href="/client/css/exam-discussion.css")
+block content
+  main.container.posts-page.exam-discussion
+    a.posts-back(href=listUrl) ← Danh sách đề thi
+    section.discussion-exam
+      .discussion-badges
+        span= exam.subjectId.name
+        if group
+          span= group.name
+      h1= exam.title
+      if exam.description
+        p.discussion-description= exam.description
+      .discussion-metrics
+        div
+          small Số câu hỏi
+          strong #{exam.questionIds.length} câu
+        div
+          small Thời lượng
+          strong #{exam.duration} phút
+      a.discussion-start(href=takeUrl) Làm bài →
+    section#discussion
+      .posts-list-heading
+        h2 Thảo luận về đề thi
+        span #{total} bình luận
+      if currentAccount
+        form.post-card(data-post-form method="post" action=base+'/comments')
+          label(for="examComment") Bình luận của bạn
+          input#examQuotedId(type="hidden" name="quotedCommentId")
+          blockquote#examQuotePreview.post-quote(hidden)
+            strong#examQuoteAuthor
+            p#examQuoteText.post-text
+            button#examCancelQuote.post-secondary(type="button") Bỏ trích dẫn
+          textarea#examComment(name="content" rows="4" maxlength="5000" required placeholder="Trao đổi cách giải, đặt câu hỏi về đề…")
+          button Đăng bình luận
+      else
+        p.posts-empty
+          a(href="/auth/login") Đăng nhập để bình luận
+      each comment in comments
+        article.post-card.post-comment(id="exam-comment-"+comment._id)
+          .post-author
+            .post-author-identity
+              if comment.authorId && comment.authorId.avatarUrl
+                img.post-avatar(src=comment.authorId.avatarUrl alt="" loading="lazy")
+              else
+                span.post-avatar.post-avatar-letter(aria-hidden="true")= (comment.authorId?comment.authorId.fullName:'?').charAt(0).toUpperCase()
+              strong= comment.authorId?comment.authorId.fullName:'Tài khoản đã xóa'
+            time= new Date(comment.createdAt).toLocaleString('vi-VN',{timeZone:'Asia/Ho_Chi_Minh'})
+          if comment.quotedCommentId
+            blockquote.post-quote
+              if comment.quoteDeleted
+                p Bình luận được trích dẫn đã bị xóa.
+              else
+                strong= comment.quoteSnapshot.authorName+" viết:"
+                p.post-text= comment.quoteSnapshot.contentText
+          p.post-text= comment.content
+          .post-actions
+            if currentAccount
+              button.post-secondary(type="button" data-exam-quote=comment._id data-author=comment.authorId?comment.authorId.fullName:"Tài khoản đã xóa" data-content=comment.content.slice(0,2000)) Trích dẫn
+            if comment.canEdit
+              details
+                summary Sửa bình luận
+                form(data-post-form method="post" action=base+'/comments/'+comment._id+'/edit')
+                  textarea(name="content" rows="3" maxlength="5000" required aria-label="Sửa bình luận")= comment.content
+                  button Lưu
+            if comment.canDelete
+              form(data-post-form data-confirm="Xóa bình luận này?" method="post" action=base+'/comments/'+comment._id+'/delete')
+                button.post-danger Xóa
+      else
+        p.posts-empty Chưa có bình luận. Hãy bắt đầu cuộc thảo luận.
+      if pages>1
+        nav.posts-pagination(aria-label="Phân trang bình luận đề thi")
+          if page>1
+            a(href=base+'?page='+(page-1)+'#discussion') Trước
+          span #{page} / #{pages}
+          if page<pages
+            a(href=base+'?page='+(page+1)+'#discussion') Sau
+block scripts
+  script(src="/client/js/exam-discussion.js" defer)

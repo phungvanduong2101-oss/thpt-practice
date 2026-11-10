@@ -317,3 +317,43 @@
     padding: 20px 18px;
   }
 }
+/* Member management workspace, scoped away from homework tables. */
+.member-manage>.container,.member-manage .gm-hero>.container{max-width:1200px}
+.member-manage .gm-hero{padding:28px 0 34px;background:linear-gradient(115deg,#e3edff,#f2f7ff)}
+.member-manage .gm-back{font-size:13px;font-weight:500;margin-bottom:20px}
+.member-manage .gm-eyebrow{font-size:10px;letter-spacing:1.3px}
+.member-manage .gm-hero h1{font-size:clamp(24px,3vw,30px);letter-spacing:-.6px;margin:10px 0}
+.member-manage .gm-group-name{font-size:14px}
+.member-manage .gm-content{padding-top:24px}
+.member-manage .gm-content>.gm-actions{justify-content:flex-end;margin-bottom:20px}
+.member-manage .gm-summary{gap:18px;margin-bottom:24px}
+.member-manage .gm-stat{display:flex;align-items:center;justify-content:space-between;gap:16px;background:#fbfdff;padding:20px 24px;border-color:#dce5f1;border-radius:12px}
+.member-manage .gm-stat span{margin:0;font-size:13px}
+.member-manage .gm-stat strong{font-size:30px;color:#245eb2}
+.member-manage .gm-stat:last-child{background:#fffaf0;border-color:#f0e3c6}
+.member-manage .gm-stat:last-child strong{color:#b07c20}
+.member-manage .gm-card{border-color:#dce5f1;border-radius:14px;box-shadow:0 4px 16px #243b5304}
+.member-manage .gm-card-heading{padding:20px 24px;align-items:center;background:#fbfdff}
+.member-manage .gm-card-heading h2{font-size:17px;line-height:1.5;margin:0 0 5px}
+.member-manage .gm-card-heading p{font-size:12px;line-height:1.7}
+.member-manage .gm-count{font-size:12px;min-width:32px;height:32px;border-radius:8px}
+.member-manage .gm-table{table-layout:fixed;min-width:620px}
+.member-manage .gm-table th:nth-child(1){width:44%}
+.member-manage .gm-table th:nth-child(2){width:22%}
+.member-manage .gm-table th:nth-child(3){width:34%}
+.member-manage .gm-table th{padding:13px 24px;background:#f5f8fc;color:#71829a;font-size:11px;letter-spacing:.2px}
+.member-manage .gm-table td{padding:18px 24px;vertical-align:middle;font-size:13px}
+.member-manage .gm-table th:last-child,.member-manage .gm-table td:last-child{text-align:right}
+.member-manage .gm-table td:last-child .gm-actions{justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.member-manage .gm-table .gm-person{gap:12px;min-width:0}
+.member-manage .gm-person strong{font-size:13px;line-height:1.6;overflow-wrap:anywhere}
+.member-manage .gm-avatar{width:36px;height:36px;border-radius:10px;background:#eaf2ff;color:#245eb2;flex-shrink:0}
+.member-manage .gm-avatar svg{width:18px;height:18px}
+.member-manage .gm-button{box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:9px 14px;border-radius:8px;font-size:12px;line-height:1.5;white-space:nowrap}
+.member-manage .gm-button--primary{background:#245eb2}
+.member-manage .gm-button--secondary{color:#526783;background:#f8fafd;border-color:#dce5f1}
+.member-manage .gm-button--danger{background:#fff3f4;color:#b24453;border-color:#f1cdd2}
+.member-manage .gm-badge{font-size:11px;padding:5px 9px;line-height:1.5;white-space:nowrap;border-radius:6px}
+.member-manage .gm-empty{padding:36px 20px;color:#71829a;font-size:13px}
+.member-manage .gm-empty svg{color:#85a4ce;width:30px;height:30px}
+@media(max-width:600px){.member-manage .gm-summary{gap:12px}.member-manage .gm-stat{padding:16px;align-items:start;flex-direction:column;gap:8px}.member-manage .gm-card-heading{padding:18px}.member-manage .gm-table td,.member-manage .gm-table th{padding:14px 18px}.member-manage .gm-content>.gm-actions .gm-button{width:100%}}

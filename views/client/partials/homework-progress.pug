@@ -57,7 +57,10 @@ if visible
                   span.hw-rank-number(class=r.rank<=3?'hw-rank-top hw-rank-'+r.rank:undefined)= r.rank
                 td
                   .hw-ranking-person
-                    span.hw-person-avatar(aria-hidden="true")= (r.name || '?').trim().charAt(0).toUpperCase()
+                    if r.avatarUrl
+                      img.hw-person-avatar(src=r.avatarUrl alt="" loading="lazy")
+                    else
+                      span.hw-person-avatar(aria-hidden="true")= (r.name || '?').trim().charAt(0).toUpperCase()
                     strong= r.name
                     if isMe
                       span.hw-you Bạn

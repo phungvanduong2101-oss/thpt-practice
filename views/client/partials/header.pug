@@ -158,8 +158,11 @@ header.site-header
             aria-controls="accountPanel"
             aria-expanded="false"
           )
-            span.avatar.account-avatar-letter(aria-hidden="true")
-              = accountName.charAt(0).toUpperCase()
+            if account.avatarUrl
+              img.avatar(src=account.avatarUrl alt="Ảnh đại diện" style="object-fit:cover")
+            else
+              span.avatar.account-avatar-letter(aria-hidden="true")
+                = accountName.charAt(0).toUpperCase()
 
             span.account-name= accountName
 
@@ -172,6 +175,7 @@ header.site-header
             strong= accountName
             small.account-email= account.email
  
+            a(href="/account") Quản lý tài khoản
             a(href="/my/questions") Câu hỏi của tôi
             a(href="/my/exams") Đề thi của tôi 
             if account.role === "admin"
